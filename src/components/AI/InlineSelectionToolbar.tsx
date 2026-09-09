@@ -94,10 +94,10 @@ export const InlineSelectionToolbar: React.FC = () => {
       <button
         onClick={() => handleAction('ask')}
         className="flex items-center gap-1 px-2.5 py-1 rounded-full hover:bg-white/10 text-zinc-300 hover:text-white transition-colors"
-        title="Ask AI Friend"
+        title="Ask Omni"
       >
         <MessageSquare size={12} />
-        <span>Ask Friend</span>
+        <span>Ask Omni</span>
       </button>
     </div>
   );

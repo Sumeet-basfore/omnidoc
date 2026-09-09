@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import { downloadBlob } from '../../services/exportService';
+import appLogo from '../../assets/app_logo.png';
 
 export const TopBar: React.FC = () => {
   const {
@@ -100,9 +101,12 @@ export const TopBar: React.FC = () => {
         </button>
 
         {/* Brand mark */}
-        <div className="w-7 h-7 rounded bg-[var(--accent-primary)] flex items-center justify-center text-[var(--text-on-accent)] font-bold text-xs shrink-0 font-mono">
-          OD
-        </div>
+        <img
+          src={appLogo}
+          alt="OmniDoc Studio"
+          className="w-7 h-7 rounded shrink-0"
+          draggable={false}
+        />
 
         {activeDoc && (
           <div className="flex items-center gap-2 pl-2.5 border-l border-white/10">
@@ -209,10 +213,10 @@ export const TopBar: React.FC = () => {
               ? 'bg-[var(--accent-primary)] text-[var(--text-on-accent)]'
               : 'bg-white/10 hover:bg-white/15 text-white'
           }`}
-          title="Toggle AI Friend Co-Writer & Deep Research"
+          title="Toggle Omni & Deep Research"
         >
           <Sparkles size={13} className={isAIDrawerOpen ? 'text-[var(--text-on-accent)]' : 'text-sky-400'} />
-          <span className="hidden sm:inline">AI Friend</span>
+          <span className="hidden sm:inline">Omni</span>
         </button>
       </div>
     </header>

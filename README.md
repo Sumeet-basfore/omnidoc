@@ -12,11 +12,11 @@
   - **DOCX (`.docx`)**: Mammoth.js parsing and Tiptap v2 WYSIWYG editor with rich DOCX export preserving formatting.
   - **Data Grid (`.csv`, `.json`)**: Spreadsheets with inline cell editing, sorting, column additions, and bidirectional format conversions.
   - **Code Studio (`.ts`, `.py`, `.rs`, etc.)**: Shiki-powered syntax coloring with `one-dark-pro`, line numbers, and in-file search.
-- **AI Friend & Deep Research Companion**:
-  - **Persona Modes**: Friend Co-Writer, Researcher, Proofreader, and Brainstormer.
+- **Omni & Deep Research Companion**:
+  - **Persona Modes**: Co-writer, Researcher, Proofreader, and Brainstormer.
   - **Deep Web Research**: Autonomous Tavily and Exa search synthesis with citations and domain filters.
   - **Multi-Provider Support**: Google Gemini, Anthropic Claude, OpenAI, and local Ollama / LM Studio instances.
-- **Obsidian Velvet & Neon Cyber Glass Design**:
+- **Midnight Instrument & Paper Design**:
   - 48px decluttered header with inline double-click title renaming.
   - 36px flush tab bar with active format accent borders and dirty state indicators.
   - Sidebar 2-line cards with format-coded indicators and quick-create actions.

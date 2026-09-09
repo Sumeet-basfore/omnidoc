@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import { FolderOpen, Plus, FileText, Table, Braces } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import { DocumentFormat, DocumentItem } from '../../types/document';
+import appLogo from '../../assets/app_logo.png';
 
 export const EmptyState: React.FC = () => {
   const { openDocument, createDocument, addRecentFile, setShortcutsModalOpen } = useAppStore();
@@ -91,13 +92,14 @@ export const EmptyState: React.FC = () => {
         className="hidden"
       />
 
-      {/* Centered OD mark */}
+      {/* App mark */}
       <div className="relative mb-5 cursor-default">
-        <div className="w-16 h-16 rounded-md bg-[var(--bg-dark-surface)] border border-[var(--border-subtle)] flex items-center justify-center">
-          <span className="text-2xl font-bold text-sky-300 font-mono">
-            OD
-          </span>
-        </div>
+        <img
+          src={appLogo}
+          alt="OmniDoc Studio"
+          className="w-16 h-16 rounded-md"
+          draggable={false}
+        />
         <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 px-1.5 py-0.2 rounded-full text-[9px] font-mono font-semibold bg-[var(--accent-primary)] text-[var(--text-on-accent)]">
           v2.0
         </span>

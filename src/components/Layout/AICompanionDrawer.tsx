@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { X, Sparkles, Globe, MessageSquare, Cpu } from 'lucide-react';
+import { X, Globe, MessageSquare, Cpu } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import { ChatPanel } from '../AI/ChatPanel';
 import { DeepResearchPanel } from '../AI/DeepResearchPanel';
+import agentLogo from '../../assets/agent_logo.png';
 
 export const AICompanionDrawer: React.FC = () => {
   const { isAIDrawerOpen, setAIDrawerOpen, activeProvider, aiConfigs, toggleSidebar, setLeftPanel, drawerWidth, setDrawerWidth } = useAppStore();
@@ -41,11 +42,14 @@ export const AICompanionDrawer: React.FC = () => {
       {/* Drawer Header */}
       <div className="h-14 px-4 border-b border-[var(--border-subtle)] flex items-center justify-between bg-[var(--bg-glass)]">
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded bg-[var(--accent-primary)] flex items-center justify-center text-[var(--text-on-accent)]">
-            <Sparkles size={13} />
-          </div>
+          <img
+            src={agentLogo}
+            alt="Omni"
+            className="w-6 h-6 rounded-full object-cover shrink-0"
+            draggable={false}
+          />
           <div>
-            <h3 className="text-xs font-semibold text-white leading-tight">AI Studio Companion</h3>
+            <h3 className="text-xs font-semibold text-white leading-tight">Omni</h3>
             <button
               onClick={() => {
                 toggleSidebar(true);
@@ -79,7 +83,7 @@ export const AICompanionDrawer: React.FC = () => {
           }`}
         >
           <MessageSquare size={13} />
-          <span>AI Friend Co-Writer</span>
+          <span>Omni Chat</span>
         </button>
 
         <button

@@ -151,7 +151,7 @@ export const useAppStore = create<AppState>()(
         {
           id: 'welcome-msg',
           role: 'assistant',
-          content: "Hello! I'm your AI Friend & Research Partner in OmniDoc Studio. How can I assist you with your document today? You can ask me to draft sections, summarize content, conduct deep research, or proofread your writing.",
+          content: "Hello! I'm Omni, your research partner in OmniDoc Studio. How can I help with your document today? I can draft sections, summarize content, run deep research, or proofread your writing.",
           timestamp: Date.now()
         }
       ],

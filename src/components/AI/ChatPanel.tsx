@@ -8,6 +8,7 @@ import { trimHistory } from '../../services/budget';
 import { keyService } from '../../services/keyService';
 
 import { AIPersona } from '../../types/ai';
+import agentLogo from '../../assets/agent_logo.png';
 
 export const ChatPanel: React.FC = () => {
   const {
@@ -489,8 +490,8 @@ export const ChatPanel: React.FC = () => {
                 </>
               ) : (
                 <>
-                  <Bot size={12} className="text-sky-400" />
-                  <span className="text-sky-300 font-medium">AI Friend</span>
+                  <img src={agentLogo} alt="Omni" className="w-3.5 h-3.5 rounded-full object-cover" draggable={false} />
+                  <span className="text-sky-300 font-medium">Omni</span>
                 </>
               )}
             </div>
@@ -561,8 +562,8 @@ export const ChatPanel: React.FC = () => {
         {streaming !== null && (
           <div className="flex flex-col items-start space-y-1">
             <div className="flex items-center gap-1.5 text-[11px] text-zinc-500 px-1 select-none">
-              <Bot size={12} className="text-sky-400" />
-              <span className="text-sky-300 font-medium">AI Friend</span>
+              <img src={agentLogo} alt="Omni" className="w-3.5 h-3.5 rounded-full object-cover" draggable={false} />
+              <span className="text-sky-300 font-medium">Omni</span>
             </div>
             <div className="p-3.5 rounded-md max-w-[90%] text-xs leading-relaxed bg-[var(--bg-dark-surface)] text-zinc-200 border border-white/10 shadow-lg rounded-tl-sm">
               {streaming === '' ? (
@@ -746,7 +747,7 @@ export const ChatPanel: React.FC = () => {
                 handleSend();
               }
             }}
-            placeholder="Ask AI Friend or request writing help..."
+            placeholder="Ask Omni or request writing help..."
             rows={2}
             className="w-full bg-transparent text-xs text-white placeholder-zinc-500 resize-none outline-none leading-relaxed"
           />

@@ -95,7 +95,7 @@ export const CommandPalette: React.FC = () => {
     },
     {
       id: 'ai-drawer',
-      title: 'Toggle AI Friend & Research Assistant',
+      title: 'Toggle Omni & Research Assistant',
       category: 'AI',
       icon: <Sparkles size={14} className="text-sky-400" />,
       action: () => toggleAIDrawer()
