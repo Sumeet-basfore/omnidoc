@@ -20,6 +20,10 @@ interface AppState {
   isSidebarOpen: boolean;
   leftPanel: 'files' | 'settings';
   setLeftPanel: (view: 'files' | 'settings') => void;
+  sidebarWidth: number;
+  setSidebarWidth: (w: number) => void;
+  drawerWidth: number;
+  setDrawerWidth: (w: number) => void;
   isAIDrawerOpen: boolean;
   isCommandPaletteOpen: boolean;
   isExportModalOpen: boolean;
@@ -116,6 +120,8 @@ export const useAppStore = create<AppState>()(
 
       isSidebarOpen: true,
       leftPanel: 'files',
+      sidebarWidth: 260,
+      drawerWidth: 380,
       isAIDrawerOpen: false,
       isCommandPaletteOpen: false,
       isExportModalOpen: false,
@@ -284,6 +290,11 @@ export const useAppStore = create<AppState>()(
 
       setLeftPanel: (view) => set({ leftPanel: view }),
 
+      setSidebarWidth: (w) =>
+        set({ sidebarWidth: Math.min(400, Math.max(200, Math.round(w))) }),
+      setDrawerWidth: (w) =>
+        set({ drawerWidth: Math.min(520, Math.max(320, Math.round(w))) }),
+
       setCommandPaletteOpen: (open) => set({ isCommandPaletteOpen: open }),
 
       setExportModalOpen: (open) => set({ isExportModalOpen: open }),
@@ -395,7 +406,9 @@ export const useAppStore = create<AppState>()(
         recentFiles: s.recentFiles,
         activeProvider: s.activeProvider,
         activePersona: s.activePersona,
-        aiConfigs: s.aiConfigs
+        aiConfigs: s.aiConfigs,
+        sidebarWidth: s.sidebarWidth,
+        drawerWidth: s.drawerWidth
       })
     }
   )

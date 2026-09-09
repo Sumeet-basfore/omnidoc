@@ -22,8 +22,25 @@ export const Sidebar: React.FC = () => {
     openDocument,
     createDocument,
     recentFiles,
-    addRecentFile
+    addRecentFile,
+    sidebarWidth,
+    setSidebarWidth
   } = useAppStore();
+
+  const startResize = (dir: 1 | -1) => (e: React.MouseEvent) => {
+    e.preventDefault();
+    const startX = e.clientX;
+    const startW = sidebarWidth;
+    document.body.style.userSelect = 'none';
+    const onMove = (ev: MouseEvent) => setSidebarWidth(startW + (ev.clientX - startX) * dir);
+    const onUp = () => {
+      document.body.style.userSelect = '';
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  };
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -31,7 +48,16 @@ export const Sidebar: React.FC = () => {
 
   if (leftPanel === 'settings') {
     return (
-      <aside className="w-[260px] h-full flex flex-col border-r border-[var(--border-subtle)] bg-[var(--bg-dark-surface)] select-none text-xs shrink-0">
+      <aside
+        style={{ width: sidebarWidth }}
+        className="h-full flex flex-col border-r border-[var(--border-subtle)] bg-[var(--bg-dark-surface)] select-none text-xs shrink-0 relative"
+      >
+        <div
+          onMouseDown={startResize(1)}
+          onDoubleClick={() => setSidebarWidth(260)}
+          className="absolute top-0 bottom-0 -right-1 w-2 cursor-col-resize z-40 hover:bg-sky-500/30 transition-colors"
+          title="Drag to resize (double-click to reset)"
+        />
         <ProviderSettings />
       </aside>
     );
@@ -203,7 +229,16 @@ export const Sidebar: React.FC = () => {
   };
 
   return (
-    <aside className="w-[260px] h-full flex flex-col border-r border-[var(--border-subtle)] bg-[var(--bg-dark-surface)] select-none text-xs shrink-0">
+    <aside
+        style={{ width: sidebarWidth }}
+        className="h-full flex flex-col border-r border-[var(--border-subtle)] bg-[var(--bg-dark-surface)] select-none text-xs shrink-0 relative"
+      >
+        <div
+          onMouseDown={startResize(1)}
+          onDoubleClick={() => setSidebarWidth(260)}
+          className="absolute top-0 bottom-0 -right-1 w-2 cursor-col-resize z-40 hover:bg-sky-500/30 transition-colors"
+          title="Drag to resize (double-click to reset)"
+        />
       {/* Hidden browser file input */}
       <input
         type="file"

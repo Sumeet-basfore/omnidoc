@@ -5,8 +5,23 @@ import { ChatPanel } from '../AI/ChatPanel';
 import { DeepResearchPanel } from '../AI/DeepResearchPanel';
 
 export const AICompanionDrawer: React.FC = () => {
-  const { isAIDrawerOpen, setAIDrawerOpen, activeProvider, aiConfigs, toggleSidebar, setLeftPanel } = useAppStore();
+  const { isAIDrawerOpen, setAIDrawerOpen, activeProvider, aiConfigs, toggleSidebar, setLeftPanel, drawerWidth, setDrawerWidth } = useAppStore();
   const [activeTab, setActiveTab] = useState<'chat' | 'research'>('chat');
+
+  const startResize = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const startX = e.clientX;
+    const startW = drawerWidth;
+    document.body.style.userSelect = 'none';
+    const onMove = (ev: MouseEvent) => setDrawerWidth(startW - (ev.clientX - startX));
+    const onUp = () => {
+      document.body.style.userSelect = '';
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  };
 
   const currentConfig = aiConfigs[activeProvider];
 
@@ -14,8 +29,15 @@ export const AICompanionDrawer: React.FC = () => {
 
   return (
     <aside
-      className="w-[380px] h-full flex flex-col border-l border-[var(--border-subtle)] bg-[var(--bg-dark-surface)] z-30 select-none shadow-2xl"
+      style={{ width: drawerWidth }}
+      className="h-full flex flex-col border-l border-[var(--border-subtle)] bg-[var(--bg-dark-surface)] z-30 select-none shadow-2xl relative shrink-0"
     >
+      <div
+        onMouseDown={startResize}
+        onDoubleClick={() => setDrawerWidth(380)}
+        className="absolute top-0 bottom-0 -left-1 w-2 cursor-col-resize z-40 hover:bg-sky-500/30 transition-colors"
+        title="Drag to resize (double-click to reset)"
+      />
       {/* Drawer Header */}
       <div className="h-14 px-4 border-b border-[var(--border-subtle)] flex items-center justify-between bg-[var(--bg-glass)]">
         <div className="flex items-center gap-2">
