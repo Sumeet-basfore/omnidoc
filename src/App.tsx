@@ -7,7 +7,6 @@ import { AICompanionDrawer } from './components/Layout/AICompanionDrawer';
 import { DocumentAdapterRouter } from './adapters/documentAdapterRouter';
 import { InlineSelectionToolbar } from './components/AI/InlineSelectionToolbar';
 import { PendingInserts } from './components/AI/PendingInserts';
-import { ProviderSettings } from './components/Settings/ProviderSettings';
 import { CommandPalette } from './components/CommandPalette/CommandPalette';
 import { ExportModal } from './components/Layout/ExportModal';
 import { KeyboardShortcutsModal } from './components/Layout/KeyboardShortcutsModal';
@@ -29,6 +28,8 @@ export const App: React.FC = () => {
     toggleAIDrawer,
     isAIDrawerOpen,
     setAIDrawerOpen,
+    leftPanel,
+    setLeftPanel,
     setShortcutsModalOpen
   } = useAppStore();
 
@@ -168,6 +169,9 @@ export const App: React.FC = () => {
         if (isAIDrawerOpen) {
           e.preventDefault();
           setAIDrawerOpen(false);
+        } else if (leftPanel === 'settings') {
+          e.preventDefault();
+          setLeftPanel('files');
         }
       } else if (e.key === '?') {
         const target = e.target as HTMLElement;
@@ -181,7 +185,7 @@ export const App: React.FC = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [tabs, activeTabId, documents, createDocument, openDocument, markDirty, setDocumentPath, addRecentFile, setLastSavedAt, toggleSidebar, toggleAIDrawer, isAIDrawerOpen, setAIDrawerOpen, setShortcutsModalOpen]);
+  }, [tabs, activeTabId, documents, createDocument, openDocument, markDirty, setDocumentPath, addRecentFile, setLastSavedAt, toggleSidebar, toggleAIDrawer, isAIDrawerOpen, setAIDrawerOpen, leftPanel, setLeftPanel, setShortcutsModalOpen]);
 
   // Open default welcome document if no document is currently open
   useEffect(() => {
@@ -213,7 +217,6 @@ export const App: React.FC = () => {
       <StatusBar />
 
       {/* Global Modals */}
-      <ProviderSettings />
       <CommandPalette />
       <ExportModal />
       <KeyboardShortcutsModal />

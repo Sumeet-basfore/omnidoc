@@ -4,7 +4,6 @@ import {
   Sparkles,
   Save,
   Download,
-  Settings,
   Search,
   Cpu
 } from 'lucide-react';
@@ -17,7 +16,8 @@ export const TopBar: React.FC = () => {
     toggleSidebar,
     isAIDrawerOpen,
     toggleAIDrawer,
-    setSettingsOpen,
+    leftPanel,
+    setLeftPanel,
     setCommandPaletteOpen,
     setExportModalOpen,
     activeProvider,
@@ -178,25 +178,27 @@ export const TopBar: React.FC = () => {
           </>
         )}
 
-        {/* Compact AI Provider Badge */}
+        {/* Provider settings — the single settings entry */}
         <button
-          onClick={() => setSettingsOpen(true)}
-          className="flex items-center gap-1 px-2 py-1 rounded bg-sky-950/40 border border-sky-500/30 text-sky-300 hover:text-white hover:border-sky-400 transition-all text-xs cursor-pointer"
-          title="Configure AI Model & Keys"
+          onClick={() => {
+            if (leftPanel === 'settings') {
+              setLeftPanel('files');
+            } else {
+              toggleSidebar(true);
+              setLeftPanel('settings');
+            }
+          }}
+          className={`flex items-center gap-1 px-2 py-1 rounded border text-xs cursor-pointer transition-all ${
+            leftPanel === 'settings'
+              ? 'bg-[var(--accent-primary)] border-transparent text-[var(--text-on-accent)] font-semibold'
+              : 'bg-sky-950/40 border-sky-500/30 text-sky-300 hover:text-white hover:border-sky-400'
+          }`}
+          title="Provider & key settings"
         >
-          <Cpu size={12} className="text-sky-400" />
+          <Cpu size={12} className={leftPanel === 'settings' ? 'text-[var(--text-on-accent)]' : 'text-sky-400'} />
           <span className="font-medium text-[11px] hidden sm:inline">
             {currentAIConfig.name.split(' ')[0]}
           </span>
-        </button>
-
-        {/* Settings button */}
-        <button
-          onClick={() => setSettingsOpen(true)}
-          className="p-1.5 rounded text-zinc-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
-          title="Settings"
-        >
-          <Settings size={15} />
         </button>
 
         {/* Toggle AI Companion Drawer */}

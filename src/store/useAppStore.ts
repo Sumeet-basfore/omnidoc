@@ -18,8 +18,9 @@ interface AppState {
 
   // UI state
   isSidebarOpen: boolean;
+  leftPanel: 'files' | 'settings';
+  setLeftPanel: (view: 'files' | 'settings') => void;
   isAIDrawerOpen: boolean;
-  isSettingsOpen: boolean;
   isCommandPaletteOpen: boolean;
   isExportModalOpen: boolean;
   isShortcutsModalOpen: boolean;
@@ -52,7 +53,6 @@ interface AppState {
   toggleSidebar: (force?: boolean) => void;
   toggleAIDrawer: (force?: boolean) => void;
   setAIDrawerOpen: (open: boolean) => void;
-  setSettingsOpen: (open: boolean) => void;
   setCommandPaletteOpen: (open: boolean) => void;
   setExportModalOpen: (open: boolean) => void;
   setShortcutsModalOpen: (open: boolean) => void;
@@ -115,8 +115,8 @@ export const useAppStore = create<AppState>()(
       activeTabId: null,
 
       isSidebarOpen: true,
+      leftPanel: 'files',
       isAIDrawerOpen: false,
-      isSettingsOpen: false,
       isCommandPaletteOpen: false,
       isExportModalOpen: false,
       isShortcutsModalOpen: false,
@@ -282,7 +282,7 @@ export const useAppStore = create<AppState>()(
 
       setAIDrawerOpen: (open) => set({ isAIDrawerOpen: open }),
 
-      setSettingsOpen: (open) => set({ isSettingsOpen: open }),
+      setLeftPanel: (view) => set({ leftPanel: view }),
 
       setCommandPaletteOpen: (open) => set({ isCommandPaletteOpen: open }),
 

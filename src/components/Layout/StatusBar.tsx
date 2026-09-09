@@ -32,8 +32,9 @@ export const StatusBar: React.FC = () => {
     activeProvider,
     aiConfigs,
     isAILoading,
-    setSettingsOpen,
-    pendingInserts
+    pendingInserts,
+    toggleSidebar,
+    setLeftPanel
   } = useAppStore();
 
   const [showSaved, setShowSaved] = useState(false);
@@ -91,7 +92,10 @@ export const StatusBar: React.FC = () => {
           </span>
         )}
         <button
-          onClick={() => setSettingsOpen(true)}
+          onClick={() => {
+            toggleSidebar(true);
+            setLeftPanel('settings');
+          }}
           className="flex items-center gap-1 text-zinc-500 hover:text-zinc-200 transition-colors"
           title="Configure AI provider"
         >

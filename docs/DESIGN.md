@@ -33,18 +33,23 @@ Full token table lives in `DESIGN_SYSTEM.md`. This doc describes structure.
 ### 2.1 Top Bar — 48px
 Solid surface strip, bottom border. Left: sidebar toggle, solid-accent
 `OD` mark, title (double-click rename) + format badge + dirty dot.
-Center: command trigger (`⌘K`). Right: Save, Export, provider badge,
-Settings, solid-accent AI toggle (dark icon when active).
+Center: command trigger (`⌘K`). Right: Save, Export, provider badge
+(single settings entry — toggles the settings sidebar), solid-accent
+AI toggle (dark icon when active).
 
 ### 2.2 Workspace Tab Bar — 36px
 Base background. Tabs `120–220px`, top accent notch in format color,
 dirty dot swaps to close on hover. `+` popover creates docs; chevron
 dropdown jumps between open tabs (appears past 1 tab).
 
-### 2.3 Sidebar — 260px, collapsible
-Solid accent **Open File** button, `+ MD / + Grid / + DOCX` ghost buttons.
-Sample library + recent files (3px format rail, badge, path — no fake
-timestamps). Dense `p-1` rows, `11px` muted headers. Drag-drop hint footer.
+### 2.3 Sidebar — 260px, collapsible: files *or* settings
+Files view: solid accent **Open File** button, `+ MD / + Grid / + DOCX`
+ghost buttons. Sample library + recent files (3px format rail, badge,
+path). Dense `p-1` rows, `11px` muted headers. Drag-drop hint footer.
+Settings view: provider switcher, key/model/temperature/base-URL config
+with connection test, research keys, keychain status, save footer —
+reached from the TopBar provider badge, the drawer header, the status
+bar, error banners, or the palette; `Esc` returns to files.
 
 ### 2.4 Status Bar — 24px
 Single-line footer, top border. Left: doc name · dirty/saved state ·

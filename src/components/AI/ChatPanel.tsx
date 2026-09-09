@@ -19,11 +19,12 @@ export const ChatPanel: React.FC = () => {
     tabs,
     activeTabId,
     queueInsert,
-    setSettingsOpen,
     isAILoading,
     setAILoading,
     pendingInlinePrompt,
-    setPendingInlinePrompt
+    setPendingInlinePrompt,
+    toggleSidebar,
+    setLeftPanel
   } = useAppStore();
 
   const [input, setInput] = useState<string>('');
@@ -166,7 +167,10 @@ export const ChatPanel: React.FC = () => {
           <div className="flex-1">
             <span>{errorBanner}</span>
             <button
-              onClick={() => setSettingsOpen(true)}
+              onClick={() => {
+                toggleSidebar(true);
+                setLeftPanel('settings');
+              }}
               className="block mt-1 font-semibold text-red-300 underline hover:text-white"
             >
               Open Provider Settings

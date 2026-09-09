@@ -12,11 +12,13 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
+import { ProviderSettings } from '../Settings/ProviderSettings';
 import { DocumentFormat, DocumentItem } from '../../types/document';
 
 export const Sidebar: React.FC = () => {
   const {
     isSidebarOpen,
+    leftPanel,
     openDocument,
     createDocument,
     recentFiles,
@@ -26,6 +28,14 @@ export const Sidebar: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!isSidebarOpen) return null;
+
+  if (leftPanel === 'settings') {
+    return (
+      <aside className="w-[260px] h-full flex flex-col border-r border-[var(--border-subtle)] bg-[var(--bg-dark-surface)] select-none text-xs shrink-0">
+        <ProviderSettings />
+      </aside>
+    );
+  }
 
   const detectFormat = (filename: string): DocumentFormat => {
     const ext = filename.split('.').pop()?.toLowerCase() || '';
@@ -193,7 +203,7 @@ export const Sidebar: React.FC = () => {
   };
 
   return (
-    <aside className="w-[260px] h-full flex flex-col border-r border-[var(--border-subtle)] bg-[var(--bg-dark-surface)] select-none text-xs">
+    <aside className="w-[260px] h-full flex flex-col border-r border-[var(--border-subtle)] bg-[var(--bg-dark-surface)] select-none text-xs shrink-0">
       {/* Hidden browser file input */}
       <input
         type="file"

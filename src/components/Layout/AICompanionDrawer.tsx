@@ -5,7 +5,7 @@ import { ChatPanel } from '../AI/ChatPanel';
 import { DeepResearchPanel } from '../AI/DeepResearchPanel';
 
 export const AICompanionDrawer: React.FC = () => {
-  const { isAIDrawerOpen, setAIDrawerOpen, activeProvider, aiConfigs, setSettingsOpen } = useAppStore();
+  const { isAIDrawerOpen, setAIDrawerOpen, activeProvider, aiConfigs, toggleSidebar, setLeftPanel } = useAppStore();
   const [activeTab, setActiveTab] = useState<'chat' | 'research'>('chat');
 
   const currentConfig = aiConfigs[activeProvider];
@@ -25,7 +25,10 @@ export const AICompanionDrawer: React.FC = () => {
           <div>
             <h3 className="text-xs font-semibold text-white leading-tight">AI Studio Companion</h3>
             <button
-              onClick={() => setSettingsOpen(true)}
+              onClick={() => {
+                toggleSidebar(true);
+                setLeftPanel('settings');
+              }}
               className="flex items-center gap-1 text-[10px] text-zinc-400 hover:text-sky-300 transition-colors"
             >
               <Cpu size={10} />

@@ -8,7 +8,8 @@ export const CommandPalette: React.FC = () => {
     setCommandPaletteOpen,
     createDocument,
     toggleAIDrawer,
-    setSettingsOpen,
+    toggleSidebar,
+    setLeftPanel,
     openDocument
   } = useAppStore();
 
@@ -104,7 +105,10 @@ export const CommandPalette: React.FC = () => {
       title: 'Configure AI Providers & API Keys',
       category: 'Settings',
       icon: <Settings size={14} className="text-sky-400" />,
-      action: () => setSettingsOpen(true)
+      action: () => {
+        toggleSidebar(true);
+        setLeftPanel('settings');
+      }
     }
   ];
 

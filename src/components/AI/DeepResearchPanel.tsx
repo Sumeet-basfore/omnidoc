@@ -6,7 +6,7 @@ import { keyService } from '../../services/keyService';
 import { DeepResearchResult, DeepResearchQuery } from '../../types/ai';
 
 export const DeepResearchPanel: React.FC = () => {
-  const { activeProvider, aiConfigs, openDocument, queueInsert, tabs, activeTabId, documents, setSettingsOpen } =
+  const { activeProvider, aiConfigs, openDocument, queueInsert, tabs, activeTabId, documents, toggleSidebar, setLeftPanel } =
     useAppStore();
 
   const [topic, setTopic] = useState<string>('');
@@ -185,7 +185,10 @@ export const DeepResearchPanel: React.FC = () => {
             </div>
             <p className="text-[11px] text-red-200/90">{error}</p>
             <button
-              onClick={() => setSettingsOpen(true)}
+              onClick={() => {
+                toggleSidebar(true);
+                setLeftPanel('settings');
+              }}
               className="text-[11px] underline text-red-300 hover:text-white"
             >
               Configure Tavily & Exa API Keys
