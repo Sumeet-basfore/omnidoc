@@ -78,7 +78,10 @@ settings) · `Working…` spinner while the AI is generating.
 ### 2.6 AI Companion Drawer — 380px, docked
 Unmounted when closed (never an overlay). Solid accent section tabs
 (Chat / Research). Persona chips (Co-writer, Researcher, Proofreader,
-Brainstorm) with Lucide icons. Flat message feed, markdown rendering,
+Brainstorm) with Lucide icons. Replies stream live with Stop (partial
+kept, marked), Regenerate on the last answer, history trimmed to a
+token budget with a visible divider, per-chat usage meter. Flat message
+feed, markdown rendering,
 Copy / Insert-in-Doc (text formats only). Research panel: topic +
 depth + citations → Tavily/Exa synthesis → open-as-doc or insert.
 Keys live in OS keychain; empty-key errors surface inline with a

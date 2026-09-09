@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Copy, Check, Plus, AlertCircle, Trash2, Loader2, PenLine, Search, ListChecks, Lightbulb } from 'lucide-react';
+import { Send, Bot, User, Copy, Check, Plus, AlertCircle, Trash2, Loader2, PenLine, Search, ListChecks, Lightbulb, Square, RotateCcw } from 'lucide-react';
 import { marked } from 'marked';
 import { useAppStore } from '../../store/useAppStore';
-import { callAI } from '../../services/aiService';
+import { streamAI, isAbortError } from '../../services/aiService';
+import { trimHistory } from '../../services/budget';
 import { keyService } from '../../services/keyService';
 import { AIPersona } from '../../types/ai';
 
@@ -19,6 +20,9 @@ export const ChatPanel: React.FC = () => {
     tabs,
     activeTabId,
     queueInsert,
+    popLastAssistant,
+    sessionUsage,
+    addUsage,
     isAILoading,
     setAILoading,
     pendingInlinePrompt,
@@ -30,7 +34,10 @@ export const ChatPanel: React.FC = () => {
   const [input, setInput] = useState<string>('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [errorBanner, setErrorBanner] = useState<string | null>(null);
+  const [streaming, setStreaming] = useState<string | null>(null);
+  const [trimNote, setTrimNote] = useState<number>(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   const activeDoc = tabs.find((t) => t.id === activeTabId)
     ? documents[tabs.find((t) => t.id === activeTabId)!.documentId]
@@ -38,7 +45,7 @@ export const ChatPanel: React.FC = () => {
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [chatMessages, isAILoading]);
+  }, [chatMessages, isAILoading, streaming]);
 
   // Auto-send prompts queued by the inline selection toolbar
   useEffect(() => {
@@ -50,18 +57,15 @@ export const ChatPanel: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pendingInlinePrompt]);
 
-  const handleSend = async (customPrompt?: string) => {
-    const textToSend = customPrompt || input;
-    if (!textToSend.trim() || isAILoading) return;
-
+  const sendMessages = async (base: typeof chatMessages) => {
+    if (isAILoading) return;
     setErrorBanner(null);
-    const userMsg = {
-      role: 'user' as const,
-      content: textToSend.trim()
-    };
-    addChatMessage(userMsg);
-    if (!customPrompt) setInput('');
     setAILoading(true);
+    setStreaming('');
+
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
+    let acc = '';
 
     try {
       const config = aiConfigs[activeProvider];
@@ -81,28 +85,79 @@ export const ChatPanel: React.FC = () => {
           }
         : undefined;
 
-      const aiResponse = await callAI(
-        [...chatMessages, { ...userMsg, id: 'temp', timestamp: Date.now() }],
+      // Trim history to budget (latest turn always kept)
+      const full = base.map((m) => ({ ...m }));
+      const { kept, trimmed } = trimHistory(full);
+      setTrimNote(trimmed);
+
+      const { text, usage } = await streamAI({
+        messages: kept,
         config,
         apiKey,
-        activePersona,
-        documentContext
-      );
+        persona: activePersona,
+        documentContext,
+        signal: ctrl.signal,
+        onToken: (t) => {
+          acc += t;
+          setStreaming(acc);
+        }
+      });
 
-      addChatMessage({
-        role: 'assistant',
-        content: aiResponse
-      });
+      setStreaming(null);
+      if (usage) addUsage(usage);
+      addChatMessage({ role: 'assistant', content: text });
     } catch (err: any) {
-      console.error('Chat AI call failed:', err);
-      setErrorBanner(err.message || 'Failed to generate response from AI provider.');
-      addChatMessage({
-        role: 'assistant',
-        content: `Error: ${err.message || 'Failed to communicate with the AI provider.'}`
-      });
+      const stopped = isAbortError(err) || ctrl.signal.aborted;
+      setStreaming(null);
+      if (stopped) {
+        // User-pressed Stop is not an error: keep what streamed so far.
+        setErrorBanner(null);
+        if (acc.trim()) {
+          addChatMessage({ role: 'assistant', content: `${acc}\n\n· stopped` });
+        }
+      } else {
+        console.error('Chat AI call failed:', err);
+        setErrorBanner(err.message || 'Failed to generate response from AI provider.');
+        addChatMessage({
+          role: 'assistant',
+          content: `Error: ${err.message || 'Failed to communicate with the AI provider.'}`
+        });
+      }
     } finally {
+      abortRef.current = null;
       setAILoading(false);
     }
+  };
+
+  const handleSend = async (customPrompt?: string) => {
+    const textToSend = customPrompt || input;
+    if (!textToSend.trim() || isAILoading) return;
+
+    const userMsg = {
+      role: 'user' as const,
+      content: textToSend.trim()
+    };
+    const base = [
+      ...chatMessages,
+      { ...userMsg, id: `temp-${Date.now()}`, timestamp: Date.now() }
+    ];
+    addChatMessage(userMsg);
+    if (!customPrompt) setInput('');
+    await sendMessages(base);
+  };
+
+  const handleStop = () => {
+    abortRef.current?.abort();
+  };
+
+  const handleRegenerate = async () => {
+    if (isAILoading || streaming !== null) return;
+    const hist = [...chatMessages];
+    if (hist.length === 0 || hist[hist.length - 1].role !== 'assistant') return;
+    const last = hist[hist.length - 1];
+    if (last.content.startsWith('Error:')) return;
+    popLastAssistant();
+    await sendMessages(hist.slice(0, -1));
   };
 
   const handleCopy = (id: string, text: string) => {
@@ -181,7 +236,12 @@ export const ChatPanel: React.FC = () => {
 
       {/* Messages Scroll Area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4 select-text">
-        {chatMessages.map((msg) => (
+        {trimNote > 0 && (
+          <div className="text-center text-[10px] text-zinc-600 font-mono select-none">
+            — {trimNote} earlier message{trimNote === 1 ? '' : 's'} trimmed to save context —
+          </div>
+        )}
+        {chatMessages.map((msg, msgIdx) => (
           <div
             key={msg.id}
             className={`flex flex-col ${
@@ -232,6 +292,20 @@ export const ChatPanel: React.FC = () => {
                     <span>{copiedId === msg.id ? 'Copied' : 'Copy'}</span>
                   </button>
 
+                  {msgIdx === chatMessages.length - 1 &&
+                    !msg.content.startsWith('Error:') &&
+                    !isAILoading &&
+                    streaming === null && (
+                    <button
+                      onClick={handleRegenerate}
+                      className="flex items-center gap-1 text-[10px] text-zinc-400 hover:text-white transition-colors"
+                      title="Regenerate response"
+                    >
+                      <RotateCcw size={11} />
+                      <span>Regenerate</span>
+                    </button>
+                  )}
+
                   {activeDoc &&
                     (activeDoc.format === 'markdown' ||
                       activeDoc.format === 'text' ||
@@ -251,10 +325,36 @@ export const ChatPanel: React.FC = () => {
           </div>
         ))}
 
+        {streaming !== null && (
+          <div className="flex flex-col items-start space-y-1">
+            <div className="flex items-center gap-1.5 text-[11px] text-zinc-500 px-1 select-none">
+              <Bot size={12} className="text-sky-400" />
+              <span className="text-sky-300 font-medium">AI Friend</span>
+            </div>
+            <div className="p-3.5 rounded-md max-w-[90%] text-xs leading-relaxed bg-[var(--bg-dark-surface)] text-zinc-200 border border-white/10 shadow-lg rounded-tl-sm">
+              {streaming === '' ? (
+                <span className="text-zinc-500">…</span>
+              ) : (
+                <div
+                  className="doc-prose text-xs [&>p]:mb-2 [&>p:last-child]:mb-0 [&>ul]:list-disc [&>ul]:pl-4 [&>ol]:list-decimal [&>ol]:pl-4 [&>pre]:bg-black/50 [&>pre]:p-2.5 [&>pre]:rounded [&>code]:bg-white/10 [&>code]:px-1 [&>code]:rounded overflow-x-auto"
+                  dangerouslySetInnerHTML={{ __html: (() => { try { return marked.parse(streaming) as string; } catch { return streaming; } })() }}
+                />
+              )}
+            </div>
+          </div>
+        )}
+
         {isAILoading && (
           <div className="flex items-center gap-2 text-xs text-zinc-400 p-2">
-            <Loader2 size={16} className="animate-spin text-sky-400" />
-            <span>Working…</span>
+            {streaming === null && <Loader2 size={16} className="animate-spin text-sky-400" />}
+            <span>{streaming === null ? 'Working…' : 'Streaming…'}</span>
+            <button
+              onClick={handleStop}
+              className="flex items-center gap-1 px-2 py-0.5 rounded bg-white/10 hover:bg-white/15 text-zinc-200 text-[11px] transition-colors ml-1"
+            >
+              <Square size={10} />
+              <span>Stop</span>
+            </button>
           </div>
         )}
 
@@ -301,14 +401,29 @@ export const ChatPanel: React.FC = () => {
             rows={2}
             className="w-full bg-transparent text-xs text-white placeholder-zinc-500 resize-none outline-none leading-relaxed"
           />
-          <button
-            onClick={() => handleSend()}
-            disabled={!input.trim() || isAILoading}
-            className="p-2 rounded bg-[var(--accent-primary)] hover:bg-[var(--accent-primary-hover)] disabled:opacity-30 text-[var(--text-on-accent)] transition-all shrink-0"
-          >
-            <Send size={14} />
-          </button>
+          {isAILoading ? (
+            <button
+              onClick={handleStop}
+              className="p-2 rounded bg-white/10 hover:bg-white/15 text-zinc-200 transition-all shrink-0"
+              title="Stop generating"
+            >
+              <Square size={14} />
+            </button>
+          ) : (
+            <button
+              onClick={() => handleSend()}
+              disabled={!input.trim()}
+              className="p-2 rounded bg-[var(--accent-primary)] hover:bg-[var(--accent-primary-hover)] disabled:opacity-30 text-[var(--text-on-accent)] transition-all shrink-0"
+            >
+              <Send size={14} />
+            </button>
+          )}
         </div>
+        {sessionUsage.in + sessionUsage.out > 0 && (
+          <div className="mt-1.5 text-[10px] font-mono text-zinc-600 text-right select-none">
+            ~{(sessionUsage.in / 1000).toFixed(1)}k in / ~{(sessionUsage.out / 1000).toFixed(1)}k out this chat
+          </div>
+        )}
       </div>
     </div>
   );

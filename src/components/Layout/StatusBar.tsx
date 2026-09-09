@@ -33,6 +33,7 @@ export const StatusBar: React.FC = () => {
     aiConfigs,
     isAILoading,
     pendingInserts,
+    sessionUsage,
     toggleSidebar,
     setLeftPanel
   } = useAppStore();
@@ -50,6 +51,7 @@ export const StatusBar: React.FC = () => {
   const activeDoc = currentTab ? documents[currentTab.documentId] : null;
   const config = aiConfigs[activeProvider];
   const pendingCount = activeDoc ? (pendingInserts[activeDoc.id] || []).length : 0;
+  const sessionK = (sessionUsage.in + sessionUsage.out) / 1000;
 
   return (
     <footer className="h-6 border-t border-[var(--border-subtle)] bg-[var(--bg-dark-surface)] px-3 flex items-center justify-between text-[11px] select-none shrink-0">
@@ -97,7 +99,11 @@ export const StatusBar: React.FC = () => {
             setLeftPanel('settings');
           }}
           className="flex items-center gap-1 text-zinc-500 hover:text-zinc-200 transition-colors"
-          title="Configure AI provider"
+          title={
+            sessionK > 0
+              ? `Configure AI provider · ~${sessionK.toFixed(1)}k tokens this chat`
+              : 'Configure AI provider'
+          }
         >
           <Cpu size={11} />
           <span className="font-mono">

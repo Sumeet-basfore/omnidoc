@@ -64,7 +64,10 @@ interface AppState {
   setActivePersona: (persona: AIPersona) => void;
   updateAIConfig: (provider: AIProviderId, config: Partial<AIProviderConfig>) => void;
   addChatMessage: (msg: Omit<AIMessage, 'id' | 'timestamp'>) => void;
+  popLastAssistant: () => void;
   clearChatMessages: () => void;
+  sessionUsage: { in: number; out: number };
+  addUsage: (u: { in?: number; out?: number }) => void;
   setAILoading: (loading: boolean) => void;
   setSelectedText: (text: string, coords: { top: number; left: number } | null) => void;
   addRecentFile: (filePath: string) => void;
@@ -328,7 +331,23 @@ export const useAppStore = create<AppState>()(
           ]
         })),
 
-      clearChatMessages: () => set({ chatMessages: [] }),
+      clearChatMessages: () => set({ chatMessages: [], sessionUsage: { in: 0, out: 0 } }),
+
+      popLastAssistant: () =>
+        set((state) => {
+          const msgs = [...state.chatMessages];
+          if (msgs.length > 0 && msgs[msgs.length - 1].role === 'assistant') msgs.pop();
+          return { chatMessages: msgs };
+        }),
+
+      sessionUsage: { in: 0, out: 0 },
+      addUsage: (u) =>
+        set((state) => ({
+          sessionUsage: {
+            in: state.sessionUsage.in + (u.in || 0),
+            out: state.sessionUsage.out + (u.out || 0)
+          }
+        })),
 
       setAILoading: (loading) => set({ isAILoading: loading }),
 
