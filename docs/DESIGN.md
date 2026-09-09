@@ -1,7 +1,7 @@
 # OmniDoc Studio (v2.0) — Design System & UI/UX Specification
 
-**Theme Name**: Obsidian Velvet & Neon Cyber Glass  
-**Target Mood**: Premium, Focus-enhancing, Fluid, State-of-the-Art Studio  
+**Theme Name**: Obsidian Velvet & Neon Cyber Glass
+**Target Mood**: Premium, Focus-enhancing, Fluid, latest Studio
 **Target Platforms**: Linux, macOS, Windows (Electron 33 Desktop)
 
 ---

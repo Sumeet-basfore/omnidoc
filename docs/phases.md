@@ -97,7 +97,7 @@
 ## Phase 5: Visual UI/UX Modernization & Polish (PENDING) 🟡
 
 - [ ] **TopBar Declutter**: Remove app text, make Save/Export icon-only, move search bar to `Cmd+K` command palette.
-- [ ] **Seamless Active Tab**: Join active tab background seamlessly to the editor panel (remove bottom border seam).
+- [ ] **smooth Active Tab**: Join active tab background smoothly to the editor panel (remove bottom border seam).
 - [ ] **AI Drawer Slide Animation**: Add CSS `translateX` slide transition to `AICompanionDrawer.tsx`.
 - [ ] **Sidebar Metadata**: Upgrade recent file items to 2-line cards with format border accent bar + relative timestamps.
 - [ ] **Interactive Empty State**: Add centered empty state component when no tabs are open.

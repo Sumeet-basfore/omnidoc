@@ -1,7 +1,7 @@
 # Design System Specification - DocsViewer (OmniDoc Studio)
 
-**Theme Name**: Obsidian Velvet & Neon Cyber Glass  
-**Target Mood**: Premium, Focus-enhancing, Fluid, State-of-the-Art Studio  
+**Theme Name**: Obsidian Velvet & Neon Cyber Glass
+**Target Mood**: Premium, Focus-enhancing, Fluid, latest Studio
 
 ---
 

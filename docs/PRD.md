@@ -64,7 +64,7 @@ EDIT:  Tiptap v2      → React WYSIWYG editor (ProseMirror-based)
 SAVE:  docx npm pkg   → Serialises editor content → new .docx file
 ```
 
-**Known limitation (communicated to users):** Complex Word features — tracked changes, custom named styles, headers/footers, footnotes, embedded OLE objects — will not survive the round-trip. This is an open-source ecosystem limitation.
+**Known limitation (communicated to users):** Complex Word features — tracked changes, custom named styles, headers/footers, footnotes, embedded OLE objects — won't survive the round-trip. This is an open-source ecosystem limitation.
 
 ---
 
