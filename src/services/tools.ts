@@ -105,8 +105,25 @@ export async function executeTool(
         const doc = ctx.getActiveDoc();
         if (!doc) return 'Error: no active document.';
         const lines = doc.content.split('\n');
-        const start = Math.max(1, Number(args.startLine) || 1);
-        const end = Math.min(lines.length, Number(args.endLine) || start + 400);
+        let start = Math.max(1, Number(args.startLine) || 0);
+        let end = Number(args.endLine) || 0;
+        if (!start && !end) {
+          // Default to the user's selection when present, else head of doc
+          const sel = ctx.getSelection().trim();
+          const idx = sel ? doc.content.indexOf(sel.slice(0, 120)) : -1;
+          if (idx >= 0) {
+            const line = doc.content.slice(0, idx).split('\n').length;
+            start = Math.max(1, line - 40);
+            end = Math.min(lines.length, line + 40);
+          } else {
+            start = 1;
+            end = Math.min(lines.length, start + 400);
+          }
+        } else {
+          if (!start) start = 1;
+          if (!end) end = Math.min(lines.length, start + 400);
+          end = Math.min(lines.length, end);
+        }
         if (start > lines.length) return `Error: document has ${lines.length} lines.`;
         const chunk = lines.slice(start - 1, end).join('\n');
         return cap(`[${doc.name}, lines ${start}-${end} of ${lines.length}]\n${chunk.slice(0, 8000)}`);

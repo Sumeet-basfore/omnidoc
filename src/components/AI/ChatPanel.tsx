@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Copy, Check, Plus, AlertCircle, Trash2, Loader2, PenLine, Search, ListChecks, Lightbulb, Square, RotateCcw } from 'lucide-react';
+import { Send, Bot, User, Copy, Check, Plus, AlertCircle, Trash2, Loader2, PenLine, Search, ListChecks, Lightbulb, Square, RotateCcw, FileText, X } from 'lucide-react';
 import { marked } from 'marked';
 import { useAppStore } from '../../store/useAppStore';
 import { streamAI, isAbortError } from '../../services/aiService';
@@ -42,8 +42,13 @@ export const ChatPanel: React.FC = () => {
   const [streaming, setStreaming] = useState<string | null>(null);
   const [trimNote, setTrimNote] = useState<number>(0);
   const [agentSteps, setAgentSteps] = useState<AgentStepEvent[]>([]);
+  const [dismissedChips, setDismissedChips] = useState<string[]>([]);
+  const [attachedIds, setAttachedIds] = useState<string[]>([]);
+  const [mention, setMention] = useState<{ query: string; start: number } | null>(null);
+  const [mentionIndex, setMentionIndex] = useState<number>(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const inputRef = useRef<HTMLTextAreaElement | null>(null);
 
   const activeDoc = tabs.find((t) => t.id === activeTabId)
     ? documents[tabs.find((t) => t.id === activeTabId)!.documentId]
@@ -65,6 +70,95 @@ export const ChatPanel: React.FC = () => {
 
   const canUseTools = aiConfigs[activeProvider].id !== 'custom' || !!aiConfigs[activeProvider].toolsBeta;
 
+  // Approximate selection line range for the grounding chip
+  const selRange = (): string | null => {
+    const sel = selectedText.trim();
+    if (!sel || !activeDoc) return null;
+    const idx = activeDoc.content.indexOf(sel.slice(0, 120));
+    if (idx < 0) return null;
+    const startLine = activeDoc.content.slice(0, idx).split('\n').length;
+    const endLine = startLine + sel.split('\n').length - 1;
+    return `~L${startLine}–${endLine}`;
+  };
+
+  const openDocs = React.useMemo(() => {
+    const seen = new Set<string>();
+    const list: Array<{ id: string; name: string }> = [];
+    for (const t of tabs) {
+      const d = documents[t.documentId];
+      if (d && !seen.has(d.id)) {
+        seen.add(d.id);
+        list.push({ id: d.id, name: d.name });
+      }
+    }
+    return list;
+  }, [tabs, documents]);
+
+  const mentionCandidates = React.useMemo(() => {
+    if (!mention) return [];
+    const q = mention.query.toLowerCase();
+    return openDocs
+      .filter((d) => d.id !== activeDoc?.id && !attachedIds.includes(d.id))
+      .filter((d) => d.name.toLowerCase().includes(q))
+      .slice(0, 6);
+  }, [mention, openDocs, activeDoc, attachedIds]);
+
+  const checkMention = (value: string, cursor: number) => {
+    const before = value.slice(0, cursor);
+    const m = before.match(/@([\w.\-]*)$/);
+    if (m) {
+      setMention({ query: m[1], start: cursor - m[0].length });
+      setMentionIndex(0);
+    } else {
+      setMention(null);
+    }
+  };
+
+  const attachDoc = (docId: string) => {
+    const d = documents[docId];
+    if (!d || d.id === activeDoc?.id || attachedIds.includes(docId) || attachedIds.length >= 2) {
+      setMention(null);
+      return;
+    }
+    const el = inputRef.current;
+    const cursor = el?.selectionStart ?? input.length;
+    const start = mention ? mention.start : cursor;
+    const next = input.slice(0, start) + `@${d.name} ` + input.slice(cursor);
+    setInput(next);
+    setAttachedIds((prev) => [...prev, docId]);
+    setMention(null);
+    setTimeout(() => {
+      el?.focus();
+      const pos = start + d.name.length + 2;
+      el?.setSelectionRange(pos, pos);
+    }, 0);
+  };
+
+  /** Document context honoring dismissed chips + attached files. */
+  const buildDocContext = () => {
+    const extras = attachedIds
+      .map((id) => documents[id])
+      .filter((d) => d && d.id !== activeDoc?.id)
+      .slice(0, 2);
+    const extraText = extras
+      .map((d) => `\n\n[ATTACHED DOCUMENT "${d.name}"]\n"""\n${d.content.slice(0, 6000)}\n"""`)
+      .join('');
+    if (!activeDoc) {
+      if (extras.length === 0) return undefined;
+      return { name: 'attached files', format: 'text', content: extraText };
+    }
+    const showDoc = !dismissedChips.includes('doc');
+    const showSel = !dismissedChips.includes('sel') && selectedText.trim() ? selectedText : undefined;
+    const base = showDoc ? activeDoc.content : '';
+    if (!base && !extraText) return undefined;
+    return {
+      name: activeDoc.name,
+      format: activeDoc.format,
+      content: base + extraText,
+      ...(showSel ? { selectedText: showSel } : {})
+    };
+  };
+
   const handleAgentSend = async (base: typeof chatMessages) => {
     if (isAILoading) return;
     setErrorBanner(null);
@@ -84,9 +178,7 @@ export const ChatPanel: React.FC = () => {
         );
       }
 
-      const documentContext = activeDoc
-        ? { name: activeDoc.name, format: activeDoc.format, content: activeDoc.content }
-        : undefined;
+      const documentContext = buildDocContext();
 
       const full = base.map((m) => ({ ...m }));
       const { kept, trimmed } = trimHistory(full);
@@ -147,13 +239,7 @@ export const ChatPanel: React.FC = () => {
         );
       }
 
-      const documentContext = activeDoc
-        ? {
-            name: activeDoc.name,
-            format: activeDoc.format,
-            content: activeDoc.content
-          }
-        : undefined;
+      const documentContext = buildDocContext();
 
       // Trim history to budget (latest turn always kept)
       const full = base.map((m) => ({ ...m }));
@@ -213,6 +299,8 @@ export const ChatPanel: React.FC = () => {
     ];
     addChatMessage(userMsg);
     if (!customPrompt) setInput('');
+    setDismissedChips([]);
+    setMention(null);
     if (agentMode && canUseTools) {
       await handleAgentSend(base);
     } else {
@@ -265,6 +353,36 @@ export const ChatPanel: React.FC = () => {
     { id: 'proofreader', label: 'Proofreader', icon: <ListChecks size={12} /> },
     { id: 'brainstormer', label: 'Brainstorm', icon: <Lightbulb size={12} /> }
   ];
+
+  const METER_MAX = 24000 + 15000 + 12000;
+  const budgetChars = React.useMemo(() => {
+    const hist = trimHistory(chatMessages.map((m) => ({ ...m }))).kept.reduce(
+      (a, m) => a + m.content.length,
+      0
+    );
+    const docChars =
+      activeDoc && !dismissedChips.includes('doc') ? Math.min(activeDoc.content.length, 15000) : 0;
+    const attChars = attachedIds.reduce((a, id) => {
+      const d = documents[id];
+      if (!d || d.id === activeDoc?.id || dismissedChips.includes(`file:${id}`)) return a;
+      return a + Math.min(d.content.length, 6000);
+    }, 0);
+    return hist + docChars + attChars;
+  }, [chatMessages, activeDoc, attachedIds, dismissedChips, documents]);
+
+  const ContextBudgetBar: React.FC = () => {
+    if (budgetChars === 0) return null;
+    const pct = Math.min(100, (budgetChars / METER_MAX) * 100);
+    const color = pct < 70 ? 'bg-sky-500' : pct < 100 ? 'bg-amber-400' : 'bg-red-400';
+    return (
+      <div
+        className="h-0.5 rounded bg-white/5 mt-1.5 overflow-hidden"
+        title={`~${budgetChars.toLocaleString()} / ${METER_MAX.toLocaleString()} context chars (history + doc + attached)`}
+      >
+        <div className={`h-full ${color} transition-all`} style={{ width: `${pct}%` }} />
+      </div>
+    );
+  };
 
   return (
     <div className="flex flex-col h-full w-full bg-[var(--bg-dark-surface)] select-none">
@@ -510,12 +628,112 @@ export const ChatPanel: React.FC = () => {
       </div>
 
       {/* Input Area */}
-      <div className="p-3 border-t border-[var(--border-subtle)] bg-[var(--bg-glass)]">
+      <div className="p-3 border-t border-[var(--border-subtle)] bg-[var(--bg-glass)] relative">
+        {/* Grounding chips */}
+        {(activeDoc && !dismissedChips.includes('doc')) ||
+        (selRange() && !dismissedChips.includes('sel')) ||
+        attachedIds.some((id) => documents[id] && !dismissedChips.includes(`file:${id}`)) ? (
+          <div className="flex flex-wrap gap-1.5 mb-2 select-none">
+            {activeDoc && !dismissedChips.includes('doc') && (
+              <button
+                onClick={() => setDismissedChips((p) => [...p, 'doc'])}
+                className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[10px] text-zinc-300 hover:text-white transition-colors"
+                title="Exclude this document from the next request"
+              >
+                <FileText size={10} />
+                <span className="max-w-[140px] truncate">{activeDoc.name}</span>
+                <X size={10} className="text-zinc-500" />
+              </button>
+            )}
+            {selRange() && !dismissedChips.includes('sel') && (
+              <button
+                onClick={() => setDismissedChips((p) => [...p, 'sel'])}
+                className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-sky-500/10 border border-sky-500/30 text-[10px] text-sky-300 hover:text-white transition-colors"
+                title="Exclude the selection from the next request"
+              >
+                <span className="font-mono">{selRange()}</span>
+                <X size={10} className="text-zinc-500" />
+              </button>
+            )}
+            {attachedIds.map((id) => {
+              const d = documents[id];
+              if (!d || dismissedChips.includes(`file:${id}`)) return null;
+              return (
+                <button
+                  key={id}
+                  onClick={() => setDismissedChips((p) => [...p, `file:${id}`])}
+                  className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[10px] text-zinc-300 hover:text-white transition-colors"
+                  title="Exclude this file from the next request"
+                >
+                  <span className="text-zinc-500 font-mono">@</span>
+                  <span className="max-w-[140px] truncate">{d.name}</span>
+                  <X size={10} className="text-zinc-500" />
+                </button>
+              );
+            })}
+          </div>
+        ) : null}
+
+        {/* @file mention dropdown */}
+        {mention && mentionCandidates.length > 0 && (
+          <div className="absolute left-3 right-3 bottom-full mb-1 bg-[var(--bg-dark-elevated)] border border-[var(--border-subtle)] rounded-md shadow-2xl py-1 z-30 animate-modal max-h-44 overflow-y-auto">
+            {mentionCandidates.map((d, idx) => (
+              <button
+                key={d.id}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  attachDoc(d.id);
+                }}
+                onMouseEnter={() => setMentionIndex(idx)}
+                className={`w-full text-left px-3 py-1.5 text-xs transition-colors ${
+                  mentionIndex === idx ? 'bg-sky-500/15 text-white' : 'text-zinc-300'
+                }`}
+              >
+                <span className="text-zinc-500 font-mono">@</span>
+                <span className="ml-1">{d.name}</span>
+              </button>
+            ))}
+          </div>
+        )}
+
         <div className="flex items-end gap-2 bg-[var(--bg-dark-surface)] border border-white/10 rounded-md p-2 focus-within:border-sky-500 focus-within:ring-1 focus-within:ring-sky-500 transition-all">
           <textarea
+            ref={inputRef}
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={(e) => {
+              setInput(e.target.value);
+              checkMention(e.target.value, e.target.selectionStart);
+            }}
             onKeyDown={(e) => {
+              if (mention && mentionCandidates.length > 0) {
+                if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setMentionIndex((i) =>
+                    e.key === 'ArrowDown'
+                      ? (i + 1) % mentionCandidates.length
+                      : (i - 1 + mentionCandidates.length) % mentionCandidates.length
+                  );
+                  return;
+                }
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  attachDoc(mentionCandidates[mentionIndex]?.id || mentionCandidates[0].id);
+                  return;
+                }
+                if (e.key === 'Escape') {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setMention(null);
+                  return;
+                }
+              }
+              if (e.key === 'Backspace' && input === '' && attachedIds.length > 0) {
+                e.preventDefault();
+                setAttachedIds((prev) => prev.slice(0, -1));
+                return;
+              }
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 handleSend();
@@ -548,6 +766,7 @@ export const ChatPanel: React.FC = () => {
             ~{(sessionUsage.in / 1000).toFixed(1)}k in / ~{(sessionUsage.out / 1000).toFixed(1)}k out this chat
           </div>
         )}
+        <ContextBudgetBar />
       </div>
     </div>
   );

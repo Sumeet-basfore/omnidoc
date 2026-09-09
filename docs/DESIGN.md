@@ -95,6 +95,9 @@ deterministic stitch; deep adds a gap-analysis follow-up round.
 Reranked/deduped sources (2-per-domain cap), regex citation
 verification with de-link counter, staged progress with cancel
 (keeps partial sources), session report history, versioned open-as-doc.
+- **Grounding**: auto context chips (doc + ~selection lines, dismissible),
+`@file` mentions (≤2 attached docs), context budget meter (never blocks);
+agent reads default to the selection window.
 
 ### 2.7 Inline Selection Toolbar
 Transient pill (the ostatni legitimate pill): Polish, Simplify, Expand,
