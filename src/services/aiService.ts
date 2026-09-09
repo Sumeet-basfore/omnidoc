@@ -192,7 +192,8 @@ async function streamGemini(
 ): Promise<{ text: string; usage?: StreamUsage }> {
   if (!apiKey) throw new Error('Gemini API key is not configured. Please add it in Settings.');
 
-  const model = config.model || 'gemini-1.5-flash';
+  const rawModel = (config.model || 'gemini-2.0-flash').trim();
+  const model = rawModel.replace(/^models\//, '');
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${apiKey}`;
 
   const contents = messages.map((m) => ({
@@ -214,7 +215,13 @@ async function streamGemini(
 
     if (!res.ok) {
       const errorData = await res.json().catch(() => ({}));
-      throw new Error(`Gemini API error (${res.status}): ${errorData.error?.message || res.statusText}`);
+      const msg = errorData.error?.message || res.statusText;
+      if (res.status === 404) {
+        throw new Error(
+          `Gemini API error (404): '${model}' not found for v1beta. Please select 'gemini-2.0-flash' or 'gemini-1.5-flash-latest' from the Model dropdown in Settings.`
+        );
+      }
+      throw new Error(`Gemini API error (${res.status}): ${msg}`);
     }
 
     let text = '';

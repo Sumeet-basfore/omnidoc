@@ -1,11 +1,71 @@
-import React, { useState, useEffect } from 'react';
-import { ChevronLeft, Key, ShieldCheck, ShieldAlert, Check, Loader2, Cpu, Globe, RefreshCw, BarChart3, Users, BookOpen } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  ChevronLeft,
+  Key,
+  ShieldCheck,
+  ShieldAlert,
+  Check,
+  Loader2,
+  Cpu,
+  Globe,
+  RefreshCw,
+  BarChart3,
+  Users,
+  BookOpen,
+  ChevronDown,
+  Search,
+  X
+} from 'lucide-react';
 import { listModels } from '../../services/modelDiscovery';
 import { useAppStore } from '../../store/useAppStore';
 import { keyService, KeyProvider } from '../../services/keyService';
 import { AIProviderId } from '../../types/ai';
 import { callAI } from '../../services/aiService';
 import { WorkspaceRulesSettings } from './WorkspaceRulesSettings';
+
+const PROVIDER_PRESET_MODELS: Record<AIProviderId, string[]> = {
+  gemini: [
+    'gemini-2.0-flash',
+    'gemini-1.5-flash-latest',
+    'gemini-1.5-pro-latest',
+    'gemini-2.0-flash-lite-preview-02-05',
+    'gemini-2.0-pro-exp-02-05',
+    'gemini-1.5-flash',
+    'gemini-1.5-pro',
+    'gemini-1.5-flash-8b'
+  ],
+  openai: [
+    'gpt-4o-mini',
+    'gpt-4o',
+    'o1-mini',
+    'o1',
+    'o3-mini',
+    'gpt-4-turbo'
+  ],
+  anthropic: [
+    'claude-3-5-sonnet-20241022',
+    'claude-3-5-haiku-20241022',
+    'claude-3-opus-20240229',
+    'claude-3-haiku-20240307'
+  ],
+  openrouter: [
+    'anthropic/claude-3.5-sonnet',
+    'google/gemini-2.0-flash-exp:free',
+    'meta-llama/llama-3.3-70b-instruct',
+    'deepseek/deepseek-r1',
+    'openai/gpt-4o-mini',
+    'mistralai/mistral-large-2407'
+  ],
+  custom: [
+    'llama3.2',
+    'llama3.1',
+    'deepseek-r1:8b',
+    'mistral',
+    'qwen2.5-coder:7b',
+    'phi3',
+    'gemma2:9b'
+  ]
+};
 
 export const ProviderSettings: React.FC = () => {
   const {
@@ -26,9 +86,12 @@ export const ProviderSettings: React.FC = () => {
   const [testStatus, setTestStatus] = useState<Record<string, 'testing' | 'success' | 'failed'>>({});
   const [testError, setTestError] = useState<Record<string, string>>({});
   const [saveSuccess, setSaveSuccess] = useState<boolean>(false);
-  const [knownModels, setKnownModels] = useState<string[]>([]);
+  const [knownModelsByProvider, setKnownModelsByProvider] = useState<Record<string, string[]>>({});
+  const [isModelDropdownOpen, setIsModelDropdownOpen] = useState<boolean>(false);
+  const [modelSearch, setModelSearch] = useState<string>('');
   const [discovering, setDiscovering] = useState<boolean>(false);
   const [discoverError, setDiscoverError] = useState<string>('');
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const loadSettings = async () => {
@@ -46,6 +109,35 @@ export const ProviderSettings: React.FC = () => {
 
     loadSettings();
   }, []);
+
+  // Close dropdown on click outside or Escape
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsModelDropdownOpen(false);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsModelDropdownOpen(false);
+      }
+    };
+    if (isModelDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isModelDropdownOpen]);
+
+  // Reset dropdown search when switching providers
+  useEffect(() => {
+    setIsModelDropdownOpen(false);
+    setModelSearch('');
+    setDiscoverError('');
+  }, [activeProvider]);
 
   const handleKeyChange = (provider: string, value: string) => {
     setKeys((prev) => ({ ...prev, [provider]: value }));
@@ -92,15 +184,32 @@ export const ProviderSettings: React.FC = () => {
     try {
       const apiKey = keys[activeProvider] || '';
       const models = await listModels(currentConfig, apiKey);
-      setKnownModels(models);
-      if (models.length === 0) setDiscoverError('No models found.');
+      setKnownModelsByProvider((prev) => ({ ...prev, [activeProvider]: models }));
+      if (models.length === 0) {
+        setDiscoverError('No models returned by the provider.');
+      } else {
+        setIsModelDropdownOpen(true);
+      }
     } catch (err: any) {
-      setKnownModels([]);
       setDiscoverError(err?.message || 'Discovery failed.');
     } finally {
       setDiscovering(false);
     }
   };
+
+  // Auto-discover in background if we have a key and haven't discovered yet
+  useEffect(() => {
+    const currentKey = keys[activeProvider];
+    if (currentKey && canDiscover && !knownModelsByProvider[activeProvider] && !discovering) {
+      listModels(currentConfig, currentKey)
+        .then((models) => {
+          if (models.length > 0) {
+            setKnownModelsByProvider((prev) => ({ ...prev, [activeProvider]: models }));
+          }
+        })
+        .catch(() => {});
+    }
+  }, [activeProvider, keys[activeProvider]]);
 
   const fmtTok = (n: number): string =>
     n >= 1e6 ? `${(n / 1e6).toFixed(2)}M` : n >= 1e3 ? `${(n / 1e3).toFixed(1)}k` : `${n}`;
@@ -124,6 +233,13 @@ export const ProviderSettings: React.FC = () => {
   })();
   const alertOn = dailyTokenAlert > 0;
   const alertHit = alertOn && todayTok >= dailyTokenAlert;
+
+  const knownModels = knownModelsByProvider[activeProvider] || [];
+  const presets = PROVIDER_PRESET_MODELS[activeProvider] || [];
+  const nonDuplicatePresets = presets.filter((p) => !knownModels.includes(p));
+  const query = modelSearch.toLowerCase().trim();
+  const filteredDetected = knownModels.filter((m) => m.toLowerCase().includes(query));
+  const filteredPresets = nonDuplicatePresets.filter((m) => m.toLowerCase().includes(query));
 
   return (
     <div className="h-full flex flex-col bg-[var(--bg-dark-surface)] text-xs">
@@ -223,7 +339,8 @@ export const ProviderSettings: React.FC = () => {
                 key={p}
                 onClick={() => {
                   setActiveProvider(p);
-                  setKnownModels([]);
+                  setIsModelDropdownOpen(false);
+                  setModelSearch('');
                   setDiscoverError('');
                 }}
                 className={`p-2 rounded border text-left transition-all capitalize ${
@@ -273,38 +390,168 @@ export const ProviderSettings: React.FC = () => {
             )}
           </div>
 
-          <div>
-            <label className="block text-[11px] text-zinc-400 mb-1">Model</label>
+          {/* Custom Model Dropdown Selector */}
+          <div className="relative" ref={dropdownRef}>
+            <label className="block text-[11px] text-zinc-400 mb-1 flex items-center justify-between">
+              <span>Model</span>
+              {knownModels.length > 0 && (
+                <span className="text-[10px] text-sky-400 font-mono">
+                  {knownModels.length} detected
+                </span>
+              )}
+            </label>
             <div className="flex items-center gap-1.5">
-              <input
-                type="text"
-                value={currentConfig.model}
-                onChange={(e) => updateAIConfig(activeProvider, { model: e.target.value })}
-                list="discovered-models"
-                className="w-full px-2.5 py-1.5 bg-black/40 border border-white/10 rounded text-xs text-white focus:outline-none focus:border-sky-500 font-mono"
-              />
+              <button
+                type="button"
+                onClick={() => setIsModelDropdownOpen((prev) => !prev)}
+                className="w-full flex items-center justify-between px-2.5 py-1.5 bg-black/40 hover:bg-black/60 border border-white/10 hover:border-sky-500/50 rounded text-xs text-white focus:outline-none transition-colors cursor-pointer text-left"
+              >
+                <span className="font-mono truncate">{currentConfig.model || 'Select model...'}</span>
+                <ChevronDown
+                  size={14}
+                  className={`text-zinc-400 shrink-0 ml-1.5 transition-transform duration-150 ${
+                    isModelDropdownOpen ? 'rotate-180 text-sky-400' : ''
+                  }`}
+                />
+              </button>
+
               {canDiscover && (
                 <button
+                  type="button"
                   onClick={handleRefreshModels}
                   disabled={discovering}
-                  className="p-1.5 rounded bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border border-white/10 transition-colors shrink-0"
+                  className="p-1.5 rounded bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border border-white/10 transition-colors shrink-0 cursor-pointer"
                   title="Detect available models from the endpoint"
                 >
                   <RefreshCw size={13} className={discovering ? 'animate-spin text-sky-400' : ''} />
                 </button>
               )}
             </div>
-            <datalist id="discovered-models">
-              {knownModels.map((m) => (
-                <option key={m} value={m} />
-              ))}
-            </datalist>
+
+            {/* Dropdown Menu Popup */}
+            {isModelDropdownOpen && (
+              <div className="absolute left-0 right-0 top-full mt-1 z-50 bg-[#121622] border border-white/10 rounded-md shadow-2xl overflow-hidden flex flex-col max-h-72">
+                {/* Search & Custom Input Bar */}
+                <div className="p-2 border-b border-white/10 bg-black/40">
+                  <div className="flex items-center gap-1.5 px-2 py-1 bg-black/50 border border-white/10 rounded text-xs text-white">
+                    <Search size={12} className="text-zinc-400 shrink-0" />
+                    <input
+                      type="text"
+                      autoFocus
+                      value={modelSearch}
+                      onChange={(e) => setModelSearch(e.target.value)}
+                      placeholder="Search models or type custom..."
+                      className="w-full bg-transparent text-xs text-white focus:outline-none font-mono placeholder:text-zinc-500"
+                    />
+                    {modelSearch && (
+                      <button
+                        type="button"
+                        onClick={() => setModelSearch('')}
+                        className="text-zinc-400 hover:text-white p-0.5"
+                      >
+                        <X size={10} />
+                      </button>
+                    )}
+                  </div>
+                  {/* Quick Custom Model Entry */}
+                  {modelSearch.trim() && modelSearch.trim() !== currentConfig.model && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        updateAIConfig(activeProvider, { model: modelSearch.trim() });
+                        setIsModelDropdownOpen(false);
+                        setModelSearch('');
+                        setTestError((prev) => ({ ...prev, [activeProvider]: '' }));
+                      }}
+                      className="w-full mt-1.5 px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 text-[11px] font-mono text-left transition-colors flex items-center justify-between cursor-pointer"
+                    >
+                      <span className="truncate">Use custom: &quot;{modelSearch.trim()}&quot;</span>
+                      <Check size={11} className="shrink-0 ml-1 text-sky-400" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Models List */}
+                <div className="flex-1 overflow-y-auto p-1 divide-y divide-white/5 max-h-56">
+                  {/* Detected models from endpoint */}
+                  {filteredDetected.length > 0 && (
+                    <div className="py-1">
+                      <div className="px-2 py-0.5 text-[9px] font-semibold text-sky-400 uppercase tracking-wider">
+                        Detected via API ({filteredDetected.length})
+                      </div>
+                      {filteredDetected.map((m) => {
+                        const isSelected = m === currentConfig.model;
+                        return (
+                          <button
+                            key={`detected-${m}`}
+                            type="button"
+                            onClick={() => {
+                              updateAIConfig(activeProvider, { model: m });
+                              setIsModelDropdownOpen(false);
+                              setModelSearch('');
+                              setTestError((prev) => ({ ...prev, [activeProvider]: '' }));
+                            }}
+                            className={`w-full flex items-center justify-between px-2 py-1.5 rounded text-left transition-colors cursor-pointer ${
+                              isSelected
+                                ? 'bg-sky-500/20 text-white font-medium'
+                                : 'text-zinc-300 hover:bg-white/5 hover:text-white'
+                            }`}
+                          >
+                            <span className="font-mono text-xs truncate">{m}</span>
+                            {isSelected && <Check size={12} className="text-sky-400 shrink-0 ml-1.5" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {/* Curated Preset models */}
+                  {filteredPresets.length > 0 && (
+                    <div className="py-1">
+                      <div className="px-2 py-0.5 text-[9px] font-semibold text-zinc-500 uppercase tracking-wider">
+                        Recommended Presets
+                      </div>
+                      {filteredPresets.map((m) => {
+                        const isSelected = m === currentConfig.model;
+                        return (
+                          <button
+                            key={`preset-${m}`}
+                            type="button"
+                            onClick={() => {
+                              updateAIConfig(activeProvider, { model: m });
+                              setIsModelDropdownOpen(false);
+                              setModelSearch('');
+                              setTestError((prev) => ({ ...prev, [activeProvider]: '' }));
+                            }}
+                            className={`w-full flex items-center justify-between px-2 py-1.5 rounded text-left transition-colors cursor-pointer ${
+                              isSelected
+                                ? 'bg-sky-500/20 text-white font-medium'
+                                : 'text-zinc-300 hover:bg-white/5 hover:text-white'
+                            }`}
+                          >
+                            <span className="font-mono text-xs truncate">{m}</span>
+                            {isSelected && <Check size={12} className="text-sky-400 shrink-0 ml-1.5" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {filteredDetected.length === 0 && filteredPresets.length === 0 && (
+                    <div className="px-3 py-4 text-center text-xs text-zinc-500">
+                      No matching models. Type above to use a custom model.
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {discoverError && (
               <p className="mt-1.5 text-[11px] text-red-300 leading-snug">{discoverError}</p>
             )}
             {knownModels.length > 0 && !discoverError && (
               <p className="mt-1.5 text-[10px] font-mono text-zinc-500">
-                {knownModels.length} models detected — pick from the list or keep typing
+                {knownModels.length} models detected via API — click above to change
               </p>
             )}
           </div>

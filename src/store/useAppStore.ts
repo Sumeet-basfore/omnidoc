@@ -159,7 +159,7 @@ const DEFAULT_AI_CONFIGS: Record<AIProviderId, AIProviderConfig> = {
   gemini: {
     id: 'gemini',
     name: 'Google Gemini',
-    model: 'gemini-1.5-flash',
+    model: 'gemini-2.0-flash',
     temperature: 0.7
   },
   openai: {
@@ -1026,7 +1026,7 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: 'omnidoc-storage',
-      version: 3,
+      version: 4,
       migrate: (persistedState: any, version: number) => {
         if (version < 2 && persistedState) {
           const demoMemberIds = ['member-1', 'member-2', 'member-3', 'member-4'];
@@ -1064,6 +1064,11 @@ export const useAppStore = create<AppState>()(
             };
             persistedState.teamWorkspaces = { [id]: initialWs };
             persistedState.activeWorkspaceId = id;
+          }
+        }
+        if (version < 4 && persistedState) {
+          if (persistedState.aiConfigs?.gemini?.model === 'gemini-1.5-flash') {
+            persistedState.aiConfigs.gemini.model = 'gemini-2.0-flash';
           }
         }
         return persistedState;

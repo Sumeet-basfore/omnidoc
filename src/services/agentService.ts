@@ -243,7 +243,8 @@ const geminiDriver = (config: AIProviderConfig, apiKey: string): Driver => ({
     };
   },
   async step(t: any, allowTools, userSignal) {
-    const model = config.model || 'gemini-1.5-flash';
+    const rawModel = (config.model || 'gemini-2.0-flash').trim();
+    const model = rawModel.replace(/^models\//, '');
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
     const { signal, done } = linkedSignal(userSignal);
     try {
