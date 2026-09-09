@@ -57,6 +57,14 @@ export const KeyboardShortcutsModal: React.FC = () => {
         { keys: [cmdKey, 'Shift', 'R'], description: 'Launch Deep Web Research' },
         { keys: ['Select Text'], description: 'Open Inline Selection Assistant' }
       ]
+    },
+    {
+      title: 'Review & Team Discussion',
+      items: [
+        { keys: ['Alt / ⌥', 'C'], description: 'Toggle Comments & Review Panel' },
+        { keys: [cmdKey, 'Enter'], description: 'Accept & Merge Proposed AI Insert' },
+        { keys: ['Esc'], description: 'Reject Proposal / Close Active Panel' }
+      ]
     }
   ];
 

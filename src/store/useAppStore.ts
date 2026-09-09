@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { DocumentFormat, DocumentItem, WorkspaceTab } from '../types/document';
 import { AIProviderId, AIPersona, AIMessage, AIProviderConfig } from '../types/ai';
+import { DocumentComment, CommentReply } from '../types/comment';
 
 export interface PendingInsert {
   id: string;
@@ -94,6 +95,18 @@ interface AppState {
   pendingInserts: Record<string, PendingInsert[]>;
   queueInsert: (docId: string, text: string, label: string) => void;
   resolveInsert: (docId: string, insertId: string, accept: boolean) => void;
+
+  // Document comments & annotations
+  comments: Record<string, DocumentComment[]>;
+  activeCommentId: string | null;
+  isCommentsPanelOpen: boolean;
+  toggleCommentsPanel: (force?: boolean) => void;
+  setActiveCommentId: (id: string | null) => void;
+  addComment: (docId: string, highlightedText: string, content: string, author?: string) => string;
+  addReply: (docId: string, commentId: string, content: string, author?: string, isAI?: boolean) => void;
+  resolveComment: (docId: string, commentId: string, resolved?: boolean) => void;
+  deleteComment: (docId: string, commentId: string) => void;
+  deleteReply: (docId: string, commentId: string, replyId: string) => void;
 }
 
 const DEFAULT_AI_CONFIGS: Record<AIProviderId, AIProviderConfig> = {
@@ -142,6 +155,9 @@ export const useAppStore = create<AppState>()(
       sidebarWidth: 260,
       drawerWidth: 380,
       isAIDrawerOpen: false,
+      isCommentsPanelOpen: false,
+      activeCommentId: null,
+      comments: {},
       isCommandPaletteOpen: false,
       isExportModalOpen: false,
       isShortcutsModalOpen: false,
@@ -446,6 +462,113 @@ export const useAppStore = create<AppState>()(
         set((state) => {
           const list = [filePath, ...state.recentFiles.filter((p) => p !== filePath)].slice(0, 20);
           return { recentFiles: list };
+        }),
+
+      toggleCommentsPanel: (force) =>
+        set((state) => ({
+          isCommentsPanelOpen: force !== undefined ? force : !state.isCommentsPanelOpen
+        })),
+
+      setActiveCommentId: (id) => set({ activeCommentId: id }),
+
+      addComment: (docId, highlightedText, content, author = 'You') => {
+        const id = `comment-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+        const newComment: DocumentComment = {
+          id,
+          docId,
+          author,
+          authorRole: 'author',
+          highlightedText,
+          content,
+          status: 'open',
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+          replies: []
+        };
+        set((state) => ({
+          comments: {
+            ...state.comments,
+            [docId]: [...(state.comments[docId] || []), newComment]
+          },
+          activeCommentId: id,
+          isCommentsPanelOpen: true
+        }));
+        return id;
+      },
+
+      addReply: (docId, commentId, content, author = 'You', isAI = false) =>
+        set((state) => {
+          const docComments = state.comments[docId] || [];
+          const updated = docComments.map((c) => {
+            if (c.id !== commentId) return c;
+            const reply: CommentReply = {
+              id: `reply-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+              author,
+              content,
+              createdAt: Date.now(),
+              isAI
+            };
+            return {
+              ...c,
+              updatedAt: Date.now(),
+              replies: [...c.replies, reply]
+            };
+          });
+          return {
+            comments: {
+              ...state.comments,
+              [docId]: updated
+            }
+          };
+        }),
+
+      resolveComment: (docId, commentId, resolved = true) =>
+        set((state) => {
+          const docComments = state.comments[docId] || [];
+          const updated = docComments.map((c) => {
+            if (c.id !== commentId) return c;
+            return {
+              ...c,
+              status: resolved ? ('resolved' as const) : ('open' as const),
+              updatedAt: Date.now()
+            };
+          });
+          return {
+            comments: {
+              ...state.comments,
+              [docId]: updated
+            }
+          };
+        }),
+
+      deleteComment: (docId, commentId) =>
+        set((state) => {
+          const docComments = state.comments[docId] || [];
+          return {
+            comments: {
+              ...state.comments,
+              [docId]: docComments.filter((c) => c.id !== commentId)
+            },
+            activeCommentId: state.activeCommentId === commentId ? null : state.activeCommentId
+          };
+        }),
+
+      deleteReply: (docId, commentId, replyId) =>
+        set((state) => {
+          const docComments = state.comments[docId] || [];
+          const updated = docComments.map((c) => {
+            if (c.id !== commentId) return c;
+            return {
+              ...c,
+              replies: c.replies.filter((r) => r.id !== replyId)
+            };
+          });
+          return {
+            comments: {
+              ...state.comments,
+              [docId]: updated
+            }
+          };
         })
     }),
     {
@@ -459,7 +582,8 @@ export const useAppStore = create<AppState>()(
         drawerWidth: s.drawerWidth,
         usageLog: s.usageLog,
         dailyTokenAlert: s.dailyTokenAlert,
-        customInstructions: s.customInstructions
+        customInstructions: s.customInstructions,
+        comments: s.comments
       })
     }
   )

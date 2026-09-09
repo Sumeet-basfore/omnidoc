@@ -11,6 +11,7 @@ import { CommandPalette } from './components/CommandPalette/CommandPalette';
 import { ExportModal } from './components/Layout/ExportModal';
 import { KeyboardShortcutsModal } from './components/Layout/KeyboardShortcutsModal';
 import { StatusBar } from './components/Layout/StatusBar';
+import { CommentsPanel } from './components/Comments/CommentsPanel';
 import { DocumentFormat, DocumentItem } from './types/document';
 
 export const App: React.FC = () => {
@@ -28,6 +29,8 @@ export const App: React.FC = () => {
     toggleAIDrawer,
     isAIDrawerOpen,
     setAIDrawerOpen,
+    isCommentsPanelOpen,
+    toggleCommentsPanel,
     leftPanel,
     setLeftPanel,
     setShortcutsModalOpen
@@ -165,8 +168,14 @@ export const App: React.FC = () => {
           e.preventDefault();
           toggleAIDrawer();
         }
+      } else if (e.altKey && (e.key === 'c' || e.key === 'C')) {
+        e.preventDefault();
+        toggleCommentsPanel();
       } else if (e.key === 'Escape') {
-        if (isAIDrawerOpen) {
+        if (isCommentsPanelOpen) {
+          e.preventDefault();
+          toggleCommentsPanel(false);
+        } else if (isAIDrawerOpen) {
           e.preventDefault();
           setAIDrawerOpen(false);
         } else if (leftPanel === 'settings') {
@@ -185,7 +194,7 @@ export const App: React.FC = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [tabs, activeTabId, documents, createDocument, openDocument, markDirty, setDocumentPath, addRecentFile, setLastSavedAt, toggleSidebar, toggleAIDrawer, isAIDrawerOpen, setAIDrawerOpen, leftPanel, setLeftPanel, setShortcutsModalOpen]);
+  }, [tabs, activeTabId, documents, createDocument, openDocument, markDirty, setDocumentPath, addRecentFile, setLastSavedAt, toggleSidebar, toggleAIDrawer, isAIDrawerOpen, setAIDrawerOpen, isCommentsPanelOpen, toggleCommentsPanel, leftPanel, setLeftPanel, setShortcutsModalOpen]);
 
   // Open default welcome document if no document is currently open
   useEffect(() => {
@@ -210,6 +219,7 @@ export const App: React.FC = () => {
           <DocumentAdapterRouter />
           <InlineSelectionToolbar />
         </main>
+        <CommentsPanel />
         <AICompanionDrawer />
       </div>
 

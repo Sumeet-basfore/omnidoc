@@ -5,7 +5,8 @@ import {
   Save,
   Download,
   Search,
-  Cpu
+  Cpu,
+  MessageSquare
 } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import { downloadBlob } from '../../services/exportService';
@@ -17,6 +18,9 @@ export const TopBar: React.FC = () => {
     toggleSidebar,
     isAIDrawerOpen,
     toggleAIDrawer,
+    isCommentsPanelOpen,
+    toggleCommentsPanel,
+    comments,
     leftPanel,
     setLeftPanel,
     setCommandPaletteOpen,
@@ -36,6 +40,11 @@ export const TopBar: React.FC = () => {
   const activeDoc = tabs.find((t) => t.id === activeTabId)
     ? documents[tabs.find((t) => t.id === activeTabId)!.documentId]
     : null;
+
+  const openCommentsCount =
+    activeDoc && comments[activeDoc.id]
+      ? comments[activeDoc.id].filter((c) => c.status === 'open').length
+      : 0;
 
   const currentAIConfig = aiConfigs[activeProvider];
 
@@ -203,6 +212,25 @@ export const TopBar: React.FC = () => {
           <span className="font-medium text-[11px] hidden sm:inline">
             {currentAIConfig.name.split(' ')[0]}
           </span>
+        </button>
+
+        {/* Toggle Comments & Review Threads */}
+        <button
+          onClick={() => toggleCommentsPanel()}
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded font-medium text-xs transition-all cursor-pointer ${
+            isCommentsPanelOpen
+              ? 'bg-indigo-600 text-white shadow-sm'
+              : 'bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border border-white/5'
+          }`}
+          title="Toggle Document Comments & Discussion (⌥C)"
+        >
+          <MessageSquare size={13} className={isCommentsPanelOpen ? 'text-white' : 'text-indigo-400'} />
+          <span className="hidden sm:inline">Comments</span>
+          {openCommentsCount > 0 && (
+            <span className="px-1.5 py-0.2 rounded-full bg-indigo-500 text-[10px] font-mono font-bold text-white leading-none">
+              {openCommentsCount}
+            </span>
+          )}
         </button>
 
         {/* Toggle AI Companion Drawer */}

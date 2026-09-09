@@ -1,9 +1,16 @@
 import React from 'react';
-import { Sparkles, Lightbulb, FileText, RefreshCw, Search, MessageSquare } from 'lucide-react';
+import { Sparkles, Lightbulb, FileText, RefreshCw, Search, MessageSquare, MessageSquarePlus } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 
 export const InlineSelectionToolbar: React.FC = () => {
-  const { selectedText, selectionCoords, setSelectedText, setPendingInlinePrompt, toggleAIDrawer } = useAppStore();
+  const {
+    selectedText,
+    selectionCoords,
+    setSelectedText,
+    setPendingInlinePrompt,
+    toggleAIDrawer,
+    toggleCommentsPanel
+  } = useAppStore();
 
   if (!selectedText || !selectionCoords) return null;
 
@@ -89,6 +96,17 @@ export const InlineSelectionToolbar: React.FC = () => {
       >
         <Search size={12} />
         <span>Research</span>
+      </button>
+
+      <button
+        onClick={() => {
+          toggleCommentsPanel(true);
+        }}
+        className="flex items-center gap-1 px-2.5 py-1 rounded-full hover:bg-white/10 text-indigo-300 hover:text-white transition-colors"
+        title="Add Review Comment to Selection (⌥C)"
+      >
+        <MessageSquarePlus size={12} className="text-indigo-400" />
+        <span>Comment</span>
       </button>
 
       <button
