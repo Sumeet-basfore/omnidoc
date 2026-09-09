@@ -5,8 +5,8 @@ import { useAppStore } from '../../store/useAppStore';
 import { callAI } from '../../services/aiService';
 import { keyService } from '../../services/keyService';
 
-// Configure pdfjs worker
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+// Configure pdfjs worker — use local bundled file (offline-safe)
+pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 
 interface PdfViewerProps {
   documentId: string;
