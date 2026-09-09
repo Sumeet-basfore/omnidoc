@@ -1,6 +1,57 @@
 @import "tailwindcss";
 @import './design-system.css';
 
+/* Bundled fonts (offline-safe) */
+@font-face {
+  font-family: 'Instrument Sans';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('../assets/fonts/InstrumentSans-normal-400-700.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Instrument Sans';
+  font-style: italic;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('../assets/fonts/InstrumentSans-italic-400-700.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../assets/fonts/JetBrainsMono-normal-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('../assets/fonts/JetBrainsMono-normal-500.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('../assets/fonts/JetBrainsMono-normal-700.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Newsreader';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('../assets/fonts/Newsreader-normal-400-700.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Newsreader';
+  font-style: italic;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('../assets/fonts/Newsreader-italic-400-700.woff2') format('woff2');
+}
+
 /* Global Reset & Layout */
 * {
   box-sizing: border-box;
@@ -23,12 +74,12 @@
 }
 
 .doc-prose h1, .doc-prose h2, .doc-prose h3, .doc-prose h4 {
-  font-family: var(--font-display);
-  color: #fff;
+  font-family: var(--font-serif);
+  color: var(--text-main);
   margin-top: 1.5em;
   margin-bottom: 0.5em;
   font-weight: 600;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
 }
 
 .doc-prose h1 {
@@ -52,22 +103,22 @@
 }
 
 .doc-prose a {
-  color: var(--accent-secondary);
+  color: var(--accent-primary);
   text-decoration: none;
-  border-bottom: 1px dashed rgba(6, 182, 212, 0.4);
+  border-bottom: 1px dashed var(--border-medium);
   transition: all 0.15s ease;
 }
 
 .doc-prose a:hover {
-  color: #38bdf8;
-  border-bottom-color: #38bdf8;
+  color: var(--accent-primary-hover);
+  border-bottom-color: var(--accent-primary-hover);
 }
 
 .doc-prose blockquote {
   margin: 1em 0;
   padding: 0.5em 1em;
   border-left: 3px solid var(--accent-primary);
-  background: rgba(99, 102, 241, 0.08);
+  background: var(--bg-dark-surface);
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   color: var(--text-muted);
 }
@@ -75,14 +126,14 @@
 .doc-prose code:not(pre code) {
   font-family: var(--font-mono);
   font-size: 0.88em;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--bg-dark-elevated);
   padding: 0.15em 0.4em;
   border-radius: 4px;
-  color: #f472b6;
+  color: var(--text-main);
 }
 
 .doc-prose pre {
-  background: #111420 !important;
+  background: var(--bg-dark-base) !important;
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   padding: 1rem;
@@ -192,7 +243,25 @@
 }
 
 .pdf-text-layer ::selection {
-  background: rgba(99, 102, 241, 0.4);
+  background: rgba(56, 189, 248, 0.35);
   color: transparent;
+}
+
+/* Paper canvas prose adjustments (dark code islands on cream) */
+[data-canvas="paper"] .doc-prose pre {
+  background: #0d1117 !important;
+  border-color: #30363d;
+}
+[data-canvas="paper"] .doc-prose code:not(pre code) {
+  background: #ede6de;
+}
+[data-canvas="paper"] .doc-prose th {
+  background: #ede6de;
+}
+[data-canvas="paper"] .doc-prose tr:nth-child(even) {
+  background: rgba(28, 25, 23, 0.03);
+}
+[data-canvas="paper"] .doc-prose blockquote {
+  background: #f4efea;
 }
 

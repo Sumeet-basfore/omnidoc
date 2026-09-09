@@ -1,111 +1,53 @@
-# Design System Specification - DocsViewer (OmniDoc Studio)
+# Design System — OmniDoc Studio
 
-**Theme Name**: Obsidian Velvet & Neon Cyber Glass
-**Target Mood**: Premium, Focus-enhancing, Fluid, latest Studio
+**Theme:** Midnight Instrument (default shell) + Paper canvas (prose surfaces).
+Single signal accent. No gradients, no glow, no glassmorphism on chrome.
 
----
+## Tokens (`src/styles/design-system.css`)
 
-## 1. Color Tokens & Palette
+| Token | Midnight (shell) | Paper (`[data-canvas="paper"]` scope) |
+|---|---|---|
+| `--bg-dark-base` | `#0D1117` | `#FBF9F5` |
+| `--bg-dark-surface` | `#161B22` | `#F4EFEA` |
+| `--bg-dark-elevated` | `#21262D` | `#FFFFFF` |
+| `--border-subtle` / `--border-medium` | `#30363D` / `#484F58` | `#E4DCD3` / `#C8BCB0` |
+| `--accent-primary` / `-hover` | `#38BDF8` / `#7DD3FC` | `#B93815` / `#9C2A0C` |
+| `--text-main` / `-muted` / `-dim` | `#F0F6FC` / `#8B949E` / `#6E7681` | `#1C1917` / `#665E55` / `#8A8178` |
+| success / warning / danger | `#2EA043` / `#D29922` / `#F85149` | `#027A48` / `#B54708` / `#B42318` |
+| radii sm / md / lg | `2px` / `4px` / `6px` (both modes) | same |
 
-```css
-:root {
-  /* Surface Colors */
-  --bg-dark-base: #0a0c12;
-  --bg-dark-surface: #121622;
-  --bg-dark-elevated: #1a2030;
-  --bg-glass: rgba(18, 22, 34, 0.75);
-  --bg-glass-hover: rgba(26, 32, 48, 0.85);
+Rules:
+- **One accent.** Secondary hues only for success/warning/danger and
+  file-format coding (md cyan, pdf red, docx sky, data emerald, code amber).
+- **Solid surfaces + 1px borders.** No `backdrop-blur`, no `bg-gradient-*`,
+  no glow shadows on chrome. Modal cards use `--bg-dark-elevated`.
+- **Radii:** 2px tags/code, 4px buttons/inputs, 6px modals/cards.
+  `rounded-full` only for dots, badges, filter chips.
+- **Labels** in sentence case, medium weight. No uppercase tracking.
+- **Icons:** Lucide only, 12–16px. No emoji in chrome.
+- **Accent buttons:** solid accent fill with `text-[var(--text-on-accent)]`
+  (near-black on sky in midnight, cream on terracotta in paper — both AA).
+- **Focus:** global `2px solid var(--border-active)` + `2px` offset.
+- **Motion:** `animate-modal` entry only; honor `prefers-reduced-motion`.
 
-  /* Border & Divider Tokens */
-  --border-subtle: rgba(255, 255, 255, 0.08);
-  --border-medium: rgba(255, 255, 255, 0.15);
-  --border-active: #6366f1;
+## Typography (bundled in `src/assets/fonts/`, offline-safe)
 
-  /* Accent & Highlight Colors */
-  --accent-primary: #6366f1;       /* Indigo / Violet */
-  --accent-primary-hover: #4f46e5;
-  --accent-secondary: #06b6d4;     /* Electric Cyan */
-  --accent-sparkle: #ec4899;       /* AI Pink Magenta */
-  --accent-success: #10b981;       /* Emerald */
-  --accent-warning: #f59e0b;       /* Amber */
-  --accent-danger: #ef4444;        /* Crimson */
+- UI/chrome: **Instrument Sans** (variable 400–700 + italic)
+- Code: **JetBrains Mono** (400/500/700)
+- Document canvas headings (`.doc-prose h1–h4`): **Newsreader** serif
+- Code blocks on paper stay dark (`#0D1117`) — dark islands on cream.
 
-  /* Text & Content Tokens */
-  --text-main: #f3f4f6;
-  --text-muted: #9ca3af;
-  --text-dim: #6b7280;
-  --text-accent: #818cf8;
+## Paper canvas
 
-  /* Shadows & Glassmorphism Blur */
-  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
-  --glass-backdrop-blur: blur(16px);
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
-  --radius-pill: 9999px;
-}
-```
+`data-canvas="paper"` on a container flips all `var()` tokens beneath it.
+Used for: Markdown preview (toggleable via **Paper** button, default on),
+DOCX sheet (always). Code/CSV/JSON stay dark. `pre` blocks render dark in
+both modes for readability with the highlight themes.
 
----
+## Layout
 
-## 2. Typography System
-
-- **Primary UI & Document Body**: `'Inter', system-ui, -apple-system, sans-serif`
-- **Code & Markdown Source**: `'Fira Code', 'JetBrains Mono', monospace`
-- **Document Titles & Headings**: `'Outfit', 'Inter', sans-serif`
-
-```css
-/* Type Scale */
---text-xs: 0.75rem;    /* 12px */
---text-sm: 0.875rem;   /* 14px */
---text-base: 1rem;     /* 16px */
---text-lg: 1.125rem;   /* 18px */
---text-xl: 1.25rem;    /* 20px */
---text-2xl: 1.5rem;    /* 24px */
---text-3xl: 1.875rem;  /* 30px */
-```
-
----
-
-## 3. UI Component Styles & Aesthetics
-
-### 3.1 Top Bar & Navigation Header
-- Height: `56px`
-- Background: `var(--bg-glass)` with `backdrop-filter: var(--glass-backdrop-blur)`
-- Border Bottom: `1px solid var(--border-subtle)`
-- Displays active file title, model selector badge, quick action buttons, and AI companion drawer toggle.
-
-### 3.2 Sidebar File Explorer & Tab Bar
-- Sidebar Width: `260px` (Collapsible)
-- Tab Bar Height: `40px` with animated active tab glow bar.
-- File icons color-coded by format:
-  - 📝 Markdown: Cyan (`#06b6d4`)
-  - 📕 PDF: Crimson (`#ef4444`)
-  - 📘 DOCX: Indigo (`#6366f1`)
-  - 📊 CSV/JSON: Emerald (`#10b981`)
-  - 💻 Code: Amber (`#f59e0b`)
-
-### 3.3 AI Companion Drawer
-- Drawer Width: `380px`
-- Floating Glassmorphic card design with glowing AI badge header.
-- Mode Selector Pills (*Friend Co-Writer*, *Deep Researcher*, *Proofreader*).
-- Message Bubbles:
-  - User Bubble: Slate dark background with subtle right border accent.
-  - AI Friend Bubble: Violet-to-cyan gradient subtle border with glowing avatar.
-
-### 3.4 Floating Contextual Selection Toolbar
-- Appears when text is selected inside any editable document viewport.
-- Compact glass pill container with micro-buttons:
-  - ✨ *Fix & Polish*
-  - 💡 *Simplify*
-  - 🔍 *Deep Research Topic*
-  - 💬 *Ask AI Friend*
-
----
-
-## 4. Animation & Micro-Interactions
-
-- **Hover Transitions**: `transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1)`
-- **Modal Entry**: `animation: modalFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1)`
-- **AI Glow Pulse**: Subtle ambient pulsing glow around active AI buttons when generating responses.
+- TopBar 48px · TabBar 36px (tabs `min-w-120`/`max-w-220`, scroll + list
+  dropdown past 1 tab) · Sidebar 260px · AI drawer 380px docked flex
+  (unmounted when closed — never overlay hacks).
+- Command palette results grouped by category headers.
+- Sidebar rows dense (`p-1`), section headers `11px semibold zinc-500`.

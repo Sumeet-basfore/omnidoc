@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Sparkles, Copy, Check, Plus, AlertCircle, Trash2, Loader2 } from 'lucide-react';
+import { Send, Bot, User, Copy, Check, Plus, AlertCircle, Trash2, Loader2, PenLine, Search, ListChecks, Lightbulb } from 'lucide-react';
 import { marked } from 'marked';
 import { useAppStore } from '../../store/useAppStore';
 import { callAI } from '../../services/aiService';
@@ -21,7 +21,9 @@ export const ChatPanel: React.FC = () => {
     updateDocumentContent,
     setSettingsOpen,
     isAILoading,
-    setAILoading
+    setAILoading,
+    pendingInlinePrompt,
+    setPendingInlinePrompt
   } = useAppStore();
 
   const [input, setInput] = useState<string>('');
@@ -36,6 +38,16 @@ export const ChatPanel: React.FC = () => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMessages, isAILoading]);
+
+  // Auto-send prompts queued by the inline selection toolbar
+  useEffect(() => {
+    if (pendingInlinePrompt) {
+      const prompt = pendingInlinePrompt;
+      setPendingInlinePrompt(null);
+      handleSend(prompt);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingInlinePrompt]);
 
   const handleSend = async (customPrompt?: string) => {
     const textToSend = customPrompt || input;
@@ -85,7 +97,7 @@ export const ChatPanel: React.FC = () => {
       setErrorBanner(err.message || 'Failed to generate response from AI provider.');
       addChatMessage({
         role: 'assistant',
-        content: `⚠️ Error: ${err.message || 'Failed to communicate with the AI provider.'}`
+        content: `Error: ${err.message || 'Failed to communicate with the AI provider.'}`
       });
     } finally {
       setAILoading(false);
@@ -99,24 +111,24 @@ export const ChatPanel: React.FC = () => {
   };
 
   const handleInsertIntoDoc = (text: string) => {
-    if (!activeDoc) return;
+    if (!activeDoc || activeDoc.format === 'pdf' || activeDoc.format === 'docx') return;
     const separator = activeDoc.content.trim() ? '\n\n' : '';
     updateDocumentContent(activeDoc.id, `${activeDoc.content}${separator}${text}`);
   };
 
-  const personas: Array<{ id: AIPersona; label: string; icon: string }> = [
-    { id: 'friend', label: 'Friend Co-Writer', icon: '✨' },
-    { id: 'researcher', label: 'Researcher', icon: '🔍' },
-    { id: 'proofreader', label: 'Proofreader', icon: '📝' },
-    { id: 'brainstormer', label: 'Brainstormer', icon: '💡' }
+  const personas: Array<{ id: AIPersona; label: string; icon: React.ReactNode }> = [
+    { id: 'friend', label: 'Co-writer', icon: <PenLine size={12} /> },
+    { id: 'researcher', label: 'Researcher', icon: <Search size={12} /> },
+    { id: 'proofreader', label: 'Proofreader', icon: <ListChecks size={12} /> },
+    { id: 'brainstormer', label: 'Brainstorm', icon: <Lightbulb size={12} /> }
   ];
 
   return (
-    <div className="flex flex-col h-full w-full bg-[#0e121d] select-none">
+    <div className="flex flex-col h-full w-full bg-[var(--bg-dark-surface)] select-none">
       {/* Persona Pills Header */}
       <div className="p-3 border-b border-[var(--border-subtle)] bg-[var(--bg-glass)]">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-[11px] font-medium text-zinc-400 uppercase tracking-wider">
+          <span className="text-[11px] font-medium text-zinc-400">
             AI Persona Mode
           </span>
           <button
@@ -134,13 +146,13 @@ export const ChatPanel: React.FC = () => {
             <button
               key={p.id}
               onClick={() => setActivePersona(p.id)}
-              className={`px-2.5 py-1 rounded-full text-xs font-medium transition-all flex items-center gap-1 ${
+              className={`px-2.5 py-1 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 ${
                 activePersona === p.id
-                  ? 'bg-gradient-to-r from-indigo-500 to-pink-500 text-white shadow-md glow-sparkle'
+                  ? 'bg-[var(--accent-primary)] text-[var(--text-on-accent)]'
                   : 'bg-white/5 text-zinc-400 hover:text-zinc-200 hover:bg-white/10'
               }`}
             >
-              <span>{p.icon}</span>
+              {p.icon}
               <span>{p.label}</span>
             </button>
           ))}
@@ -149,7 +161,7 @@ export const ChatPanel: React.FC = () => {
 
       {/* Error alert banner if key missing */}
       {errorBanner && (
-        <div className="mx-3 mt-3 p-2.5 bg-red-950/40 border border-red-500/30 rounded-lg flex items-start gap-2 text-xs text-red-200">
+        <div className="mx-3 mt-3 p-2.5 bg-red-950/40 border border-red-500/30 rounded flex items-start gap-2 text-xs text-red-200">
           <AlertCircle size={15} className="text-red-400 shrink-0 mt-0.5" />
           <div className="flex-1">
             <span>{errorBanner}</span>
@@ -180,22 +192,22 @@ export const ChatPanel: React.FC = () => {
                 </>
               ) : (
                 <>
-                  <Bot size={12} className="text-pink-400" />
-                  <span className="text-indigo-300 font-medium">AI Friend</span>
+                  <Bot size={12} className="text-sky-400" />
+                  <span className="text-sky-300 font-medium">AI Friend</span>
                 </>
               )}
             </div>
 
             <div
-              className={`p-3.5 rounded-2xl max-w-[90%] text-xs leading-relaxed transition-all ${
+              className={`p-3.5 rounded-md max-w-[90%] text-xs leading-relaxed transition-all ${
                 msg.role === 'user'
-                  ? 'bg-indigo-600/30 text-zinc-100 border border-indigo-500/30 rounded-tr-sm'
-                  : 'bg-[#141927] text-zinc-200 border border-white/10 shadow-lg rounded-tl-sm'
+                  ? 'bg-sky-600/30 text-zinc-100 border border-sky-500/30 rounded-tr-sm'
+                  : 'bg-[var(--bg-dark-surface)] text-zinc-200 border border-white/10 shadow-lg rounded-tl-sm'
               }`}
             >
               {msg.role === 'assistant' ? (
                 <div
-                  className="doc-prose text-xs [&>p]:mb-2 [&>p:last-child]:mb-0 [&>ul]:list-disc [&>ul]:pl-4 [&>ol]:list-decimal [&>ol]:pl-4 [&>pre]:bg-black/50 [&>pre]:p-2.5 [&>pre]:rounded-lg [&>code]:bg-white/10 [&>code]:px-1 [&>code]:rounded overflow-x-auto"
+                  className="doc-prose text-xs [&>p]:mb-2 [&>p:last-child]:mb-0 [&>ul]:list-disc [&>ul]:pl-4 [&>ol]:list-decimal [&>ol]:pl-4 [&>pre]:bg-black/50 [&>pre]:p-2.5 [&>pre]:rounded [&>code]:bg-white/10 [&>code]:px-1 [&>code]:rounded overflow-x-auto"
                   dangerouslySetInnerHTML={{ __html: marked.parse(msg.content) as string }}
                 />
               ) : (
@@ -219,7 +231,7 @@ export const ChatPanel: React.FC = () => {
                   {activeDoc && (
                     <button
                       onClick={() => handleInsertIntoDoc(msg.content)}
-                      className="flex items-center gap-1 text-[10px] text-indigo-400 hover:text-indigo-300 transition-colors ml-auto"
+                      className="flex items-center gap-1 text-[10px] text-sky-400 hover:text-sky-300 transition-colors ml-auto"
                     >
                       <Plus size={11} />
                       <span>Insert in Doc</span>
@@ -232,9 +244,9 @@ export const ChatPanel: React.FC = () => {
         ))}
 
         {isAILoading && (
-          <div className="flex items-center gap-2 text-xs text-indigo-400 p-2">
-            <Loader2 size={16} className="animate-spin text-pink-400" />
-            <span>AI Friend is thinking & writing...</span>
+          <div className="flex items-center gap-2 text-xs text-zinc-400 p-2">
+            <Loader2 size={16} className="animate-spin text-sky-400" />
+            <span>Working…</span>
           </div>
         )}
 
@@ -247,7 +259,7 @@ export const ChatPanel: React.FC = () => {
           onClick={() => handleSend('Please summarize the key takeaways of the current document.')}
           className="whitespace-nowrap px-2 py-1 rounded bg-white/5 hover:bg-white/10 hover:text-zinc-200 transition-colors"
         >
-          💡 Summarize Doc
+          Summarize doc
         </button>
         <button
           onClick={() =>
@@ -255,19 +267,19 @@ export const ChatPanel: React.FC = () => {
           }
           className="whitespace-nowrap px-2 py-1 rounded bg-white/5 hover:bg-white/10 hover:text-zinc-200 transition-colors"
         >
-          📝 Proofread
+          Proofread
         </button>
         <button
           onClick={() => handleSend('What are 3 interesting counter-arguments or missing angles here?')}
           className="whitespace-nowrap px-2 py-1 rounded bg-white/5 hover:bg-white/10 hover:text-zinc-200 transition-colors"
         >
-          🔍 Brainstorm Angles
+          Brainstorm angles
         </button>
       </div>
 
       {/* Input Area */}
       <div className="p-3 border-t border-[var(--border-subtle)] bg-[var(--bg-glass)]">
-        <div className="flex items-end gap-2 bg-[#141926] border border-white/10 rounded-xl p-2 focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500 transition-all">
+        <div className="flex items-end gap-2 bg-[var(--bg-dark-surface)] border border-white/10 rounded-md p-2 focus-within:border-sky-500 focus-within:ring-1 focus-within:ring-sky-500 transition-all">
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -284,7 +296,7 @@ export const ChatPanel: React.FC = () => {
           <button
             onClick={() => handleSend()}
             disabled={!input.trim() || isAILoading}
-            className="p-2 rounded-lg bg-[var(--accent-primary)] hover:bg-[var(--accent-primary-hover)] disabled:opacity-30 text-white transition-all shadow-md shrink-0"
+            className="p-2 rounded bg-[var(--accent-primary)] hover:bg-[var(--accent-primary-hover)] disabled:opacity-30 text-[var(--text-on-accent)] transition-all shrink-0"
           >
             <Send size={14} />
           </button>

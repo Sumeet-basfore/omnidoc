@@ -3,7 +3,7 @@ import { Sparkles, Lightbulb, FileText, RefreshCw, Search, MessageSquare } from 
 import { useAppStore } from '../../store/useAppStore';
 
 export const InlineSelectionToolbar: React.FC = () => {
-  const { selectedText, selectionCoords, setSelectedText, addChatMessage, toggleAIDrawer } = useAppStore();
+  const { selectedText, selectionCoords, setSelectedText, setPendingInlinePrompt, toggleAIDrawer } = useAppStore();
 
   if (!selectedText || !selectionCoords) return null;
 
@@ -31,11 +31,7 @@ export const InlineSelectionToolbar: React.FC = () => {
         break;
     }
 
-    addChatMessage({
-      role: 'user',
-      content: prompt
-    });
-
+    setPendingInlinePrompt(prompt);
     toggleAIDrawer(true);
     setSelectedText('', null);
   };
@@ -46,14 +42,14 @@ export const InlineSelectionToolbar: React.FC = () => {
         top: `${selectionCoords.top + 8}px`,
         left: `${selectionCoords.left}px`
       }}
-      className="fixed z-50 flex items-center gap-1 p-1 bg-[#121622]/95 border border-[var(--border-medium)] rounded-full shadow-2xl backdrop-blur-md animate-modal select-none text-xs"
+      className="fixed z-50 flex items-center gap-1 p-1 bg-[var(--bg-dark-surface)]/95 border border-[var(--border-medium)] rounded-full shadow-2xl animate-modal select-none text-xs"
     >
       <button
         onClick={() => handleAction('polish')}
-        className="flex items-center gap-1 px-2.5 py-1 rounded-full hover:bg-white/10 text-indigo-300 hover:text-white transition-colors"
+        className="flex items-center gap-1 px-2.5 py-1 rounded-full hover:bg-white/10 text-sky-300 hover:text-white transition-colors"
         title="Fix & Polish Writing"
       >
-        <Sparkles size={12} className="text-pink-400" />
+        <Sparkles size={12} className="text-sky-400" />
         <span>Polish</span>
       </button>
 

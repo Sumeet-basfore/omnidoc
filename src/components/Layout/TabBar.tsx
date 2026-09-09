@@ -1,25 +1,30 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { X, Plus, FileText, FileSpreadsheet, FileCode, File } from 'lucide-react';
+import { X, Plus, FileText, FileSpreadsheet, FileCode, File, ChevronDown } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import { DocumentFormat } from '../../types/document';
 
 export const TabBar: React.FC = () => {
   const { tabs, activeTabId, documents, setActiveTab, closeTab, createDocument } = useAppStore();
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [isListOpen, setIsListOpen] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
 
-  // Close popover when clicking outside
+  // Close popovers when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
         setIsPopoverOpen(false);
       }
+      if (listRef.current && !listRef.current.contains(e.target as Node)) {
+        setIsListOpen(false);
+      }
     };
-    if (isPopoverOpen) {
+    if (isPopoverOpen || isListOpen) {
       document.addEventListener('mousedown', handleClickOutside);
     }
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isPopoverOpen]);
+  }, [isPopoverOpen, isListOpen]);
 
   const getFormatIcon = (format: DocumentFormat) => {
     switch (format) {
@@ -28,7 +33,7 @@ export const TabBar: React.FC = () => {
       case 'pdf':
         return <File size={13} className="text-red-400" />;
       case 'docx':
-        return <FileText size={13} className="text-indigo-400" />;
+        return <FileText size={13} className="text-sky-400" />;
       case 'csv':
       case 'json':
         return <FileSpreadsheet size={13} className="text-emerald-400" />;
@@ -46,7 +51,7 @@ export const TabBar: React.FC = () => {
       case 'pdf':
         return '#ef4444';
       case 'docx':
-        return '#6366f1';
+        return '#38bdf8';
       case 'csv':
       case 'json':
         return '#10b981';
@@ -58,7 +63,7 @@ export const TabBar: React.FC = () => {
   };
 
   return (
-    <div className="h-9 border-b border-[var(--border-subtle)] bg-[#090b10] flex items-center px-2 select-none overflow-x-auto gap-1 relative z-10">
+    <div className="h-9 border-b border-[var(--border-subtle)] bg-[var(--bg-dark-base)] flex items-center px-2 select-none overflow-x-auto gap-1 relative z-10">
       {tabs.map((tab) => {
         const doc = documents[tab.documentId];
         if (!doc) return null;
@@ -71,14 +76,14 @@ export const TabBar: React.FC = () => {
             style={{
               borderTopColor: isActive ? getFormatBorderColor(doc.format) : 'transparent'
             }}
-            className={`group h-8 px-3 rounded-t-lg flex items-center gap-2 cursor-pointer transition-all text-xs border-t-2 border-l border-r relative ${
+            className={`group h-8 px-3 rounded-t flex items-center gap-2 cursor-pointer transition-all text-xs border-t-2 border-l border-r relative shrink-0 min-w-[120px] max-w-[220px] ${
               isActive
-                ? 'bg-[#121622] border-l-[var(--border-subtle)] border-r-[var(--border-subtle)] border-b-0 text-white font-medium shadow-sm -bottom-[1px]'
+                ? 'bg-[var(--bg-dark-surface)] border-l-[var(--border-subtle)] border-r-[var(--border-subtle)] border-b-0 text-white font-medium shadow-sm -bottom-[1px]'
                 : 'bg-transparent border-transparent text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.03]'
             }`}
           >
             {getFormatIcon(doc.format)}
-            <span className="truncate max-w-[140px]">{doc.name}</span>
+            <span className="truncate flex-1 min-w-0">{doc.name}</span>
 
             {/* Dirty Indicator or Close Button */}
             <div className="flex items-center ml-1">
@@ -106,7 +111,7 @@ export const TabBar: React.FC = () => {
       <div className="relative" ref={popoverRef}>
         <button
           onClick={() => setIsPopoverOpen(!isPopoverOpen)}
-          className={`p-1.5 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-white/5 transition-colors ml-1 ${
+          className={`p-1.5 rounded text-zinc-400 hover:text-zinc-200 hover:bg-white/5 transition-colors ml-1 ${
             isPopoverOpen ? 'bg-white/10 text-white' : ''
           }`}
           title="Create New Document..."
@@ -115,7 +120,7 @@ export const TabBar: React.FC = () => {
         </button>
 
         {isPopoverOpen && (
-          <div className="absolute left-0 top-full mt-1 w-48 bg-[#141824] border border-white/15 rounded-xl shadow-2xl py-1.5 z-50 text-xs animate-modal">
+          <div className="absolute left-0 top-full mt-1 w-48 bg-[var(--bg-dark-elevated)] border border-white/15 rounded-md shadow-2xl py-1.5 z-50 text-xs animate-modal">
             <button
               onClick={() => {
                 createDocument('markdown');
@@ -143,12 +148,53 @@ export const TabBar: React.FC = () => {
               }}
               className="w-full text-left px-3 py-1.5 hover:bg-white/10 flex items-center gap-2 text-zinc-200 transition-colors"
             >
-              <FileSpreadsheet size={13} className="text-pink-400" />
+              <FileSpreadsheet size={13} className="text-sky-400" />
               <span>+ JSON Document</span>
             </button>
           </div>
         )}
       </div>
+
+      {/* Open-tab list (overflow jump) */}
+      {tabs.length > 1 && (
+        <div className="relative shrink-0" ref={listRef}>
+          <button
+            onClick={() => setIsListOpen(!isListOpen)}
+            className={`p-1.5 rounded text-zinc-400 hover:text-zinc-200 hover:bg-white/5 transition-colors ml-1 ${
+              isListOpen ? 'bg-white/10 text-white' : ''
+            }`}
+            title="List open tabs"
+          >
+            <ChevronDown size={14} />
+          </button>
+
+          {isListOpen && (
+            <div className="absolute right-0 top-full mt-1 w-56 bg-[var(--bg-dark-elevated)] border border-white/15 rounded-md shadow-2xl py-1.5 z-50 text-xs animate-modal max-h-64 overflow-y-auto">
+              {tabs.map((tab) => {
+                const doc = documents[tab.documentId];
+                if (!doc) return null;
+                const isActive = tab.id === activeTabId;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => {
+                      setActiveTab(tab.id);
+                      setIsListOpen(false);
+                    }}
+                    className={`w-full text-left px-3 py-1.5 hover:bg-white/10 flex items-center gap-2 transition-colors ${
+                      isActive ? 'text-white' : 'text-zinc-400'
+                    }`}
+                  >
+                    {getFormatIcon(doc.format)}
+                    <span className="truncate flex-1">{doc.name}</span>
+                    {doc.isDirty && <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

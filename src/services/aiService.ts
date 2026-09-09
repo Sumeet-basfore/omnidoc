@@ -151,7 +151,11 @@ async function callOpenAICompat(
     baseUrl = 'https://openrouter.ai/api/v1';
     defaultModel = 'anthropic/claude-3.5-sonnet';
   } else if (config.id === 'custom') {
-    baseUrl = (config.baseUrl || 'http://localhost:11434/v1').replace(/\/+$/, '');
+    // Normalize Ollama / LM Studio base URL: accept `http://localhost:11434`
+    // or `.../v1`, with or without trailing slash.
+    let raw = (config.baseUrl || 'http://localhost:11434/v1').trim().replace(/\/+$/, '');
+    if (!/\/v1$/.test(raw)) raw += '/v1';
+    baseUrl = raw;
     defaultModel = config.model || 'llama3';
   }
 
@@ -168,19 +172,38 @@ async function callOpenAICompat(
     headers['X-Title'] = 'OmniDoc Studio';
   }
 
-  const res = await fetch(`${baseUrl}/chat/completions`, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({
-      model: config.model || defaultModel,
-      messages,
-      temperature: config.temperature ?? 0.7
-    })
-  });
+  const url = `${baseUrl}/chat/completions`;
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 90000);
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        model: config.model || defaultModel,
+        messages,
+        temperature: config.temperature ?? 0.7
+      }),
+      signal: ctrl.signal
+    });
+  } catch (err: any) {
+    if (err?.name === 'AbortError') throw new Error('AI request timed out after 90s.');
+    if (config.id === 'custom')
+      throw new Error(
+        `Cannot reach local model at ${baseUrl}. Is Ollama running? Try: \`ollama serve\` then \`ollama pull ${config.model || defaultModel}\`. (${err?.message || 'network error'})`
+      );
+    throw new Error(`Network error reaching ${baseUrl}: ${err?.message || err}`);
+  } finally {
+    clearTimeout(timer);
+  }
 
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({}));
-    throw new Error(`AI API error (${res.status}): ${errorData.error?.message || res.statusText}`);
+    const detail = errorData.error?.message || (typeof errorData.error === 'string' ? errorData.error : '') || res.statusText;
+    if (config.id === 'custom' && res.status === 404)
+      throw new Error(`Local model "${config.model || defaultModel}" not found at ${baseUrl}. Run: \`ollama pull ${config.model || defaultModel}\`. (${detail})`);
+    throw new Error(`AI API error (${res.status}): ${detail}`);
   }
 
   const data = await res.json();

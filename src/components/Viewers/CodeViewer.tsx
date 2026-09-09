@@ -128,7 +128,7 @@ export const CodeViewer: React.FC<CodeViewerProps> = ({ documentId, name, conten
   };
 
   return (
-    <div className="flex flex-col h-full w-full bg-[#0a0c12] overflow-hidden select-none">
+    <div className="flex flex-col h-full w-full bg-[var(--bg-dark-base)] overflow-hidden select-none">
       {/* Code Sub-Header Toolbar */}
       <div className="flex items-center justify-between px-4 py-2 border-b border-[var(--border-subtle)] bg-[var(--bg-glass)] text-xs">
         <div className="flex items-center gap-3">
@@ -144,7 +144,7 @@ export const CodeViewer: React.FC<CodeViewerProps> = ({ documentId, name, conten
               placeholder="Find in file..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-7 pr-2 py-1 bg-black/30 border border-white/10 rounded-md text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-indigo-500 w-36"
+              className="pl-7 pr-2 py-1 bg-black/30 border border-white/10 rounded-md text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-sky-500 w-36"
             />
           </div>
 
@@ -164,21 +164,21 @@ export const CodeViewer: React.FC<CodeViewerProps> = ({ documentId, name, conten
           {/* AI Code Actions */}
           <button
             onClick={() => handleAIExplain('explain')}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-600/20 border border-indigo-500/30 text-indigo-300 hover:text-white hover:bg-indigo-600/40 transition-all text-xs"
+            className="flex items-center gap-1 px-2.5 py-1 rounded bg-sky-600/20 border border-sky-500/30 text-sky-300 hover:text-white hover:bg-sky-600/40 transition-all text-xs"
           >
-            <Sparkles size={12} className="text-pink-400" />
+            <Sparkles size={12} className="text-sky-400" />
             <span>Explain File</span>
           </button>
           <button
             onClick={() => handleAIExplain('summary')}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-zinc-300 hover:text-white hover:bg-white/10 transition-all text-xs"
+            className="flex items-center gap-1 px-2.5 py-1 rounded bg-white/5 border border-white/10 text-zinc-300 hover:text-white hover:bg-white/10 transition-all text-xs"
           >
             <span>Summarize Logic</span>
           </button>
 
           <button
             onClick={handleCopy}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-zinc-300 hover:text-white hover:bg-white/10 transition-all text-xs ml-2"
+            className="flex items-center gap-1 px-2.5 py-1 rounded bg-white/5 border border-white/10 text-zinc-300 hover:text-white hover:bg-white/10 transition-all text-xs ml-2"
           >
             {copied ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
             <span>{copied ? 'Copied' : 'Copy'}</span>
@@ -191,7 +191,7 @@ export const CodeViewer: React.FC<CodeViewerProps> = ({ documentId, name, conten
         ref={codeContainerRef}
         onMouseUp={handleSelection}
         onKeyUp={handleSelection}
-        className="flex-1 overflow-auto bg-[#0a0c12] p-4 font-mono text-xs leading-relaxed select-text"
+        className="flex-1 overflow-auto bg-[var(--bg-dark-base)] p-4 font-mono text-xs leading-relaxed select-text"
       >
         <div className="flex min-w-full">
           {/* Line Numbers */}

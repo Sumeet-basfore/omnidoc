@@ -38,18 +38,15 @@ export const Sidebar: React.FC = () => {
     return 'code';
   };
 
-  const getFileMeta = (filename: string, idx: number) => {
+  const getFileMeta = (filename: string) => {
     const ext = filename.split('.').pop()?.toLowerCase() || '';
-    const times = ['2m ago', '15m ago', '1h ago', '3h ago', 'Yesterday', '2d ago', '5d ago', '1w ago'];
-    const time = times[idx] || 'Earlier';
 
     if (['md', 'markdown'].includes(ext)) {
       return {
         format: 'markdown' as DocumentFormat,
         badge: 'MD',
         borderClass: 'border-l-cyan-400',
-        badgeClass: 'bg-cyan-500/15 text-cyan-400 border border-cyan-500/30',
-        time
+        badgeClass: 'bg-cyan-500/15 text-cyan-400 border border-cyan-500/30'
       };
     }
     if (ext === 'pdf') {
@@ -57,17 +54,15 @@ export const Sidebar: React.FC = () => {
         format: 'pdf' as DocumentFormat,
         badge: 'PDF',
         borderClass: 'border-l-red-500',
-        badgeClass: 'bg-red-500/15 text-red-400 border border-red-500/30',
-        time
+        badgeClass: 'bg-red-500/15 text-red-400 border border-red-500/30'
       };
     }
     if (['docx', 'doc'].includes(ext)) {
       return {
         format: 'docx' as DocumentFormat,
         badge: 'DOC',
-        borderClass: 'border-l-indigo-500',
-        badgeClass: 'bg-indigo-500/15 text-indigo-400 border border-indigo-500/30',
-        time
+        borderClass: 'border-l-sky-500',
+        badgeClass: 'bg-sky-500/15 text-sky-400 border border-sky-500/30'
       };
     }
     if (ext === 'csv') {
@@ -75,25 +70,22 @@ export const Sidebar: React.FC = () => {
         format: 'csv' as DocumentFormat,
         badge: 'CSV',
         borderClass: 'border-l-emerald-500',
-        badgeClass: 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30',
-        time
+        badgeClass: 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
       };
     }
     if (ext === 'json') {
       return {
         format: 'json' as DocumentFormat,
         badge: 'JSON',
-        borderClass: 'border-l-pink-500',
-        badgeClass: 'bg-pink-500/15 text-pink-400 border border-pink-500/30',
-        time
+        borderClass: 'border-l-sky-500',
+        badgeClass: 'bg-sky-500/15 text-sky-400 border border-sky-500/30'
       };
     }
     return {
       format: 'code' as DocumentFormat,
       badge: (ext || 'CODE').toUpperCase().slice(0, 4),
       borderClass: 'border-l-amber-500',
-      badgeClass: 'bg-amber-500/15 text-amber-400 border border-amber-500/30',
-      time
+      badgeClass: 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
     };
   };
 
@@ -132,10 +124,11 @@ export const Sidebar: React.FC = () => {
 
     if (isBinary) {
       const buffer = await file.arrayBuffer();
-      let binary = '';
       const bytes = new Uint8Array(buffer);
-      for (let i = 0; i < bytes.byteLength; i++) {
-        binary += String.fromCharCode(bytes[i]);
+      let binary = '';
+      const CHUNK = 8192;
+      for (let i = 0; i < bytes.length; i += CHUNK) {
+        binary += String.fromCharCode(...bytes.subarray(i, i + CHUNK));
       }
       const base64 = btoa(binary);
 
@@ -200,7 +193,7 @@ export const Sidebar: React.FC = () => {
   };
 
   return (
-    <aside className="w-[260px] h-full flex flex-col border-r border-[var(--border-subtle)] bg-[#0c0e16] select-none text-xs">
+    <aside className="w-[260px] h-full flex flex-col border-r border-[var(--border-subtle)] bg-[var(--bg-dark-surface)] select-none text-xs">
       {/* Hidden browser file input */}
       <input
         type="file"
@@ -213,7 +206,7 @@ export const Sidebar: React.FC = () => {
       <div className="p-3 border-b border-[var(--border-subtle)] space-y-2">
         <button
           onClick={handleOpenFile}
-          className="w-full py-2 px-3 rounded-lg bg-[var(--accent-primary)] hover:bg-[var(--accent-primary-hover)] text-white font-medium flex items-center justify-center gap-2 shadow transition-all glow-accent cursor-pointer"
+          className="w-full py-2 px-3 rounded bg-[var(--accent-primary)] hover:bg-[var(--accent-primary-hover)] text-[var(--text-on-accent)] font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer"
         >
           <FolderOpen size={14} />
           <span>Open File...</span>
@@ -238,28 +231,28 @@ export const Sidebar: React.FC = () => {
           </button>
           <button
             onClick={() => createDocument('docx')}
-            className="py-1.5 px-1.5 rounded-md bg-white/5 hover:bg-white/10 text-indigo-300 border border-white/5 flex items-center justify-center gap-1 transition-colors text-[11px] font-medium"
+            className="py-1.5 px-1.5 rounded-md bg-white/5 hover:bg-white/10 text-sky-300 border border-white/5 flex items-center justify-center gap-1 transition-colors text-[11px] font-medium"
             title="New Word Document"
           >
-            <Plus size={11} className="text-indigo-400 shrink-0" />
+            <Plus size={11} className="text-sky-400 shrink-0" />
             <span>+ DOCX</span>
           </button>
         </div>
       </div>
 
       {/* Navigation Sections */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-5">
+      <div className="flex-1 overflow-y-auto p-2.5 space-y-4">
         {/* Sample Library */}
         <div>
-          <div className="flex items-center gap-1.5 text-[11px] font-semibold text-zinc-400 uppercase tracking-wider mb-2">
-            <BookOpen size={12} className="text-indigo-400" />
+          <div className="flex items-center gap-1.5 text-[11px] font-semibold text-zinc-500 mb-1">
+            <BookOpen size={12} className="text-sky-400" />
             <span>Sample Library</span>
           </div>
 
           <div className="space-y-1">
             <button
               onClick={() => openSampleDoc('markdown')}
-              className="w-full text-left p-1.5 rounded hover:bg-white/5 text-zinc-300 hover:text-white flex items-center gap-2 transition-colors group"
+              className="w-full text-left p-1 rounded hover:bg-white/5 text-zinc-300 hover:text-white flex items-center gap-2 transition-colors group"
             >
               <FileText size={13} className="text-cyan-400" />
               <span className="truncate flex-1">Product_Roadmap.md</span>
@@ -268,7 +261,7 @@ export const Sidebar: React.FC = () => {
 
             <button
               onClick={() => openSampleDoc('csv')}
-              className="w-full text-left p-1.5 rounded hover:bg-white/5 text-zinc-300 hover:text-white flex items-center gap-2 transition-colors group"
+              className="w-full text-left p-1 rounded hover:bg-white/5 text-zinc-300 hover:text-white flex items-center gap-2 transition-colors group"
             >
               <FileSpreadsheet size={13} className="text-emerald-400" />
               <span className="truncate flex-1">Quarterly_Metrics.csv</span>
@@ -277,16 +270,16 @@ export const Sidebar: React.FC = () => {
 
             <button
               onClick={() => openSampleDoc('json')}
-              className="w-full text-left p-1.5 rounded hover:bg-white/5 text-zinc-300 hover:text-white flex items-center gap-2 transition-colors group"
+              className="w-full text-left p-1 rounded hover:bg-white/5 text-zinc-300 hover:text-white flex items-center gap-2 transition-colors group"
             >
-              <FileSpreadsheet size={13} className="text-pink-400" />
+              <FileSpreadsheet size={13} className="text-sky-400" />
               <span className="truncate flex-1">Cluster_Config.json</span>
               <ChevronRight size={12} className="text-zinc-600 group-hover:text-zinc-300" />
             </button>
 
             <button
               onClick={() => openSampleDoc('code')}
-              className="w-full text-left p-1.5 rounded hover:bg-white/5 text-zinc-300 hover:text-white flex items-center gap-2 transition-colors group"
+              className="w-full text-left p-1 rounded hover:bg-white/5 text-zinc-300 hover:text-white flex items-center gap-2 transition-colors group"
             >
               <FileCode size={13} className="text-amber-400" />
               <span className="truncate flex-1">neural_indexer.py</span>
@@ -298,17 +291,17 @@ export const Sidebar: React.FC = () => {
         {/* Recent Files */}
         {recentFiles.length > 0 && (
           <div>
-            <div className="flex items-center justify-between text-[11px] font-semibold text-zinc-400 uppercase tracking-wider mb-2">
+            <div className="flex items-center justify-between text-[11px] font-semibold text-zinc-500 mb-1">
               <div className="flex items-center gap-1.5">
                 <Clock size={12} className="text-zinc-400" />
                 <span>Recent Files</span>
               </div>
-              <span className="text-[10px] font-mono text-zinc-500">{recentFiles.length} TOTAL</span>
+              <span className="text-[10px] font-mono text-zinc-500">{recentFiles.length} files</span>
             </div>
             <div className="space-y-1.5">
               {recentFiles.slice(0, 8).map((path, idx) => {
                 const name = path.split(/[/\\]/).pop() || path;
-                const meta = getFileMeta(name, idx);
+                const meta = getFileMeta(name);
                 return (
                   <div
                     key={idx}
@@ -329,7 +322,7 @@ export const Sidebar: React.FC = () => {
                         }
                       }
                     }}
-                    className={`relative pl-2.5 pr-2 py-1.5 rounded-r-md bg-white/[0.02] hover:bg-white/[0.06] border-l-[3px] ${meta.borderClass} cursor-pointer flex flex-col gap-0.5 transition-all text-[11px] group`}
+                    className={`relative pl-2.5 pr-2 py-1 rounded-r-md bg-white/[0.02] hover:bg-white/[0.06] border-l-[3px] ${meta.borderClass} cursor-pointer flex flex-col gap-0.5 transition-all text-[11px] group`}
                     title={path}
                   >
                     <div className="flex items-center justify-between">
@@ -339,7 +332,7 @@ export const Sidebar: React.FC = () => {
                       <span className={`px-1 py-0.2 rounded text-[9px] font-mono font-medium shrink-0 ${meta.badgeClass}`}>
                         {meta.badge}
                       </span>
-                      <span className="font-mono text-[9.5px] text-zinc-400">{meta.time}</span>
+                      <span className="font-mono text-[9px] text-zinc-500 truncate max-w-[150px]" title={path}>{path}</span>
                     </div>
                   </div>
                 );
@@ -350,8 +343,8 @@ export const Sidebar: React.FC = () => {
       </div>
 
       {/* Drag and Drop Zone Hint */}
-      <div className="p-3 border-t border-[var(--border-subtle)] bg-[#090b10]/60 text-center">
-        <div className="border border-dashed border-white/10 rounded-lg p-3 text-zinc-500 flex flex-col items-center gap-1">
+      <div className="p-3 border-t border-[var(--border-subtle)] bg-[var(--bg-dark-base)]/60 text-center">
+        <div className="border border-dashed border-white/10 rounded p-3 text-zinc-500 flex flex-col items-center gap-1">
           <UploadCloud size={16} />
           <span className="text-[10px]">Drag & drop files onto app window to open</span>
         </div>

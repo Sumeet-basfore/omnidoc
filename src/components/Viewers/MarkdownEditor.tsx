@@ -16,6 +16,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ documentId, cont
   const activeView = (currentTab?.activeView as 'editor' | 'preview' | 'split') || 'split';
 
   const [renderedHtml, setRenderedHtml] = useState<string>('');
+  const [paperMode, setPaperMode] = useState<boolean>(true);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const previewRef = useRef<HTMLDivElement>(null);
 
@@ -150,7 +151,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ documentId, cont
   };
 
   return (
-    <div className="flex flex-col h-full w-full bg-[#0d1017] overflow-hidden">
+    <div className="flex flex-col h-full w-full bg-[var(--bg-dark-surface)] overflow-hidden">
       {/* Editor Sub-Header Toolbar */}
       <div className="flex items-center justify-between px-4 py-2 border-b border-[var(--border-subtle)] bg-[var(--bg-glass)] select-none text-xs">
         {/* Formatting Actions */}
@@ -227,6 +228,17 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ documentId, cont
           >
             KaTeX
           </button>
+          <button
+            onClick={() => setPaperMode(!paperMode)}
+            className={`px-2 py-1 rounded font-mono text-[11px] transition-colors ${
+              paperMode
+                ? 'bg-[var(--accent-primary)] text-[var(--text-on-accent)] font-semibold'
+                : 'hover:bg-white/10 text-[var(--text-muted)] hover:text-white'
+            }`}
+            title="Toggle paper canvas for preview"
+          >
+            Paper
+          </button>
         </div>
 
         {/* View Switchers & Stats */}
@@ -235,11 +247,11 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ documentId, cont
             {content.trim().split(/\s+/).filter(Boolean).length} words
           </span>
 
-          <div className="flex bg-black/40 p-0.5 rounded-lg border border-white/10">
+          <div className="flex bg-black/40 p-0.5 rounded border border-white/10">
             <button
               onClick={() => currentTab && setTabActiveView(currentTab.id, 'editor')}
               className={`p-1 px-2 rounded-md flex items-center gap-1 transition-all ${
-                activeView === 'editor' ? 'bg-[var(--accent-primary)] text-white font-medium' : 'text-zinc-400 hover:text-zinc-200'
+                activeView === 'editor' ? 'bg-[var(--accent-primary)] text-[var(--text-on-accent)] font-semibold' : 'text-zinc-400 hover:text-zinc-200'
               }`}
               title="Editor View"
             >
@@ -249,7 +261,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ documentId, cont
             <button
               onClick={() => currentTab && setTabActiveView(currentTab.id, 'split')}
               className={`p-1 px-2 rounded-md flex items-center gap-1 transition-all ${
-                activeView === 'split' ? 'bg-[var(--accent-primary)] text-white font-medium' : 'text-zinc-400 hover:text-zinc-200'
+                activeView === 'split' ? 'bg-[var(--accent-primary)] text-[var(--text-on-accent)] font-semibold' : 'text-zinc-400 hover:text-zinc-200'
               }`}
               title="Split View"
             >
@@ -259,7 +271,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ documentId, cont
             <button
               onClick={() => currentTab && setTabActiveView(currentTab.id, 'preview')}
               className={`p-1 px-2 rounded-md flex items-center gap-1 transition-all ${
-                activeView === 'preview' ? 'bg-[var(--accent-primary)] text-white font-medium' : 'text-zinc-400 hover:text-zinc-200'
+                activeView === 'preview' ? 'bg-[var(--accent-primary)] text-[var(--text-on-accent)] font-semibold' : 'text-zinc-400 hover:text-zinc-200'
               }`}
               title="Preview View"
             >
@@ -284,7 +296,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ documentId, cont
               onMouseUp={handleSelection}
               onKeyUp={handleSelection}
               placeholder="Write your Markdown here..."
-              className="w-full h-full p-6 bg-transparent text-[var(--text-main)] font-mono text-sm leading-relaxed resize-none outline-none overflow-y-auto selection:bg-indigo-500/40"
+              className="w-full h-full p-6 bg-transparent text-[var(--text-main)] font-mono text-sm leading-relaxed resize-none outline-none overflow-y-auto selection:bg-sky-500/40"
               spellCheck={false}
             />
           </div>
@@ -297,7 +309,8 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ documentId, cont
             onScroll={() => syncScroll('preview')}
             onMouseUp={handleSelection}
             onKeyUp={handleSelection}
-            className={`h-full overflow-y-auto p-8 bg-[var(--bg-dark-surface)]/50 ${activeView === 'split' ? 'w-1/2' : 'w-full'}`}
+            data-canvas={paperMode ? 'paper' : undefined}
+            className={`h-full overflow-y-auto p-8 bg-[var(--bg-dark-base)] ${activeView === 'split' ? 'w-1/2' : 'w-full'}`}
           >
             <div
               className="doc-prose max-w-3xl mx-auto"

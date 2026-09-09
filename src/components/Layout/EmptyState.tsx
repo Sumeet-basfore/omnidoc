@@ -53,10 +53,11 @@ export const EmptyState: React.FC = () => {
 
     if (isBinary) {
       const buffer = await file.arrayBuffer();
-      let binary = '';
       const bytes = new Uint8Array(buffer);
-      for (let i = 0; i < bytes.byteLength; i++) {
-        binary += String.fromCharCode(bytes[i]);
+      let binary = '';
+      const CHUNK = 8192;
+      for (let i = 0; i < bytes.length; i += CHUNK) {
+        binary += String.fromCharCode(...bytes.subarray(i, i + CHUNK));
       }
       openDocument({
         id: `doc-${Date.now()}`,
@@ -81,11 +82,7 @@ export const EmptyState: React.FC = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center p-8 bg-[#090b10] select-none text-center relative overflow-hidden h-full">
-      {/* Background ambient gradient glow */}
-      <div className="absolute w-[500px] h-[500px] bg-indigo-600/5 rounded-full blur-3xl pointer-events-none -top-20 -left-20" />
-      <div className="absolute w-[400px] h-[400px] bg-purple-600/5 rounded-full blur-3xl pointer-events-none -bottom-10 -right-10" />
-
+    <div className="flex-1 flex flex-col items-center justify-center p-8 bg-[var(--bg-dark-base)] select-none text-center relative overflow-hidden h-full">
       {/* Hidden browser file input */}
       <input
         type="file"
@@ -94,20 +91,20 @@ export const EmptyState: React.FC = () => {
         className="hidden"
       />
 
-      {/* Centered OD gradient badge icon */}
-      <div className="relative mb-5 group cursor-default">
-        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500/20 via-purple-500/20 to-pink-500/20 border border-indigo-500/30 flex items-center justify-center shadow-2xl shadow-indigo-500/20 glow-accent transition-transform duration-300 group-hover:scale-105">
-          <span className="text-2xl font-bold bg-gradient-to-br from-indigo-400 via-purple-300 to-pink-400 bg-clip-text text-transparent">
+      {/* Centered OD mark */}
+      <div className="relative mb-5 cursor-default">
+        <div className="w-16 h-16 rounded-md bg-[var(--bg-dark-surface)] border border-[var(--border-subtle)] flex items-center justify-center">
+          <span className="text-2xl font-bold text-sky-300 font-mono">
             OD
           </span>
         </div>
-        <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 px-1.5 py-0.2 rounded-full text-[9px] font-mono font-semibold bg-indigo-600 text-white shadow-sm border border-indigo-400/40">
+        <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 px-1.5 py-0.2 rounded-full text-[9px] font-mono font-semibold bg-[var(--accent-primary)] text-[var(--text-on-accent)]">
           v2.0
         </span>
       </div>
 
       {/* Heading & Subtitle */}
-      <h2 className="text-xl font-bold text-white mb-2 tracking-tight">No Open Documents</h2>
+      <h2 className="text-xl font-semibold text-[var(--text-main)] mb-2 tracking-tight">No open documents</h2>
       <p className="text-xs text-zinc-400 max-w-sm mb-6 leading-relaxed">
         Drop a file onto the application window or press{' '}
         <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-zinc-200 font-mono text-[11px] border border-white/10 shadow-sm">
@@ -120,7 +117,7 @@ export const EmptyState: React.FC = () => {
       <div className="flex flex-wrap items-center justify-center gap-2.5 max-w-md">
         <button
           onClick={handleOpenFile}
-          className="py-2 px-4 rounded-lg bg-[var(--accent-primary)] hover:bg-[var(--accent-primary-hover)] text-white text-xs font-medium flex items-center gap-2 shadow-lg shadow-indigo-500/20 glow-accent transition-all cursor-pointer"
+          className="py-2 px-4 rounded bg-[var(--accent-primary)] hover:bg-[var(--accent-primary-hover)] text-[var(--text-on-accent)] text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer"
         >
           <FolderOpen size={14} />
           <span>Open File...</span>
@@ -128,7 +125,7 @@ export const EmptyState: React.FC = () => {
 
         <button
           onClick={() => createDocument('markdown')}
-          className="py-2 px-3.5 rounded-lg bg-white/5 hover:bg-white/10 text-cyan-300 border border-cyan-500/20 hover:border-cyan-500/40 text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer"
+          className="py-2 px-3.5 rounded bg-white/5 hover:bg-white/10 text-cyan-300 border border-cyan-500/20 hover:border-cyan-500/40 text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer"
         >
           <FileText size={13} className="text-cyan-400" />
           <span>+ Markdown</span>
@@ -136,7 +133,7 @@ export const EmptyState: React.FC = () => {
 
         <button
           onClick={() => createDocument('csv')}
-          className="py-2 px-3.5 rounded-lg bg-white/5 hover:bg-white/10 text-emerald-300 border border-emerald-500/20 hover:border-emerald-500/40 text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer"
+          className="py-2 px-3.5 rounded bg-white/5 hover:bg-white/10 text-emerald-300 border border-emerald-500/20 hover:border-emerald-500/40 text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer"
         >
           <Table size={13} className="text-emerald-400" />
           <span>+ Data Grid</span>
@@ -144,9 +141,9 @@ export const EmptyState: React.FC = () => {
 
         <button
           onClick={() => createDocument('json')}
-          className="py-2 px-3.5 rounded-lg bg-white/5 hover:bg-white/10 text-pink-300 border border-pink-500/20 hover:border-pink-500/40 text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer"
+          className="py-2 px-3.5 rounded bg-white/5 hover:bg-white/10 text-sky-300 border border-sky-500/20 hover:border-sky-500/40 text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer"
         >
-          <Braces size={13} className="text-pink-400" />
+          <Braces size={13} className="text-sky-400" />
           <span>+ JSON</span>
         </button>
       </div>

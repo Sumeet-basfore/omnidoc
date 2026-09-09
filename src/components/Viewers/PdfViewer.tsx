@@ -5,8 +5,8 @@ import { useAppStore } from '../../store/useAppStore';
 import { callAI } from '../../services/aiService';
 import { keyService } from '../../services/keyService';
 
-// Configure pdfjs worker — use local bundled file (offline-safe)
-pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
+// Configure pdfjs worker — relative to current page so it works in dev and packaged builds
+pdfjsLib.GlobalWorkerOptions.workerSrc = new URL('pdf.worker.min.mjs', window.location.href).href;
 
 interface PdfViewerProps {
   documentId: string;
@@ -221,7 +221,7 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({ documentId, content }) => 
   };
 
   return (
-    <div className="flex flex-col h-full w-full bg-[#0a0c12] overflow-hidden select-none">
+    <div className="flex flex-col h-full w-full bg-[var(--bg-dark-base)] overflow-hidden select-none">
       {/* PDF Sub-Header Toolbar */}
       <div className="flex items-center justify-between px-4 py-2 border-b border-[var(--border-subtle)] bg-[var(--bg-glass)] text-xs">
         {/* Page Navigation */}
@@ -273,16 +273,16 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({ documentId, content }) => 
           <button
             onClick={() => setShowDisclaimer(true)}
             disabled={isExtracting || !pdfDoc}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-indigo-500/20 to-pink-500/20 border border-indigo-500/40 text-indigo-300 hover:text-white hover:border-indigo-400 transition-all text-xs font-medium"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-sky-500/10 border border-sky-500/40 text-sky-300 hover:text-white hover:border-sky-400 transition-all text-xs font-medium"
           >
             {isExtracting ? (
               <>
-                <Loader2 size={14} className="animate-spin text-indigo-400" />
+                <Loader2 size={14} className="animate-spin text-sky-400" />
                 <span>Extracting with AI...</span>
               </>
             ) : (
               <>
-                <Sparkles size={14} className="text-pink-400" />
+                <Sparkles size={14} className="text-sky-400" />
                 <span>Extract to Markdown</span>
               </>
             )}
@@ -291,7 +291,7 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({ documentId, content }) => 
       </div>
 
       {/* PDF Canvas Viewport */}
-      <div className="flex-1 overflow-auto p-6 flex justify-center items-start bg-[#1a1a1a]">
+      <div className="flex-1 overflow-auto p-6 flex justify-center items-start bg-[var(--bg-dark-base)]">
         {loading && (
           <div className="flex flex-col items-center justify-center h-64 gap-3 text-[var(--text-muted)]">
             <Loader2 size={28} className="animate-spin text-[var(--accent-primary)]" />
@@ -300,7 +300,7 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({ documentId, content }) => 
         )}
 
         {error && (
-          <div className="flex flex-col items-center justify-center p-8 text-center max-w-md bg-red-950/20 border border-red-500/30 rounded-xl my-auto">
+          <div className="flex flex-col items-center justify-center p-8 text-center max-w-md bg-red-950/20 border border-red-500/30 rounded-md my-auto">
             <AlertTriangle size={36} className="text-red-400 mb-2" />
             <h4 className="text-base font-semibold text-white mb-1">Unable to Open PDF</h4>
             <p className="text-xs text-red-200/80 mb-4">{error}</p>
@@ -318,8 +318,8 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({ documentId, content }) => 
 
       {/* AI Extraction Disclaimer Modal */}
       {showDisclaimer && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-          <div className="bg-[var(--bg-dark-elevated)] border border-[var(--border-medium)] rounded-xl max-w-md w-full p-6 shadow-2xl animate-modal">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+          <div className="bg-[var(--bg-dark-elevated)] border border-[var(--border-medium)] rounded-md max-w-md w-full p-6 shadow-2xl animate-modal">
             <div className="flex items-center gap-2.5 text-amber-400 mb-3">
               <AlertTriangle size={20} />
               <h3 className="text-base font-semibold text-white">AI-Assisted PDF Conversion</h3>
@@ -332,13 +332,13 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({ documentId, content }) => 
             <div className="flex items-center justify-end gap-3 mt-6">
               <button
                 onClick={() => setShowDisclaimer(false)}
-                className="px-4 py-1.5 rounded-lg text-xs text-zinc-400 hover:text-white transition-colors"
+                className="px-4 py-1.5 rounded text-xs text-zinc-400 hover:text-white transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleAIExtract}
-                className="px-4 py-1.5 rounded-lg text-xs bg-[var(--accent-primary)] hover:bg-[var(--accent-primary-hover)] text-white font-medium shadow-md transition-all flex items-center gap-1.5"
+                className="px-4 py-1.5 rounded text-xs bg-[var(--accent-primary)] hover:bg-[var(--accent-primary-hover)] text-[var(--text-on-accent)] font-semibold transition-all flex items-center gap-1.5"
               >
                 <Sparkles size={13} />
                 <span>Proceed to Extract</span>

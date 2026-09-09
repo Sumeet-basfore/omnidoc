@@ -88,9 +88,9 @@ export const ExportModal: React.FC = () => {
           <>
             <button
               onClick={handleExportMarkdownToDocx}
-              className="p-4 rounded-xl bg-[#161a29] hover:bg-indigo-950/40 border border-white/10 hover:border-indigo-500/40 transition-all text-left group flex items-start gap-3"
+              className="p-4 rounded-md bg-[var(--bg-dark-surface)] hover:bg-sky-950/40 border border-white/10 hover:border-sky-500/40 transition-all text-left group flex items-start gap-3"
             >
-              <div className="p-2 rounded-lg bg-indigo-500/20 text-indigo-400 group-hover:bg-indigo-500/30">
+              <div className="p-2 rounded bg-sky-500/20 text-sky-400 group-hover:bg-sky-500/30">
                 <FileText size={18} />
               </div>
               <div className="flex-1">
@@ -103,9 +103,9 @@ export const ExportModal: React.FC = () => {
 
             <button
               onClick={handlePrintPDF}
-              className="p-4 rounded-xl bg-[#161a29] hover:bg-red-950/40 border border-white/10 hover:border-red-500/40 transition-all text-left group flex items-start gap-3"
+              className="p-4 rounded-md bg-[var(--bg-dark-surface)] hover:bg-red-950/40 border border-white/10 hover:border-red-500/40 transition-all text-left group flex items-start gap-3"
             >
-              <div className="p-2 rounded-lg bg-red-500/20 text-red-400 group-hover:bg-red-500/30">
+              <div className="p-2 rounded bg-red-500/20 text-red-400 group-hover:bg-red-500/30">
                 <Printer size={18} />
               </div>
               <div className="flex-1">
@@ -123,9 +123,9 @@ export const ExportModal: React.FC = () => {
           <>
             <button
               onClick={handleExportCsvToJson}
-              className="p-4 rounded-xl bg-[#161a29] hover:bg-emerald-950/40 border border-white/10 hover:border-emerald-500/40 transition-all text-left group flex items-start gap-3"
+              className="p-4 rounded-md bg-[var(--bg-dark-surface)] hover:bg-emerald-950/40 border border-white/10 hover:border-emerald-500/40 transition-all text-left group flex items-start gap-3"
             >
-              <div className="p-2 rounded-lg bg-emerald-500/20 text-emerald-400 group-hover:bg-emerald-500/30">
+              <div className="p-2 rounded bg-emerald-500/20 text-emerald-400 group-hover:bg-emerald-500/30">
                 <FileSpreadsheet size={18} />
               </div>
               <div className="flex-1">
@@ -138,9 +138,9 @@ export const ExportModal: React.FC = () => {
 
             <button
               onClick={handleExportCsvToCsv}
-              className="p-4 rounded-xl bg-[#161a29] hover:bg-white/10 border border-white/10 transition-all text-left group flex items-start gap-3"
+              className="p-4 rounded-md bg-[var(--bg-dark-surface)] hover:bg-white/10 border border-white/10 transition-all text-left group flex items-start gap-3"
             >
-              <div className="p-2 rounded-lg bg-white/10 text-zinc-300">
+              <div className="p-2 rounded bg-white/10 text-zinc-300">
                 <Download size={18} />
               </div>
               <div className="flex-1">
@@ -158,9 +158,9 @@ export const ExportModal: React.FC = () => {
           <>
             <button
               onClick={handleExportJsonToCsv}
-              className="p-4 rounded-xl bg-[#161a29] hover:bg-emerald-950/40 border border-white/10 hover:border-emerald-500/40 transition-all text-left group flex items-start gap-3"
+              className="p-4 rounded-md bg-[var(--bg-dark-surface)] hover:bg-emerald-950/40 border border-white/10 hover:border-emerald-500/40 transition-all text-left group flex items-start gap-3"
             >
-              <div className="p-2 rounded-lg bg-emerald-500/20 text-emerald-400 group-hover:bg-emerald-500/30">
+              <div className="p-2 rounded bg-emerald-500/20 text-emerald-400 group-hover:bg-emerald-500/30">
                 <FileSpreadsheet size={18} />
               </div>
               <div className="flex-1">
@@ -173,9 +173,9 @@ export const ExportModal: React.FC = () => {
 
             <button
               onClick={handleExportJsonToJson}
-              className="p-4 rounded-xl bg-[#161a29] hover:bg-white/10 border border-white/10 transition-all text-left group flex items-start gap-3"
+              className="p-4 rounded-md bg-[var(--bg-dark-surface)] hover:bg-white/10 border border-white/10 transition-all text-left group flex items-start gap-3"
             >
-              <div className="p-2 rounded-lg bg-white/10 text-zinc-300">
+              <div className="p-2 rounded bg-white/10 text-zinc-300">
                 <Download size={18} />
               </div>
               <div className="flex-1">
@@ -193,9 +193,9 @@ export const ExportModal: React.FC = () => {
           <>
             <button
               onClick={handlePrintPDF}
-              className="p-4 rounded-xl bg-[#161a29] hover:bg-red-950/40 border border-white/10 hover:border-red-500/40 transition-all text-left group flex items-start gap-3"
+              className="p-4 rounded-md bg-[var(--bg-dark-surface)] hover:bg-red-950/40 border border-white/10 hover:border-red-500/40 transition-all text-left group flex items-start gap-3"
             >
-              <div className="p-2 rounded-lg bg-red-500/20 text-red-400 group-hover:bg-red-500/30">
+              <div className="p-2 rounded bg-red-500/20 text-red-400 group-hover:bg-red-500/30">
                 <Printer size={18} />
               </div>
               <div className="flex-1">
@@ -215,9 +215,9 @@ export const ExportModal: React.FC = () => {
           <>
             <button
               onClick={handlePrintPDF}
-              className="p-4 rounded-xl bg-[#161a29] hover:bg-red-950/40 border border-white/10 hover:border-red-500/40 transition-all text-left group flex items-start gap-3"
+              className="p-4 rounded-md bg-[var(--bg-dark-surface)] hover:bg-red-950/40 border border-white/10 hover:border-red-500/40 transition-all text-left group flex items-start gap-3"
             >
-              <div className="p-2 rounded-lg bg-red-500/20 text-red-400 group-hover:bg-red-500/30">
+              <div className="p-2 rounded bg-red-500/20 text-red-400 group-hover:bg-red-500/30">
                 <Printer size={18} />
               </div>
               <div className="flex-1">
@@ -230,9 +230,9 @@ export const ExportModal: React.FC = () => {
 
             <button
               onClick={handleDownloadOriginal}
-              className="p-4 rounded-xl bg-[#161a29] hover:bg-white/10 border border-white/10 transition-all text-left group flex items-start gap-3"
+              className="p-4 rounded-md bg-[var(--bg-dark-surface)] hover:bg-white/10 border border-white/10 transition-all text-left group flex items-start gap-3"
             >
-              <div className="p-2 rounded-lg bg-white/10 text-zinc-300">
+              <div className="p-2 rounded bg-white/10 text-zinc-300">
                 <FileCode size={18} />
               </div>
               <div className="flex-1">
@@ -250,29 +250,29 @@ export const ExportModal: React.FC = () => {
   return (
     <div
       onClick={() => setExportModalOpen(false)}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 select-none"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 select-none"
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="bg-[#121622] border border-[var(--border-medium)] rounded-2xl max-w-lg w-full flex flex-col shadow-2xl animate-modal overflow-hidden"
+        className="bg-[var(--bg-dark-elevated)] border border-[var(--border-subtle)] rounded-md max-w-lg w-full flex flex-col shadow-2xl animate-modal overflow-hidden"
       >
         {/* Modal Header */}
         <div className="px-6 py-4 border-b border-[var(--border-subtle)] flex items-center justify-between bg-[var(--bg-glass)]">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
+            <div className="w-8 h-8 rounded-md bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
               <Download size={16} />
             </div>
             <div>
               <h2 className="text-sm font-semibold text-white">Export & Convert Document</h2>
               <p className="text-[11px] text-zinc-400">
-                Choose an export format for <span className="text-indigo-300">{activeDoc.name}</span>
+                Choose an export format for <span className="text-sky-300">{activeDoc.name}</span>
               </p>
             </div>
           </div>
 
           <button
             onClick={() => setExportModalOpen(false)}
-            className="p-1 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10 transition-colors"
+            className="p-1 rounded text-zinc-400 hover:text-white hover:bg-white/10 transition-colors"
           >
             <X size={18} />
           </button>

@@ -80,7 +80,7 @@ export const DeepResearchPanel: React.FC = () => {
   };
 
   const handleInsertIntoActive = () => {
-    if (!result || !activeDoc) return;
+    if (!result || !activeDoc || activeDoc.format === 'pdf' || activeDoc.format === 'docx') return;
     const separator = activeDoc.content.trim() ? '\n\n' : '';
     updateDocumentContent(
       activeDoc.id,
@@ -89,11 +89,11 @@ export const DeepResearchPanel: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-full w-full bg-[#0e121d] select-none">
+    <div className="flex flex-col h-full w-full bg-[var(--bg-dark-surface)] select-none">
       {/* Research Configuration Header */}
       <div className="p-4 border-b border-[var(--border-subtle)] bg-[var(--bg-glass)] space-y-3">
         <div>
-          <label className="block text-[11px] font-medium text-zinc-400 uppercase tracking-wider mb-1.5">
+          <label className="block text-[11px] font-medium text-zinc-400 mb-1.5">
             Research Topic or Question
           </label>
           <div className="relative flex items-center">
@@ -105,7 +105,7 @@ export const DeepResearchPanel: React.FC = () => {
                 if (e.key === 'Enter') handleStartResearch();
               }}
               placeholder="e.g. Current state of Quantum Computing 2026..."
-              className="w-full pl-8 pr-3 py-2 bg-[#141926] border border-white/10 rounded-lg text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+              className="w-full pl-8 pr-3 py-2 bg-[var(--bg-dark-surface)] border border-white/10 rounded text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
             />
             <Search size={14} className="absolute left-2.5 text-zinc-400" />
           </div>
@@ -115,14 +115,14 @@ export const DeepResearchPanel: React.FC = () => {
         <div className="flex items-center justify-between text-xs pt-1">
           <div className="flex items-center gap-2">
             <span className="text-zinc-400 text-[11px]">Depth:</span>
-            <div className="flex bg-black/40 p-0.5 rounded-lg border border-white/10">
+            <div className="flex bg-black/40 p-0.5 rounded border border-white/10">
               {(['quick', 'standard', 'deep'] as const).map((d) => (
                 <button
                   key={d}
                   onClick={() => setDepth(d)}
                   className={`px-2 py-0.5 rounded capitalize text-[11px] transition-all ${
                     depth === d
-                      ? 'bg-[var(--accent-primary)] text-white font-medium'
+                      ? 'bg-[var(--accent-primary)] text-[var(--text-on-accent)] font-semibold'
                       : 'text-zinc-400 hover:text-white'
                   }`}
                 >
@@ -137,7 +137,7 @@ export const DeepResearchPanel: React.FC = () => {
               type="checkbox"
               checked={includeCitations}
               onChange={(e) => setIncludeCitations(e.target.checked)}
-              className="rounded bg-zinc-800 border-zinc-700 text-indigo-600 focus:ring-0"
+              className="rounded bg-zinc-800 border-zinc-700 text-sky-600 focus:ring-0"
             />
             <span>Citations</span>
           </label>
@@ -147,7 +147,7 @@ export const DeepResearchPanel: React.FC = () => {
         <button
           onClick={handleStartResearch}
           disabled={!topic.trim() || isSearching}
-          className="w-full py-2 rounded-lg bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 disabled:opacity-30 text-white font-medium text-xs flex items-center justify-center gap-2 shadow-lg transition-all glow-cyan cursor-pointer"
+          className="w-full py-2 rounded bg-[var(--accent-primary)] hover:bg-[var(--accent-primary-hover)] disabled:opacity-30 text-[var(--text-on-accent)] font-semibold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
         >
           {isSearching ? (
             <>
@@ -167,8 +167,8 @@ export const DeepResearchPanel: React.FC = () => {
       <div className="flex-1 overflow-y-auto p-4 space-y-4 select-text">
         {/* Progress indicator */}
         {isSearching && (
-          <div className="p-4 bg-indigo-950/30 border border-indigo-500/20 rounded-xl space-y-2 select-none">
-            <div className="flex items-center gap-2 text-indigo-300 text-xs font-medium">
+          <div className="p-4 bg-sky-950/30 border border-sky-500/20 rounded-md space-y-2 select-none">
+            <div className="flex items-center gap-2 text-sky-300 text-xs font-medium">
               <Loader2 size={16} className="animate-spin text-cyan-400" />
               <span>{statusMessage}</span>
             </div>
@@ -181,7 +181,7 @@ export const DeepResearchPanel: React.FC = () => {
 
         {/* Error message */}
         {error && (
-          <div className="p-3 bg-red-950/40 border border-red-500/30 rounded-xl space-y-2 text-xs text-red-200">
+          <div className="p-3 bg-red-950/40 border border-red-500/30 rounded-md space-y-2 text-xs text-red-200">
             <div className="flex items-center gap-2 font-medium text-red-300">
               <AlertCircle size={15} />
               <span>Research Failed</span>
@@ -203,7 +203,7 @@ export const DeepResearchPanel: React.FC = () => {
             <div className="flex items-center gap-2 select-none">
               <button
                 onClick={handleOpenAsDocument}
-                className="flex-1 py-1.5 px-3 rounded-lg bg-[var(--accent-primary)] hover:bg-[var(--accent-primary-hover)] text-white text-xs font-medium flex items-center justify-center gap-1.5 transition-all shadow"
+                className="flex-1 py-1.5 px-3 rounded bg-[var(--accent-primary)] hover:bg-[var(--accent-primary-hover)] text-[var(--text-on-accent)] text-xs font-medium flex items-center justify-center gap-1.5 transition-all shadow"
               >
                 <FileText size={13} />
                 <span>Open as New Tab</span>
@@ -211,7 +211,7 @@ export const DeepResearchPanel: React.FC = () => {
               {activeDoc && (
                 <button
                   onClick={handleInsertIntoActive}
-                  className="py-1.5 px-3 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-300 border border-white/10 text-xs font-medium flex items-center justify-center gap-1.5 transition-all"
+                  className="py-1.5 px-3 rounded bg-white/5 hover:bg-white/10 text-zinc-300 border border-white/10 text-xs font-medium flex items-center justify-center gap-1.5 transition-all"
                 >
                   <Plus size={13} />
                   <span>Insert Here</span>
@@ -221,7 +221,7 @@ export const DeepResearchPanel: React.FC = () => {
 
             {/* Sources list */}
             {result.sources.length > 0 && (
-              <div className="p-3 bg-[#141926] border border-white/10 rounded-xl space-y-2">
+              <div className="p-3 bg-[var(--bg-dark-surface)] border border-white/10 rounded-md space-y-2">
                 <div className="flex items-center gap-1.5 text-xs font-medium text-cyan-300 select-none">
                   <Globe size={13} />
                   <span>Verified Web Sources ({result.sources.length})</span>
@@ -236,7 +236,7 @@ export const DeepResearchPanel: React.FC = () => {
                       className="block p-1.5 rounded hover:bg-white/5 text-[11px] text-zinc-300 hover:text-white transition-colors group"
                     >
                       <div className="flex items-center justify-between">
-                        <span className="font-medium truncate max-w-[240px] text-indigo-300 group-hover:text-indigo-200">
+                        <span className="font-medium truncate max-w-[240px] text-sky-300 group-hover:text-sky-200">
                           {s.title}
                         </span>
                         <ExternalLink size={10} className="text-zinc-500 group-hover:text-zinc-300" />
@@ -249,7 +249,7 @@ export const DeepResearchPanel: React.FC = () => {
             )}
 
             {/* Report Content Preview */}
-            <div className="p-4 bg-[#121622] border border-white/10 rounded-xl text-xs leading-relaxed whitespace-pre-wrap doc-prose">
+            <div className="p-4 bg-[var(--bg-dark-surface)] border border-white/10 rounded-md text-xs leading-relaxed whitespace-pre-wrap doc-prose">
               {result.markdownContent}
             </div>
           </div>

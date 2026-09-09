@@ -66,7 +66,9 @@ export const DataGridEditor: React.FC<DataGridEditorProps> = ({
     updateDocumentContent(documentId, serialized);
   };
 
-  const handleCellChange = (rowIndex: number, col: string, value: string) => {
+  const handleCellChange = (rowObj: any, col: string, value: string) => {
+    const rowIndex = data.indexOf(rowObj);
+    if (rowIndex < 0) return;
     const updated = [...data];
     const num = Number(value);
     updated[rowIndex] = {
@@ -84,7 +86,9 @@ export const DataGridEditor: React.FC<DataGridEditorProps> = ({
     syncChanges([...data, newRow]);
   };
 
-  const handleDeleteRow = (index: number) => {
+  const handleDeleteRow = (rowObj: any) => {
+    const index = data.indexOf(rowObj);
+    if (index < 0) return;
     const updated = data.filter((_, idx) => idx !== index);
     syncChanges(updated);
   };
@@ -166,16 +170,16 @@ export const DataGridEditor: React.FC<DataGridEditorProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-full w-full bg-[#0a0c12] overflow-hidden select-none">
+    <div className="flex flex-col h-full w-full bg-[var(--bg-dark-base)] overflow-hidden select-none">
       {/* Sub-Header Toolbar */}
       <div className="flex items-center justify-between px-4 py-2 border-b border-[var(--border-subtle)] bg-[var(--bg-glass)] text-xs">
         <div className="flex items-center gap-3">
           {/* Mode switch */}
-          <div className="flex bg-black/40 p-0.5 rounded-lg border border-white/10">
+          <div className="flex bg-black/40 p-0.5 rounded border border-white/10">
             <button
               onClick={() => setViewMode('grid')}
               className={`p-1 px-2.5 rounded-md flex items-center gap-1.5 transition-all ${
-                viewMode === 'grid' ? 'bg-[var(--accent-primary)] text-white font-medium' : 'text-zinc-400 hover:text-white'
+                viewMode === 'grid' ? 'bg-[var(--accent-primary)] text-[var(--text-on-accent)] font-semibold' : 'text-zinc-400 hover:text-white'
               }`}
             >
               <Table size={13} />
@@ -184,7 +188,7 @@ export const DataGridEditor: React.FC<DataGridEditorProps> = ({
             <button
               onClick={() => setViewMode('raw')}
               className={`p-1 px-2.5 rounded-md flex items-center gap-1.5 transition-all ${
-                viewMode === 'raw' ? 'bg-[var(--accent-primary)] text-white font-medium' : 'text-zinc-400 hover:text-white'
+                viewMode === 'raw' ? 'bg-[var(--accent-primary)] text-[var(--text-on-accent)] font-semibold' : 'text-zinc-400 hover:text-white'
               }`}
             >
               <Code2 size={13} />
@@ -201,7 +205,7 @@ export const DataGridEditor: React.FC<DataGridEditorProps> = ({
                   placeholder="Filter rows..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-7 pr-2 py-1 bg-black/30 border border-white/10 rounded-md text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-indigo-500 w-44"
+                  className="pl-7 pr-2 py-1 bg-black/30 border border-white/10 rounded-md text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-sky-500 w-44"
                 />
               </div>
 
@@ -233,7 +237,7 @@ export const DataGridEditor: React.FC<DataGridEditorProps> = ({
 
           <button
             onClick={handleExport}
-            className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-600/30 border border-emerald-500/40 text-emerald-200 hover:text-white hover:bg-emerald-600/50 transition-all font-medium text-xs"
+            className="flex items-center gap-1.5 px-3 py-1 rounded bg-emerald-600/30 border border-emerald-500/40 text-emerald-200 hover:text-white hover:bg-emerald-600/50 transition-all font-medium text-xs"
           >
             <Download size={13} />
             <span>Export {format.toUpperCase()}</span>
@@ -243,10 +247,10 @@ export const DataGridEditor: React.FC<DataGridEditorProps> = ({
 
       {/* Grid or Raw View */}
       {viewMode === 'grid' ? (
-        <div className="flex-1 overflow-auto bg-[#0d1017] p-4">
+        <div className="flex-1 overflow-auto bg-[var(--bg-dark-surface)] p-4">
           <table className="w-full border-collapse text-left text-xs">
             <thead>
-              <tr className="border-b border-white/10 bg-[#121622] sticky top-0 z-10">
+              <tr className="border-b border-white/10 bg-[var(--bg-dark-surface)] sticky top-0 z-10">
                 <th className="p-2 w-10 text-center text-zinc-500 font-mono text-[10px] border-r border-white/5">#</th>
                 {columns.map((col) => (
                   <th
@@ -259,7 +263,7 @@ export const DataGridEditor: React.FC<DataGridEditorProps> = ({
                         className="cursor-pointer flex items-center gap-1 select-none flex-1 truncate"
                       >
                         {col}
-                        <ArrowUpDown size={11} className="text-zinc-500 group-hover:text-indigo-400" />
+                        <ArrowUpDown size={11} className="text-zinc-500 group-hover:text-sky-400" />
                       </span>
                       <button
                         onClick={() => handleDeleteColumn(col)}
@@ -280,7 +284,7 @@ export const DataGridEditor: React.FC<DataGridEditorProps> = ({
                   key={rIdx}
                   className="border-b border-white/5 hover:bg-white/[0.02] transition-colors group"
                 >
-                  <td className="p-2 text-center text-zinc-600 font-mono text-[10px] border-r border-white/5 bg-[#0f121b]">
+                  <td className="p-2 text-center text-zinc-600 font-mono text-[10px] border-r border-white/5 bg-[var(--bg-dark-surface)]">
                     {rIdx + 1}
                   </td>
                   {columns.map((col) => (
@@ -288,14 +292,14 @@ export const DataGridEditor: React.FC<DataGridEditorProps> = ({
                       <input
                         type="text"
                         value={row[col] ?? ''}
-                        onChange={(e) => handleCellChange(rIdx, col, e.target.value)}
-                        className="w-full h-full px-2.5 py-1.5 bg-transparent text-zinc-200 outline-none focus:bg-indigo-950/40 focus:ring-1 focus:ring-indigo-500"
+                        onChange={(e) => handleCellChange(row, col, e.target.value)}
+                        className="w-full h-full px-2.5 py-1.5 bg-transparent text-zinc-200 outline-none focus:bg-sky-950/40 focus:ring-1 focus:ring-sky-500"
                       />
                     </td>
                   ))}
                   <td className="p-1 text-center">
                     <button
-                      onClick={() => handleDeleteRow(rIdx)}
+                      onClick={() => handleDeleteRow(row)}
                       className="text-zinc-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity p-1"
                       title="Delete Row"
                     >
@@ -308,11 +312,11 @@ export const DataGridEditor: React.FC<DataGridEditorProps> = ({
           </table>
         </div>
       ) : (
-        <div className="flex-1 overflow-hidden p-4 bg-[#0d1017]">
+        <div className="flex-1 overflow-hidden p-4 bg-[var(--bg-dark-surface)]">
           <textarea
             value={rawText}
             onChange={(e) => handleRawChange(e.target.value)}
-            className="w-full h-full p-4 bg-[#121622] border border-white/10 rounded-lg font-mono text-xs text-zinc-200 resize-none outline-none focus:border-indigo-500"
+            className="w-full h-full p-4 bg-[var(--bg-dark-surface)] border border-white/10 rounded font-mono text-xs text-zinc-200 resize-none outline-none focus:border-sky-500"
             spellCheck={false}
           />
         </div>

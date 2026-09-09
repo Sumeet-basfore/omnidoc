@@ -59,7 +59,7 @@ export const CommandPalette: React.FC = () => {
       id: 'new-json',
       title: 'New JSON Document',
       category: 'Create',
-      icon: <Plus size={14} className="text-pink-400" />,
+      icon: <Plus size={14} className="text-sky-400" />,
       action: () => createDocument('json')
     },
     {
@@ -73,10 +73,17 @@ export const CommandPalette: React.FC = () => {
           if (path) {
             const data = await window.electronAPI.readFile(path);
             const name = path.split(/[/\\]/).pop() || 'Untitled';
+            const ext = name.split('.').pop()?.toLowerCase() || '';
+            const format = ['md', 'markdown'].includes(ext) ? 'markdown' as const
+              : ext === 'pdf' ? 'pdf' as const
+              : ['docx', 'doc'].includes(ext) ? 'docx' as const
+              : ext === 'csv' ? 'csv' as const
+              : ext === 'json' ? 'json' as const
+              : ['txt', 'log'].includes(ext) ? 'text' as const : 'code' as const;
             openDocument({
               id: `doc-${Date.now()}`,
               name,
-              format: 'markdown',
+              format,
               content: data.data,
               filePath: path,
               isDirty: false
@@ -89,14 +96,14 @@ export const CommandPalette: React.FC = () => {
       id: 'ai-drawer',
       title: 'Toggle AI Friend & Research Assistant',
       category: 'AI',
-      icon: <Sparkles size={14} className="text-pink-400" />,
+      icon: <Sparkles size={14} className="text-sky-400" />,
       action: () => toggleAIDrawer()
     },
     {
       id: 'settings',
       title: 'Configure AI Providers & API Keys',
       category: 'Settings',
-      icon: <Settings size={14} className="text-indigo-400" />,
+      icon: <Settings size={14} className="text-sky-400" />,
       action: () => setSettingsOpen(true)
     }
   ];
@@ -127,11 +134,11 @@ export const CommandPalette: React.FC = () => {
   return (
     <div
       onClick={() => setCommandPaletteOpen(false)}
-      className="fixed inset-0 z-50 flex items-start justify-center pt-24 bg-black/70 backdrop-blur-sm p-4 select-none"
+      className="fixed inset-0 z-50 flex items-start justify-center pt-24 bg-black/70 p-4 select-none"
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="bg-[#121622] border border-[var(--border-medium)] rounded-2xl max-w-xl w-full flex flex-col shadow-2xl animate-modal overflow-hidden"
+        className="bg-[var(--bg-dark-elevated)] border border-[var(--border-subtle)] rounded-md max-w-xl w-full flex flex-col shadow-2xl animate-modal overflow-hidden"
       >
         {/* Search input */}
         <div className="flex items-center px-4 py-3.5 border-b border-white/10 gap-3">
@@ -153,28 +160,32 @@ export const CommandPalette: React.FC = () => {
           </kbd>
         </div>
 
-        {/* Command results */}
-        <div className="max-h-72 overflow-y-auto p-2 space-y-1">
-          {filtered.map((cmd, idx) => (
-            <div
-              key={cmd.id}
-              onClick={() => handleExecute(cmd)}
-              onMouseEnter={() => setSelectedIndex(idx)}
-              className={`p-2.5 rounded-xl flex items-center justify-between cursor-pointer transition-colors text-xs ${
-                selectedIndex === idx
-                  ? 'bg-indigo-600/30 text-white'
-                  : 'text-zinc-300 hover:bg-white/5'
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <div className="p-1.5 rounded-lg bg-white/5">{cmd.icon}</div>
-                <span className="font-medium">{cmd.title}</span>
-              </div>
-              <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">
-                {cmd.category}
-              </span>
-            </div>
-          ))}
+        {/* Grouped command results */}
+        <div className="max-h-72 overflow-y-auto p-2">
+          {filtered.map((cmd, idx) => {
+            const showHeader = idx === 0 || filtered[idx - 1].category !== cmd.category;
+            return (
+              <React.Fragment key={cmd.id}>
+                {showHeader && (
+                  <div className="px-2.5 pt-2 pb-1 text-[10px] font-semibold text-zinc-500">
+                    {cmd.category}
+                  </div>
+                )}
+                <div
+                  onClick={() => handleExecute(cmd)}
+                  onMouseEnter={() => setSelectedIndex(idx)}
+                  className={`p-2 rounded-md flex items-center gap-2.5 cursor-pointer transition-colors text-xs ${
+                    selectedIndex === idx
+                      ? 'bg-sky-500/15 text-white'
+                      : 'text-zinc-300 hover:bg-white/5'
+                  }`}
+                >
+                  <div className="p-1.5 rounded bg-white/5 shrink-0">{cmd.icon}</div>
+                  <span className="font-medium">{cmd.title}</span>
+                </div>
+              </React.Fragment>
+            );
+          })}
 
           {filtered.length === 0 && (
             <div className="p-6 text-center text-zinc-500 text-xs">No matching commands found.</div>

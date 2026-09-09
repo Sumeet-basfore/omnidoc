@@ -20,8 +20,12 @@ export const App: React.FC = () => {
     activeTabId,
     documents,
     markDirty,
+    setDocumentPath,
+    addRecentFile,
     toggleSidebar,
     toggleAIDrawer,
+    isAIDrawerOpen,
+    setAIDrawerOpen,
     setShortcutsModalOpen
   } = useAppStore();
 
@@ -54,11 +58,13 @@ export const App: React.FC = () => {
         const isBinary = format === 'pdf' || format === 'docx';
 
         if (isBinary) {
+          // Chunked base64 to avoid call-stack blowup on large files
           const buffer = await file.arrayBuffer();
-          let binary = '';
           const bytes = new Uint8Array(buffer);
-          for (let b = 0; b < bytes.byteLength; b++) {
-            binary += String.fromCharCode(bytes[b]);
+          let binary = '';
+          const CHUNK = 8192;
+          for (let b = 0; b < bytes.length; b += CHUNK) {
+            binary += String.fromCharCode(...bytes.subarray(b, b + CHUNK));
           }
           openDocument({
             id: `doc-${Date.now()}-${i}`,
@@ -108,6 +114,9 @@ export const App: React.FC = () => {
               if (savedPath) {
                 const isBinary = activeDoc.format === 'pdf' || activeDoc.format === 'docx';
                 await window.electronAPI.writeFile(savedPath, activeDoc.content, isBinary);
+                setDocumentPath(activeDoc.id, savedPath);
+                addRecentFile(savedPath);
+                window.electronAPI.addRecentDocument(savedPath);
                 markDirty(activeDoc.id, false);
               }
             }
@@ -122,10 +131,18 @@ export const App: React.FC = () => {
             if (filePath) {
               const fileData = await window.electronAPI.readFile(filePath);
               const filename = filePath.split(/[/\\]/).pop() || 'Untitled';
+              const ext = filename.split('.').pop()?.toLowerCase() || '';
+              let format: DocumentFormat = 'code';
+              if (['md', 'markdown'].includes(ext)) format = 'markdown';
+              else if (ext === 'pdf') format = 'pdf';
+              else if (['docx', 'doc'].includes(ext)) format = 'docx';
+              else if (ext === 'csv') format = 'csv';
+              else if (ext === 'json') format = 'json';
+              else if (['txt', 'log'].includes(ext)) format = 'text';
               openDocument({
                 id: `doc-${Date.now()}`,
                 name: filename,
-                format: 'markdown',
+                format,
                 content: fileData.data,
                 filePath,
                 isDirty: false
@@ -138,9 +155,14 @@ export const App: React.FC = () => {
         } else if (e.key === '/') {
           e.preventDefault();
           setShortcutsModalOpen(true);
-        } else if (e.shiftKey && (e.key === 'r' || e.key === 'R')) {
+        } else if (e.shiftKey && (e.key === 'r' || e.key === 'R' || e.key === 'a' || e.key === 'A')) {
           e.preventDefault();
-          toggleAIDrawer(true);
+          toggleAIDrawer();
+        }
+      } else if (e.key === 'Escape') {
+        if (isAIDrawerOpen) {
+          e.preventDefault();
+          setAIDrawerOpen(false);
         }
       } else if (e.key === '?') {
         const target = e.target as HTMLElement;
@@ -154,7 +176,7 @@ export const App: React.FC = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [tabs, activeTabId, documents, createDocument, openDocument, markDirty]);
+  }, [tabs, activeTabId, documents, createDocument, openDocument, markDirty, setDocumentPath, addRecentFile, toggleSidebar, toggleAIDrawer, isAIDrawerOpen, setAIDrawerOpen, setShortcutsModalOpen]);
 
   // Open default welcome document if no document is currently open
   useEffect(() => {

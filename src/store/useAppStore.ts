@@ -39,10 +39,12 @@ interface AppState {
   setActiveTab: (tabId: string) => void;
   updateDocumentContent: (docId: string, content: string) => void;
   renameDocument: (docId: string, name: string) => void;
+  setDocumentPath: (docId: string, filePath: string) => void;
   markDirty: (docId: string, dirty: boolean) => void;
   setTabActiveView: (tabId: string, view: 'editor' | 'preview' | 'split' | 'grid') => void;
   toggleSidebar: (force?: boolean) => void;
   toggleAIDrawer: (force?: boolean) => void;
+  setAIDrawerOpen: (open: boolean) => void;
   setSettingsOpen: (open: boolean) => void;
   setCommandPaletteOpen: (open: boolean) => void;
   setExportModalOpen: (open: boolean) => void;
@@ -55,6 +57,8 @@ interface AppState {
   setAILoading: (loading: boolean) => void;
   setSelectedText: (text: string, coords: { top: number; left: number } | null) => void;
   addRecentFile: (filePath: string) => void;
+  pendingInlinePrompt: string | null;
+  setPendingInlinePrompt: (prompt: string | null) => void;
 }
 
 const DEFAULT_AI_CONFIGS: Record<AIProviderId, AIProviderConfig> = {
@@ -148,12 +152,14 @@ export const useAppStore = create<AppState>()(
 
       createDocument: (format, name) => {
         const id = `doc-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-        const ext = format === 'markdown' ? 'md' : format === 'csv' ? 'csv' : format === 'json' ? 'json' : 'txt';
+        const ext = format === 'markdown' ? 'md' : format === 'csv' ? 'csv' : format === 'json' ? 'json' : format === 'docx' ? 'docx' : 'txt';
         const docName = name || `Untitled.${ext}`;
 
         let initialContent = '';
         if (format === 'markdown') {
           initialContent = `# ${docName.replace('.md', '')}\n\nStart writing your document here...\n`;
+        } else if (format === 'docx') {
+          initialContent = '<p>Start typing your Word document content here...</p>';
         } else if (format === 'csv') {
           initialContent = 'ID,Name,Role,Status\n1,Alice,Engineer,Active\n2,Bob,Designer,Review';
         } else if (format === 'json') {
@@ -262,6 +268,8 @@ export const useAppStore = create<AppState>()(
           isAIDrawerOpen: force !== undefined ? force : !state.isAIDrawerOpen
         })),
 
+      setAIDrawerOpen: (open) => set({ isAIDrawerOpen: open }),
+
       setSettingsOpen: (open) => set({ isSettingsOpen: open }),
 
       setCommandPaletteOpen: (open) => set({ isCommandPaletteOpen: open }),
@@ -305,6 +313,16 @@ export const useAppStore = create<AppState>()(
         set({
           selectedText: text,
           selectionCoords: coords
+        }),
+
+      pendingInlinePrompt: null,
+      setPendingInlinePrompt: (prompt) => set({ pendingInlinePrompt: prompt }),
+
+      setDocumentPath: (docId, filePath) =>
+        set((state) => {
+          const doc = state.documents[docId];
+          if (!doc) return state;
+          return { documents: { ...state.documents, [docId]: { ...doc, filePath } } };
         }),
 
       addRecentFile: (filePath) =>

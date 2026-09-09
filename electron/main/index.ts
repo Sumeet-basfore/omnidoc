@@ -13,7 +13,7 @@ function createWindow(): void {
     minWidth: 960,
     minHeight: 640,
     show: false,
-    autoHideMenuBar: false,
+    autoHideMenuBar: true,
     backgroundColor: '#0a0c12',
     title: 'DocsViewer (OmniDoc Studio)',
     webPreferences: {
@@ -23,6 +23,8 @@ function createWindow(): void {
       nodeIntegration: false
     }
   });
+
+  mainWindow.setMenuBarVisibility(false);
 
   mainWindow.on('ready-to-show', () => {
     mainWindow?.show();
@@ -53,8 +55,12 @@ app.whenReady().then(() => {
   // Register IPC handlers
   registerIpcHandlers();
 
-  // Set native menu
-  Menu.setApplicationMenu(createApplicationMenu());
+  // Set native menu to null on Linux/Windows to prevent native menu bar popping/jumping
+  if (process.platform !== 'darwin') {
+    Menu.setApplicationMenu(null);
+  } else {
+    Menu.setApplicationMenu(createApplicationMenu());
+  }
 
   createWindow();
 

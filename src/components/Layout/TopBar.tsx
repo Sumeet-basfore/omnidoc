@@ -26,7 +26,9 @@ export const TopBar: React.FC = () => {
     tabs,
     activeTabId,
     markDirty,
-    renameDocument
+    renameDocument,
+    setDocumentPath,
+    addRecentFile
   } = useAppStore();
 
   const activeDoc = tabs.find((t) => t.id === activeTabId)
@@ -64,6 +66,9 @@ export const TopBar: React.FC = () => {
       if (savedPath) {
         const isBinary = activeDoc.format === 'pdf' || activeDoc.format === 'docx';
         await window.electronAPI.writeFile(savedPath, activeDoc.content, isBinary);
+        setDocumentPath(activeDoc.id, savedPath);
+        addRecentFile(savedPath);
+        window.electronAPI.addRecentDocument(savedPath);
         markDirty(activeDoc.id, false);
       }
     } else {
@@ -80,19 +85,19 @@ export const TopBar: React.FC = () => {
   };
 
   return (
-    <header className="h-12 border-b border-[var(--border-subtle)] bg-[var(--bg-glass)] backdrop-blur-md px-3 flex items-center justify-between z-20 select-none">
+    <header className="h-12 border-b border-[var(--border-subtle)] bg-[var(--bg-glass)] px-3 flex items-center justify-between z-20 select-none">
       {/* Left section: Sidebar toggle, OD Logo & Document Title */}
       <div className="flex items-center gap-2.5">
         <button
           onClick={() => toggleSidebar()}
-          className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+          className="p-1.5 rounded text-zinc-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
           title="Toggle Sidebar (⌘B)"
         >
           <Menu size={17} />
         </button>
 
-        {/* Brand Logo without redundant text */}
-        <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-indigo-600 via-indigo-500 to-cyan-400 flex items-center justify-center text-white font-bold text-xs shadow-md glow-accent shrink-0">
+        {/* Brand mark */}
+        <div className="w-7 h-7 rounded bg-[var(--accent-primary)] flex items-center justify-center text-[var(--text-on-accent)] font-bold text-xs shrink-0 font-mono">
           OD
         </div>
 
@@ -109,7 +114,7 @@ export const TopBar: React.FC = () => {
                   if (e.key === 'Enter') handleRenameSubmit();
                   if (e.key === 'Escape') setIsEditingTitle(false);
                 }}
-                className="px-2 py-0.5 bg-black/50 border border-indigo-500 rounded text-xs text-white outline-none w-48 font-medium"
+                className="px-2 py-0.5 bg-black/50 border border-sky-500 rounded text-xs text-white outline-none w-48 font-medium"
               />
             ) : (
               <span
@@ -121,7 +126,7 @@ export const TopBar: React.FC = () => {
               </span>
             )}
 
-            <span className="px-1.5 py-0.5 rounded text-[10px] uppercase font-mono font-semibold bg-white/10 text-indigo-300">
+            <span className="px-1.5 py-0.5 rounded text-[10px] uppercase font-mono font-semibold bg-white/10 text-sky-300">
               {activeDoc.format}
             </span>
 
@@ -136,7 +141,7 @@ export const TopBar: React.FC = () => {
       <div className="flex items-center">
         <button
           onClick={() => setCommandPaletteOpen(true)}
-          className="flex items-center gap-2 px-3 py-1 rounded-lg bg-black/40 hover:bg-white/5 border border-white/10 text-xs text-zinc-400 hover:text-zinc-200 transition-all cursor-pointer shadow-inner w-52 justify-between"
+          className="flex items-center gap-2 px-3 py-1 rounded bg-black/40 hover:bg-white/5 border border-white/10 text-xs text-zinc-400 hover:text-zinc-200 transition-all cursor-pointer shadow-inner w-52 justify-between"
         >
           <div className="flex items-center gap-1.5">
             <Search size={13} />
@@ -154,15 +159,15 @@ export const TopBar: React.FC = () => {
           <>
             <button
               onClick={handleSave}
-              className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-200 transition-colors cursor-pointer border border-white/5"
+              className="p-1.5 rounded bg-white/5 hover:bg-white/10 text-zinc-200 transition-colors cursor-pointer border border-white/5"
               title="Save Document (⌘S)"
             >
-              <Save size={15} className="text-indigo-400" />
+              <Save size={15} className="text-sky-400" />
             </button>
 
             <button
               onClick={handleExport}
-              className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-200 transition-colors cursor-pointer border border-white/5"
+              className="p-1.5 rounded bg-white/5 hover:bg-white/10 text-zinc-200 transition-colors cursor-pointer border border-white/5"
               title="Export Document..."
             >
               <Download size={15} className="text-emerald-400" />
@@ -173,10 +178,10 @@ export const TopBar: React.FC = () => {
         {/* Compact AI Provider Badge */}
         <button
           onClick={() => setSettingsOpen(true)}
-          className="flex items-center gap-1 px-2 py-1 rounded-lg bg-indigo-950/40 border border-indigo-500/30 text-indigo-300 hover:text-white hover:border-indigo-400 transition-all text-xs cursor-pointer"
+          className="flex items-center gap-1 px-2 py-1 rounded bg-sky-950/40 border border-sky-500/30 text-sky-300 hover:text-white hover:border-sky-400 transition-all text-xs cursor-pointer"
           title="Configure AI Model & Keys"
         >
-          <Cpu size={12} className="text-indigo-400" />
+          <Cpu size={12} className="text-sky-400" />
           <span className="font-medium text-[11px] hidden sm:inline">
             {currentAIConfig.name.split(' ')[0]}
           </span>
@@ -185,7 +190,7 @@ export const TopBar: React.FC = () => {
         {/* Settings button */}
         <button
           onClick={() => setSettingsOpen(true)}
-          className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+          className="p-1.5 rounded text-zinc-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
           title="Settings"
         >
           <Settings size={15} />
@@ -194,14 +199,14 @@ export const TopBar: React.FC = () => {
         {/* Toggle AI Companion Drawer */}
         <button
           onClick={() => toggleAIDrawer()}
-          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-medium text-xs transition-all cursor-pointer shadow-md ${
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded font-medium text-xs transition-all cursor-pointer ${
             isAIDrawerOpen
-              ? 'bg-gradient-to-r from-indigo-600 to-pink-600 text-white glow-sparkle'
+              ? 'bg-[var(--accent-primary)] text-[var(--text-on-accent)]'
               : 'bg-white/10 hover:bg-white/15 text-white'
           }`}
           title="Toggle AI Friend Co-Writer & Deep Research"
         >
-          <Sparkles size={13} className="text-pink-400" />
+          <Sparkles size={13} className={isAIDrawerOpen ? 'text-[var(--text-on-accent)]' : 'text-sky-400'} />
           <span className="hidden sm:inline">AI Friend</span>
         </button>
       </div>

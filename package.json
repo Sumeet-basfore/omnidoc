@@ -12,6 +12,8 @@
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
     "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",
     "typecheck": "npm run typecheck:node && npm run typecheck:web",
+    "guard:ui": "grep -rnE 'bg-gradient-to-|glow-accent|glow-sparkle|glow-cyan|backdrop-blur-|rounded-2xl|rounded-xl' src/ --include='*.tsx' --include='*.css' && (echo 'UI GUARDRAIL FAIL: banned utility found above' && exit 1) || echo 'UI guardrails clean'",
+    "prebuild": "npm run guard:ui",
     "unslop": "unslop --deterministic --no-structural --no-backup docs/*.md README.md",
     "unslop:check": "unslop --deterministic --no-structural --diff docs/*.md README.md",
     "build:unpack": "npm run build && electron-builder --dir",

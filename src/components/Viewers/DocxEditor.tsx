@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import mammoth from 'mammoth';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -39,8 +39,11 @@ export const DocxEditor: React.FC<DocxEditorProps> = ({ documentId, name, conten
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [bannerDismissed, setBannerDismissed] = useState<boolean>(false);
 
-  // Convert docx binary (base64) to HTML via mammoth
+  // Convert docx binary (base64) to HTML via mammoth (only on document switch)
+  const loadedDocIdRef = useRef<string | null>(null);
   useEffect(() => {
+    if (loadedDocIdRef.current === documentId) return;
+    loadedDocIdRef.current = documentId;
     let isCancelled = false;
 
     const parseDocx = async () => {
@@ -82,7 +85,7 @@ export const DocxEditor: React.FC<DocxEditorProps> = ({ documentId, name, conten
     return () => {
       isCancelled = true;
     };
-  }, [content]);
+  }, [documentId]);
 
   // Configure Tiptap editor
   const editor = useEditor(
@@ -113,7 +116,7 @@ export const DocxEditor: React.FC<DocxEditorProps> = ({ documentId, name, conten
 
   if (isLoading || !editor) {
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-3 text-[var(--text-muted)] bg-[#0d1017]">
+      <div className="flex flex-col items-center justify-center h-full gap-3 text-[var(--text-muted)] bg-[var(--bg-dark-surface)]">
         <Loader2 size={28} className="animate-spin text-[var(--accent-primary)]" />
         <span className="text-xs">Converting DOCX with Mammoth engine...</span>
       </div>
@@ -121,12 +124,12 @@ export const DocxEditor: React.FC<DocxEditorProps> = ({ documentId, name, conten
   }
 
   return (
-    <div className="flex flex-col h-full w-full bg-[#0d1017] overflow-hidden select-none">
+    <div className="flex flex-col h-full w-full bg-[var(--bg-dark-surface)] overflow-hidden select-none">
       {/* Informative Limitation Banner */}
       {!bannerDismissed && (
-        <div className="flex items-center justify-between px-4 py-2 bg-indigo-950/40 border-b border-indigo-500/20 text-indigo-200 text-xs">
+        <div className="flex items-center justify-between px-4 py-2 bg-sky-950/40 border-b border-sky-500/20 text-sky-200 text-xs">
           <div className="flex items-center gap-2">
-            <Info size={15} className="text-indigo-400 shrink-0" />
+            <Info size={15} className="text-sky-400 shrink-0" />
             <span>
               <strong>DOCX Studio Mode:</strong> Complex Word features (tracked changes, embedded OLE objects) may be
               simplified during round-trip.
@@ -134,7 +137,7 @@ export const DocxEditor: React.FC<DocxEditorProps> = ({ documentId, name, conten
           </div>
           <button
             onClick={() => setBannerDismissed(true)}
-            className="text-xs text-indigo-300 hover:text-white ml-3 underline cursor-pointer"
+            className="text-xs text-sky-300 hover:text-white ml-3 underline cursor-pointer"
           >
             Dismiss
           </button>
@@ -147,7 +150,7 @@ export const DocxEditor: React.FC<DocxEditorProps> = ({ documentId, name, conten
           <button
             onClick={() => editor.chain().focus().toggleBold().run()}
             className={`p-1.5 rounded transition-colors ${
-              editor.isActive('bold') ? 'bg-indigo-600 text-white' : 'text-zinc-400 hover:bg-white/10 hover:text-white'
+              editor.isActive('bold') ? 'bg-sky-600 text-white' : 'text-zinc-400 hover:bg-white/10 hover:text-white'
             }`}
             title="Bold"
           >
@@ -156,7 +159,7 @@ export const DocxEditor: React.FC<DocxEditorProps> = ({ documentId, name, conten
           <button
             onClick={() => editor.chain().focus().toggleItalic().run()}
             className={`p-1.5 rounded transition-colors ${
-              editor.isActive('italic') ? 'bg-indigo-600 text-white' : 'text-zinc-400 hover:bg-white/10 hover:text-white'
+              editor.isActive('italic') ? 'bg-sky-600 text-white' : 'text-zinc-400 hover:bg-white/10 hover:text-white'
             }`}
             title="Italic"
           >
@@ -169,7 +172,7 @@ export const DocxEditor: React.FC<DocxEditorProps> = ({ documentId, name, conten
             onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
             className={`p-1.5 rounded transition-colors ${
               editor.isActive('heading', { level: 1 })
-                ? 'bg-indigo-600 text-white'
+                ? 'bg-sky-600 text-white'
                 : 'text-zinc-400 hover:bg-white/10 hover:text-white'
             }`}
             title="Heading 1"
@@ -180,7 +183,7 @@ export const DocxEditor: React.FC<DocxEditorProps> = ({ documentId, name, conten
             onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
             className={`p-1.5 rounded transition-colors ${
               editor.isActive('heading', { level: 2 })
-                ? 'bg-indigo-600 text-white'
+                ? 'bg-sky-600 text-white'
                 : 'text-zinc-400 hover:bg-white/10 hover:text-white'
             }`}
             title="Heading 2"
@@ -194,7 +197,7 @@ export const DocxEditor: React.FC<DocxEditorProps> = ({ documentId, name, conten
             onClick={() => editor.chain().focus().toggleBulletList().run()}
             className={`p-1.5 rounded transition-colors ${
               editor.isActive('bulletList')
-                ? 'bg-indigo-600 text-white'
+                ? 'bg-sky-600 text-white'
                 : 'text-zinc-400 hover:bg-white/10 hover:text-white'
             }`}
             title="Bullet List"
@@ -205,7 +208,7 @@ export const DocxEditor: React.FC<DocxEditorProps> = ({ documentId, name, conten
             onClick={() => editor.chain().focus().toggleOrderedList().run()}
             className={`p-1.5 rounded transition-colors ${
               editor.isActive('orderedList')
-                ? 'bg-indigo-600 text-white'
+                ? 'bg-sky-600 text-white'
                 : 'text-zinc-400 hover:bg-white/10 hover:text-white'
             }`}
             title="Numbered List"
@@ -252,16 +255,16 @@ export const DocxEditor: React.FC<DocxEditorProps> = ({ documentId, name, conten
 
         <button
           onClick={handleExportDocx}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600/30 border border-indigo-500/40 text-indigo-200 hover:text-white hover:bg-indigo-600/50 transition-all font-medium text-xs"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-sky-600/30 border border-sky-500/40 text-sky-200 hover:text-white hover:bg-sky-600/50 transition-all font-medium text-xs"
         >
           <Download size={13} />
           <span>Export .docx</span>
         </button>
       </div>
 
-      {/* Editor Content Area Styled as Document Canvas */}
-      <div className="flex-1 overflow-y-auto p-10 flex justify-center bg-[#08090e]">
-        <div className="w-full max-w-4xl min-h-[900px] bg-[#121622] border border-[var(--border-subtle)] rounded-xl shadow-2xl p-12 doc-prose">
+      {/* Editor Content Area — paper sheet on dark desk */}
+      <div className="flex-1 overflow-y-auto p-10 flex justify-center bg-[var(--bg-dark-base)]">
+        <div data-canvas="paper" className="w-full max-w-4xl min-h-[900px] bg-[var(--bg-dark-surface)] border border-[var(--border-subtle)] rounded-md shadow-2xl p-12 doc-prose">
           <EditorContent editor={editor} />
         </div>
       </div>
