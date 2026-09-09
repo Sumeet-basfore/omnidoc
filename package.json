@@ -3,7 +3,7 @@
   "version": "2.0.0",
   "description": "DocsViewer (OmniDoc Studio) - Unified Multi-Format Desktop Studio & AI Research Assistant",
   "main": "./out/main/index.js",
-  "author": "OmniDoc Studio Team",
+  "author": "OmniDoc Studio Team <contact@omnidoc.studio>",
   "homepage": "https://github.com/Sumeet-basfore/omnidoc",
   "scripts": {
     "dev": "electron-vite dev",
@@ -12,7 +12,7 @@
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
     "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",
     "typecheck": "npm run typecheck:node && npm run typecheck:web",
-    "guard:ui": "grep -rnE 'bg-gradient-to-|glow-accent|glow-sparkle|glow-cyan|backdrop-blur-|rounded-2xl|rounded-xl' src/ --include='*.tsx' --include='*.css' && (echo 'UI GUARDRAIL FAIL: banned utility found above' && exit 1) || echo 'UI guardrails clean'",
+    "guard:ui": "node scripts/check-ui.cjs",
     "prebuild": "npm run guard:ui",
     "unslop": "unslop --deterministic --no-structural --no-backup docs/*.md README.md",
     "unslop:check": "unslop --deterministic --no-structural --diff docs/*.md README.md",

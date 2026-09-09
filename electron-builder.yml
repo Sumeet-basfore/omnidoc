@@ -30,6 +30,7 @@ win:
         - x64
 
 linux:
+  maintainer: "OmniDoc Studio Team <contact@omnidoc.studio>"
   target:
     - target: AppImage
       arch:
