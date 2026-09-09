@@ -42,12 +42,14 @@ Base background. Tabs `120–220px`, top accent notch in format color,
 dirty dot swaps to close on hover. `+` popover creates docs; chevron
 dropdown jumps between open tabs (appears past 1 tab).
 
-### 2.3 Sidebar — 260px, collapsible: files *or* settings
+### 2.3 Sidebar — 260px, collapsible: files *or* settings (both resizable)
 Files view: solid accent **Open File** button, `+ MD / + Grid / + DOCX`
-ghost buttons. Sample library + recent files (3px format rail, badge,
+ghost buttons. Recent files (3px format rail, badge,
 path). Dense `p-1` rows, `11px` muted headers. Drag-drop hint footer.
 Settings view: provider switcher, key/model/temperature/base-URL config
-with connection test, research keys, keychain status, save footer —
+with connection test, model detection (Ollama/OpenAI/Gemini/OpenRouter
+list what they serve; Anthropic has no list API), research keys, usage
+tracking with daily alert budget, keychain status, save footer —
 reached from the TopBar provider badge, the drawer header, the status
 bar, error banners, or the palette; `Esc` returns to files.
 

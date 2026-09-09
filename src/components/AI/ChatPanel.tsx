@@ -23,6 +23,7 @@ export const ChatPanel: React.FC = () => {
     activeTabId,
     queueInsert,
     popLastAssistant,
+    logUsage,
     sessionUsage,
     addUsage,
     isAILoading,
@@ -201,7 +202,10 @@ export const ChatPanel: React.FC = () => {
         onStep: (s) => setAgentSteps((prev) => [...prev, s])
       });
 
-      if (usage) addUsage(usage);
+      if (usage) {
+        addUsage(usage);
+        logUsage({ provider: activeProvider, model: aiConfigs[activeProvider].model, inTok: usage.in || 0, outTok: usage.out || 0 });
+      }
       addChatMessage({ role: 'assistant', content: text });
     } catch (err: any) {
       const stopped = isAbortError(err) || ctrl.signal.aborted;
@@ -260,7 +264,10 @@ export const ChatPanel: React.FC = () => {
       });
 
       setStreaming(null);
-      if (usage) addUsage(usage);
+      if (usage) {
+        addUsage(usage);
+        logUsage({ provider: activeProvider, model: aiConfigs[activeProvider].model, inTok: usage.in || 0, outTok: usage.out || 0 });
+      }
       addChatMessage({ role: 'assistant', content: text });
     } catch (err: any) {
       const stopped = isAbortError(err) || ctrl.signal.aborted;

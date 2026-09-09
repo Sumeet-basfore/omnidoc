@@ -20,7 +20,7 @@ const STAGE_LABEL: Record<string, string> = {
 };
 
 export const DeepResearchPanel: React.FC = () => {
-  const { activeProvider, aiConfigs, openDocument, queueInsert, tabs, activeTabId, documents, toggleSidebar, setLeftPanel } =
+  const { activeProvider, aiConfigs, openDocument, queueInsert, tabs, activeTabId, documents, toggleSidebar, setLeftPanel, logUsage } =
     useAppStore();
 
   const [topic, setTopic] = useState<string>('');
@@ -69,7 +69,9 @@ export const DeepResearchPanel: React.FC = () => {
 
       const res = await runDeepResearch(query, { tavilyKey, exaKey }, aiConfig, aiKey, {
         signal: ctrl.signal,
-        onProgress: setProgress
+        onProgress: setProgress,
+        onUsage: (u) =>
+          logUsage({ provider: activeProvider, model: aiConfig.model, inTok: u.in, outTok: u.out })
       });
 
       setResult(res);

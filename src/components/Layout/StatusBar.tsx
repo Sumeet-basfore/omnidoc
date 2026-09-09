@@ -34,6 +34,8 @@ export const StatusBar: React.FC = () => {
     isAILoading,
     pendingInserts,
     sessionUsage,
+    usageLog,
+    dailyTokenAlert,
     toggleSidebar,
     setLeftPanel
   } = useAppStore();
@@ -52,6 +54,16 @@ export const StatusBar: React.FC = () => {
   const config = aiConfigs[activeProvider];
   const pendingCount = activeDoc ? (pendingInserts[activeDoc.id] || []).length : 0;
   const sessionK = (sessionUsage.in + sessionUsage.out) / 1000;
+  const dayStart = (() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d.getTime();
+  })();
+  const todayTok = usageLog.reduce(
+    (a, e) => a + (e.t >= dayStart ? e.inTok + e.outTok : 0),
+    0
+  );
+  const budgetHit = dailyTokenAlert > 0 && todayTok >= dailyTokenAlert;
 
   return (
     <footer className="h-6 border-t border-[var(--border-subtle)] bg-[var(--bg-dark-surface)] px-3 flex items-center justify-between text-[11px] select-none shrink-0">
@@ -100,11 +112,14 @@ export const StatusBar: React.FC = () => {
           }}
           className="flex items-center gap-1 text-zinc-500 hover:text-zinc-200 transition-colors"
           title={
-            sessionK > 0
-              ? `Configure AI provider · ~${sessionK.toFixed(1)}k tokens this chat`
-              : 'Configure AI provider'
+            budgetHit
+              ? `Daily usage budget reached (${todayTok.toLocaleString()} tokens) — open usage settings`
+              : sessionK > 0
+                ? `Configure AI provider · ~${sessionK.toFixed(1)}k tokens this chat`
+                : 'Configure AI provider'
           }
         >
+          {budgetHit && <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />}
           <Cpu size={11} />
           <span className="font-mono">
             {config.name} / {config.model}

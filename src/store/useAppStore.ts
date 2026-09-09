@@ -10,6 +10,14 @@ export interface PendingInsert {
   timestamp: number;
 }
 
+export interface UsageEntry {
+  t: number;
+  provider: string;
+  model: string;
+  inTok: number;
+  outTok: number;
+}
+
 interface AppState {
   // Document workspace
   documents: Record<string, DocumentItem>;
@@ -68,6 +76,10 @@ interface AppState {
   clearChatMessages: () => void;
   sessionUsage: { in: number; out: number };
   addUsage: (u: { in?: number; out?: number }) => void;
+  usageLog: UsageEntry[];
+  logUsage: (e: Omit<UsageEntry, 't'>) => void;
+  dailyTokenAlert: number;
+  setDailyTokenAlert: (n: number) => void;
   setAILoading: (loading: boolean) => void;
   setSelectedText: (text: string, coords: { top: number; left: number } | null) => void;
   addRecentFile: (filePath: string) => void;
@@ -351,6 +363,14 @@ export const useAppStore = create<AppState>()(
           }
         })),
 
+      usageLog: [],
+      logUsage: (e) =>
+        set((state) => ({
+          usageLog: [...state.usageLog, { ...e, t: Date.now() }].slice(-500)
+        })),
+      dailyTokenAlert: 0,
+      setDailyTokenAlert: (n) => set({ dailyTokenAlert: Math.max(0, Math.round(n) || 0) }),
+
       setAILoading: (loading) => set({ isAILoading: loading }),
 
       setSelectedText: (text, coords) =>
@@ -432,7 +452,9 @@ export const useAppStore = create<AppState>()(
         activePersona: s.activePersona,
         aiConfigs: s.aiConfigs,
         sidebarWidth: s.sidebarWidth,
-        drawerWidth: s.drawerWidth
+        drawerWidth: s.drawerWidth,
+        usageLog: s.usageLog,
+        dailyTokenAlert: s.dailyTokenAlert
       })
     }
   )

@@ -3,13 +3,7 @@ import {
   FolderOpen,
   Plus,
   Clock,
-  BookOpen,
-  FileText,
-  FileSpreadsheet,
-  FileCode,
-  File,
-  UploadCloud,
-  ChevronRight
+  UploadCloud
 } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import { ProviderSettings } from '../Settings/ProviderSettings';
@@ -190,44 +184,6 @@ export const Sidebar: React.FC = () => {
     e.target.value = '';
   };
 
-  const openSampleDoc = (type: 'markdown' | 'csv' | 'json' | 'code') => {
-    let doc: DocumentItem;
-    if (type === 'markdown') {
-      doc = {
-        id: `sample-md-${Date.now()}`,
-        name: 'Product_Roadmap_Spec.md',
-        format: 'markdown',
-        content: `# OmniDoc Studio — Product Architecture Spec 🚀\n\nWelcome to **OmniDoc Studio (DocsViewer v2.0)** — the unified cross-platform workspace for viewing, editing, and researching documents.\n\n## 1. System Capabilities\n- ⚡ **Multi-Format Adapters**: Native Markdown, PDF, DOCX, CSV, JSON, and Code.\n- 🤖 **AI Co-Writer**: Warm peer feedback, tone adjustment, and inline rewrites.\n- 🌐 **Deep Web Research**: Autonomous Tavily + Exa search synthesis with citations.\n\n## 2. Interactive KaTeX Formula\nThe probability density of the normal distribution is defined as:\n\n$$f(x) = \\frac{1}{\\sigma \\sqrt{2\\pi}} e^{-\\frac{1}{2}\\left(\\frac{x-\\mu}{\\sigma}\\right)^2}$$\n\n## 3. Comparison Matrix\n| Feature | OmniDoc Studio | Traditional Editors |\n| :--- | :--- | :--- |\n| All-Format Support | Yes (Zero Context Switch) | No (Requires 5 Apps) |\n| AI Friend Persona | Integrated in-process | Generic Web Chatbox |\n| Local Privacy | 100% Client-Side Parsing | Cloud Uploads |\n\n> "Simplicity is prerequisite for reliability." — Edsger W. Dijkstra\n`,
-        isDirty: false
-      };
-    } else if (type === 'csv') {
-      doc = {
-        id: `sample-csv-${Date.now()}`,
-        name: 'Quarterly_Metrics.csv',
-        format: 'csv',
-        content: `Quarter,Revenue_USD,Active_Users,Churn_Rate,Growth_Pct\nQ1-2025,124000,45000,1.8,24.5\nQ2-2025,168000,62000,1.5,35.4\nQ3-2025,210000,81000,1.2,42.1\nQ4-2025,295000,112000,0.9,56.8`,
-        isDirty: false
-      };
-    } else if (type === 'json') {
-      doc = {
-        id: `sample-json-${Date.now()}`,
-        name: 'Cluster_Config.json',
-        format: 'json',
-        content: `{\n  "clusterName": "production-us-east-1",\n  "region": "us-east-1",\n  "nodes": [\n    {\n      "id": "node-01",\n      "role": "primary",\n      "cpuCores": 32,\n      "ramGb": 128,\n      "status": "healthy"\n    },\n    {\n      "id": "node-02",\n      "role": "replica",\n      "cpuCores": 16,\n      "ramGb": 64,\n      "status": "healthy"\n    }\n  ],\n  "autoScaling": true,\n  "maxScale": 10\n}`,
-        isDirty: false
-      };
-    } else {
-      doc = {
-        id: `sample-code-${Date.now()}`,
-        name: 'neural_indexer.py',
-        format: 'code',
-        content: `import numpy as np\nfrom typing import List, Dict, Any\n\nclass NeuralVectorIndexer:\n    """\n    High-performance vector similarity search engine\n    designed for local RAG retrieval in OmniDoc Studio.\n    """\n    def __init__(self, dimension: int = 768):\n        self.dimension = dimension\n        self.vectors: np.ndarray = np.empty((0, dimension), dtype=np.float32)\n        self.metadata: List[Dict[str, Any]] = []\n\n    def add_item(self, vector: np.ndarray, meta: Dict[str, Any]) -> None:\n        norm_vec = vector / np.linalg.norm(vector)\n        self.vectors = np.vstack([self.vectors, norm_vec])\n        self.metadata.append(meta)\n\n    def search_top_k(self, query_vec: np.ndarray, k: int = 5) -> List[Dict[str, Any]]:\n        q_norm = query_vec / np.linalg.norm(query_vec)\n        scores = np.dot(self.vectors, q_norm)\n        top_indices = np.argsort(scores)[::-1][:k]\n        return [self.metadata[i] for i in top_indices]\n`,
-        isDirty: false
-      };
-    }
-    openDocument(doc);
-  };
-
   return (
     <aside
         style={{ width: sidebarWidth }}
@@ -287,52 +243,6 @@ export const Sidebar: React.FC = () => {
 
       {/* Navigation Sections */}
       <div className="flex-1 overflow-y-auto p-2.5 space-y-4">
-        {/* Sample Library */}
-        <div>
-          <div className="flex items-center gap-1.5 text-[11px] font-semibold text-zinc-500 mb-1">
-            <BookOpen size={12} className="text-sky-400" />
-            <span>Sample Library</span>
-          </div>
-
-          <div className="space-y-1">
-            <button
-              onClick={() => openSampleDoc('markdown')}
-              className="w-full text-left p-1 rounded hover:bg-white/5 text-zinc-300 hover:text-white flex items-center gap-2 transition-colors group"
-            >
-              <FileText size={13} className="text-cyan-400" />
-              <span className="truncate flex-1">Product_Roadmap.md</span>
-              <ChevronRight size={12} className="text-zinc-600 group-hover:text-zinc-300" />
-            </button>
-
-            <button
-              onClick={() => openSampleDoc('csv')}
-              className="w-full text-left p-1 rounded hover:bg-white/5 text-zinc-300 hover:text-white flex items-center gap-2 transition-colors group"
-            >
-              <FileSpreadsheet size={13} className="text-emerald-400" />
-              <span className="truncate flex-1">Quarterly_Metrics.csv</span>
-              <ChevronRight size={12} className="text-zinc-600 group-hover:text-zinc-300" />
-            </button>
-
-            <button
-              onClick={() => openSampleDoc('json')}
-              className="w-full text-left p-1 rounded hover:bg-white/5 text-zinc-300 hover:text-white flex items-center gap-2 transition-colors group"
-            >
-              <FileSpreadsheet size={13} className="text-sky-400" />
-              <span className="truncate flex-1">Cluster_Config.json</span>
-              <ChevronRight size={12} className="text-zinc-600 group-hover:text-zinc-300" />
-            </button>
-
-            <button
-              onClick={() => openSampleDoc('code')}
-              className="w-full text-left p-1 rounded hover:bg-white/5 text-zinc-300 hover:text-white flex items-center gap-2 transition-colors group"
-            >
-              <FileCode size={13} className="text-amber-400" />
-              <span className="truncate flex-1">neural_indexer.py</span>
-              <ChevronRight size={12} className="text-zinc-600 group-hover:text-zinc-300" />
-            </button>
-          </div>
-        </div>
-
         {/* Recent Files */}
         {recentFiles.length > 0 && (
           <div>

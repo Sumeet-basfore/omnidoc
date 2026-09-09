@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, Key, ShieldCheck, ShieldAlert, Check, Loader2, Cpu, Globe } from 'lucide-react';
+import { ChevronLeft, Key, ShieldCheck, ShieldAlert, Check, Loader2, Cpu, Globe, RefreshCw, BarChart3 } from 'lucide-react';
+import { listModels } from '../../services/modelDiscovery';
 import { useAppStore } from '../../store/useAppStore';
 import { keyService, KeyProvider } from '../../services/keyService';
 import { AIProviderId } from '../../types/ai';
@@ -11,7 +12,10 @@ export const ProviderSettings: React.FC = () => {
     activeProvider,
     setActiveProvider,
     aiConfigs,
-    updateAIConfig
+    updateAIConfig,
+    usageLog,
+    dailyTokenAlert,
+    setDailyTokenAlert
   } = useAppStore();
 
   const [keys, setKeys] = useState<Record<string, string>>({});
@@ -19,6 +23,9 @@ export const ProviderSettings: React.FC = () => {
   const [testStatus, setTestStatus] = useState<Record<string, 'testing' | 'success' | 'failed'>>({});
   const [testError, setTestError] = useState<Record<string, string>>({});
   const [saveSuccess, setSaveSuccess] = useState<boolean>(false);
+  const [knownModels, setKnownModels] = useState<string[]>([]);
+  const [discovering, setDiscovering] = useState<boolean>(false);
+  const [discoverError, setDiscoverError] = useState<string>('');
 
   useEffect(() => {
     const loadSettings = async () => {
@@ -74,6 +81,46 @@ export const ProviderSettings: React.FC = () => {
   };
 
   const currentConfig = aiConfigs[activeProvider];
+  const canDiscover = activeProvider !== 'anthropic';
+
+  const handleRefreshModels = async () => {
+    setDiscovering(true);
+    setDiscoverError('');
+    try {
+      const apiKey = keys[activeProvider] || '';
+      const models = await listModels(currentConfig, apiKey);
+      setKnownModels(models);
+      if (models.length === 0) setDiscoverError('No models found.');
+    } catch (err: any) {
+      setKnownModels([]);
+      setDiscoverError(err?.message || 'Discovery failed.');
+    } finally {
+      setDiscovering(false);
+    }
+  };
+
+  const fmtTok = (n: number): string =>
+    n >= 1e6 ? `${(n / 1e6).toFixed(2)}M` : n >= 1e3 ? `${(n / 1e3).toFixed(1)}k` : `${n}`;
+
+  const dayStart = (() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d.getTime();
+  })();
+  const weekStart = dayStart - 6 * 24 * 3600 * 1000;
+  const tokOf = (e: { inTok: number; outTok: number }) => e.inTok + e.outTok;
+  const todayTok = usageLog.filter((e) => e.t >= dayStart).reduce((a, e) => a + tokOf(e), 0);
+  const weekTok = usageLog.filter((e) => e.t >= weekStart).reduce((a, e) => a + tokOf(e), 0);
+  const byProvider = (() => {
+    const m = new Map<string, number>();
+    for (const e of usageLog) {
+      if (e.t < dayStart) continue;
+      m.set(e.provider, (m.get(e.provider) || 0) + tokOf(e));
+    }
+    return [...m.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5);
+  })();
+  const alertOn = dailyTokenAlert > 0;
+  const alertHit = alertOn && todayTok >= dailyTokenAlert;
 
   return (
     <div className="h-full flex flex-col bg-[var(--bg-dark-surface)] text-xs">
@@ -127,7 +174,11 @@ export const ProviderSettings: React.FC = () => {
             {(['gemini', 'openai', 'anthropic', 'openrouter', 'custom'] as const).map((p) => (
               <button
                 key={p}
-                onClick={() => setActiveProvider(p)}
+                onClick={() => {
+                  setActiveProvider(p);
+                  setKnownModels([]);
+                  setDiscoverError('');
+                }}
                 className={`p-2 rounded border text-left transition-all capitalize ${
                   activeProvider === p
                     ? 'bg-sky-500/15 border-sky-500/50 text-white font-medium'
@@ -177,12 +228,38 @@ export const ProviderSettings: React.FC = () => {
 
           <div>
             <label className="block text-[11px] text-zinc-400 mb-1">Model</label>
-            <input
-              type="text"
-              value={currentConfig.model}
-              onChange={(e) => updateAIConfig(activeProvider, { model: e.target.value })}
-              className="w-full px-2.5 py-1.5 bg-black/40 border border-white/10 rounded text-xs text-white focus:outline-none focus:border-sky-500 font-mono"
-            />
+            <div className="flex items-center gap-1.5">
+              <input
+                type="text"
+                value={currentConfig.model}
+                onChange={(e) => updateAIConfig(activeProvider, { model: e.target.value })}
+                list="discovered-models"
+                className="w-full px-2.5 py-1.5 bg-black/40 border border-white/10 rounded text-xs text-white focus:outline-none focus:border-sky-500 font-mono"
+              />
+              {canDiscover && (
+                <button
+                  onClick={handleRefreshModels}
+                  disabled={discovering}
+                  className="p-1.5 rounded bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border border-white/10 transition-colors shrink-0"
+                  title="Detect available models from the endpoint"
+                >
+                  <RefreshCw size={13} className={discovering ? 'animate-spin text-sky-400' : ''} />
+                </button>
+              )}
+            </div>
+            <datalist id="discovered-models">
+              {knownModels.map((m) => (
+                <option key={m} value={m} />
+              ))}
+            </datalist>
+            {discoverError && (
+              <p className="mt-1.5 text-[11px] text-red-300 leading-snug">{discoverError}</p>
+            )}
+            {knownModels.length > 0 && !discoverError && (
+              <p className="mt-1.5 text-[10px] font-mono text-zinc-500">
+                {knownModels.length} models detected — pick from the list or keep typing
+              </p>
+            )}
           </div>
 
           <div>
@@ -256,6 +333,71 @@ export const ProviderSettings: React.FC = () => {
               className="w-full px-2.5 py-1.5 bg-black/40 border border-white/10 rounded text-xs text-white focus:outline-none focus:border-sky-500 font-mono"
             />
           </div>
+        </div>
+
+        {/* Usage tracking + daily alert */}
+        <div className="p-3 bg-white/[0.02] border border-white/10 rounded space-y-2.5">
+          <div className="flex items-center gap-1.5 text-zinc-200 font-semibold text-[11px]">
+            <BarChart3 size={13} className="text-sky-400" />
+            <span>Usage</span>
+          </div>
+
+          {alertHit && (
+            <div className="p-2 rounded bg-amber-950/40 border border-amber-500/40 text-[11px] text-amber-200">
+              Daily budget reached ({fmtTok(todayTok)} / {fmtTok(dailyTokenAlert)} tokens).
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-1.5 text-center">
+            <div className="p-2 rounded bg-black/30 border border-white/5">
+              <div className="text-sm font-semibold text-white font-mono">{fmtTok(todayTok)}</div>
+              <div className="text-[10px] text-zinc-500">today</div>
+            </div>
+            <div className="p-2 rounded bg-black/30 border border-white/5">
+              <div className="text-sm font-semibold text-white font-mono">{fmtTok(weekTok)}</div>
+              <div className="text-[10px] text-zinc-500">last 7 days</div>
+            </div>
+          </div>
+
+          {byProvider.length > 0 && (
+            <div className="space-y-1">
+              {byProvider.map(([p, n]) => (
+                <div key={p} className="flex items-center justify-between text-[11px]">
+                  <span className="text-zinc-400 capitalize">{p}</span>
+                  <span className="font-mono text-zinc-300">{fmtTok(n)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div>
+            <label className="block text-[11px] text-zinc-400 mb-1">Daily alert budget (tokens, 0 = off)</label>
+            <input
+              type="number"
+              min={0}
+              step={1000}
+              value={dailyTokenAlert || ''}
+              onChange={(e) => setDailyTokenAlert(Number(e.target.value))}
+              placeholder="e.g. 500000"
+              className="w-full px-2.5 py-1.5 bg-black/40 border border-white/10 rounded text-xs text-white focus:outline-none focus:border-sky-500 font-mono"
+            />
+          </div>
+
+          {alertOn && (
+            <div
+              className="h-1 rounded bg-white/5 overflow-hidden"
+              title={`${fmtTok(todayTok)} of ${fmtTok(dailyTokenAlert)} tokens used today`}
+            >
+              <div
+                className={`h-full ${alertHit ? 'bg-amber-400' : 'bg-sky-500'} transition-all`}
+                style={{ width: `${Math.min(100, (todayTok / dailyTokenAlert) * 100)}%` }}
+              />
+            </div>
+          )}
+
+          {usageLog.length === 0 && (
+            <p className="text-[10px] text-zinc-600">No usage recorded yet — chat, agents and research log here.</p>
+          )}
         </div>
       </div>
 

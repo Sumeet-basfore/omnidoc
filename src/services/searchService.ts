@@ -230,6 +230,7 @@ export interface ResearchProgress {
 export interface ResearchOpts {
   signal?: AbortSignal;
   onProgress?: (p: ResearchProgress) => void;
+  onUsage?: (u: { in: number; out: number }) => void;
 }
 
 function checkAbort(signal?: AbortSignal): void {
@@ -255,9 +256,10 @@ async function synth(
   prompt: string,
   aiConfig: AIProviderConfig,
   aiKey: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  onUsage?: (u: { in: number; out: number }) => void
 ): Promise<string> {
-  const { text } = await streamAI({
+  const { text, usage } = await streamAI({
     messages: [{ id: promptId, role: 'user', content: prompt, timestamp: Date.now() } as AIMessage],
     config: aiConfig,
     apiKey: aiKey,
@@ -265,6 +267,7 @@ async function synth(
     signal: signal ?? new AbortController().signal,
     onToken: () => undefined
   });
+  if (usage && (usage.in || usage.out)) onUsage?.({ in: usage.in || 0, out: usage.out || 0 });
   return text;
 }
 
@@ -279,12 +282,14 @@ async function planSubQuestions(
   topic: string,
   aiConfig: AIProviderConfig,
   aiKey: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  onUsage?: (u: { in: number; out: number }) => void
 ): Promise<string[]> {
   try {
     const raw = await synth('planner', `Break the research topic "${topic}" into 4 focused sub-questions covering background, current state, challenges, and outlook. Reply with one sub-question per line, no numbering, no extra text.`, aiConfig,
       aiKey,
-      signal);
+      signal,
+      onUsage);
     const lines = raw
       .split('\n')
       .map((l) => l.replace(/^[\s*\-\d.)\]]+/, '').replace(/["“”]/g, '').trim())
@@ -343,14 +348,16 @@ async function synthesizeSection(
   includeCitations: boolean,
   aiConfig: AIProviderConfig,
   aiKey: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  onUsage?: (u: { in: number; out: number }) => void
 ): Promise<string> {
   if (sources.length === 0) {
     return `## ${sub}\n\nNo live sources were retrieved for this section — skipping rather than inventing coverage.`;
   }
   const body = await synth('section-task', `You are writing one section of a research report on "${topic}".\nSection focus: "${sub}"\n\nStart with a "## <short heading>" line of your choice, then the section.\nUse ONLY the sources below. Every factual claim must carry an inline markdown citation [Title](url) with the exact URLs given.${includeCitations ? '' : ' Citations are disabled for this report: do NOT emit any markdown links.'}\nIf sources lack material, say so briefly instead of inventing.\n\nSources:\n${formatSources(sources, 6)}`, aiConfig,
       aiKey,
-      signal);
+      signal,
+      onUsage);
   return body.trim();
 }
 
@@ -361,7 +368,8 @@ export async function runDeepResearch(
   aiKey: string,
   opts: ResearchOpts = {}
 ): Promise<DeepResearchResult> {
-  const { signal, onProgress } = opts;
+  const { signal, onProgress, onUsage } = opts;
+  const reportUsage = (u: { in: number; out: number }) => onUsage?.(u);
   const emit = (p: ResearchProgress) => onProgress?.(p);
   const hasSearch = !!(keys.tavilyKey || keys.exaKey);
 
@@ -370,7 +378,8 @@ export async function runDeepResearch(
     emit({ stage: 'synthesize', searched: 0, total: 0, note: 'No search keys — model knowledge only' });
     const report = await synth('research-task', `Write a comprehensive research report on "${query.topic}" from your own knowledge (no live sources available — state this limitation up top). Do NOT emit any markdown hyperlinks or citations.\n\nStructure:\n# Executive Summary\n## Key Findings & Core Analysis\n## Detailed Breakdown & Insights\n## Challenges, Trade-offs & Considerations\n## Recommendations & Future Outlook`, aiConfig,
       aiKey,
-      signal);
+      signal,
+      reportUsage);
     emit({ stage: 'done', searched: 0, total: 0 });
     return { title: query.topic, markdownContent: report, sources: [], unverifiedRemoved: 0, modelOnly: true };
   }
@@ -403,7 +412,8 @@ export async function runDeepResearch(
     const sourceContext = formatSources(sources, 8);
     const report = await synth('research-task', `Write a concise research brief on "${query.topic}".\n${query.includeCitations ? 'Use inline markdown citations [Title](url) with the exact URLs below for factual claims.' : 'Do NOT emit markdown links.'}\n\nLive Web Search Context:\n${sourceContext || '(No results retrieved.)'}\n\nStructure:\n# Executive Summary\n## Key Findings\n## Details\n## References & Sources (link every source used)`, aiConfig,
       aiKey,
-      signal);
+      signal,
+      reportUsage);
     emit({ stage: 'verify', searched: 1, total: 1 });
     const { clean, removed } = verifyCitations(report, sources);
     emit({ stage: 'done', searched: 1, total: 1 });
@@ -418,7 +428,7 @@ export async function runDeepResearch(
 
   // ---- standard & deep: plan → parallel search → per-section synthesis
   emit({ stage: 'plan', searched: 0, total: 0 });
-  const subs = await planSubQuestions(query.topic, aiConfig, aiKey, signal);
+  const subs = await planSubQuestions(query.topic, aiConfig, aiKey, signal, reportUsage);
   checkAbort(signal);
 
   const deep = query.depth === 'deep';
@@ -445,7 +455,8 @@ export async function runDeepResearch(
     try {
       const raw = await synth('gap-task', `Given these research section summaries on "${query.topic}", list 2-4 follow-up questions exposing gaps, missing data, or dissenting views. One per line, no numbering.\n\n${digest}`, aiConfig,
       aiKey,
-      signal);
+      signal,
+      reportUsage);
       gaps = raw
         .split('\n')
         .map((l) => l.replace(/^[\s*\-\d.)\]]+/, '').replace(/["“”]/g, '').trim())
@@ -473,7 +484,7 @@ export async function runDeepResearch(
   const sections = await mapPool(
     sectionGroups,
     2,
-    (g) => synthesizeSection(query.topic, g.sub, g.sources, query.includeCitations, aiConfig, aiKey, signal),
+    (g) => synthesizeSection(query.topic, g.sub, g.sources, query.includeCitations, aiConfig, aiKey, signal, reportUsage),
     signal
   );
 
