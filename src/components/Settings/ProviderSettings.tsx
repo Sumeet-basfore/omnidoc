@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, Key, ShieldCheck, ShieldAlert, Check, Loader2, Cpu, Globe, RefreshCw, BarChart3 } from 'lucide-react';
+import { ChevronLeft, Key, ShieldCheck, ShieldAlert, Check, Loader2, Cpu, Globe, RefreshCw, BarChart3, Users } from 'lucide-react';
 import { listModels } from '../../services/modelDiscovery';
 import { useAppStore } from '../../store/useAppStore';
 import { keyService, KeyProvider } from '../../services/keyService';
 import { AIProviderId } from '../../types/ai';
 import { callAI } from '../../services/aiService';
+import { WorkspaceRulesSettings } from './WorkspaceRulesSettings';
 
 export const ProviderSettings: React.FC = () => {
   const {
@@ -18,6 +19,7 @@ export const ProviderSettings: React.FC = () => {
     setDailyTokenAlert
   } = useAppStore();
 
+  const [settingsTab, setSettingsTab] = useState<'keys' | 'rules'>('keys');
   const [keys, setKeys] = useState<Record<string, string>>({});
   const [isEncrypted, setIsEncrypted] = useState<boolean>(true);
   const [testStatus, setTestStatus] = useState<Record<string, 'testing' | 'success' | 'failed'>>({});
@@ -138,12 +140,42 @@ export const ProviderSettings: React.FC = () => {
         </div>
         <div className="min-w-0">
           <h2 className="text-xs font-semibold text-white leading-tight">Settings</h2>
-          <p className="text-[10px] text-zinc-500 truncate">Providers & keys · BYOK</p>
+          <p className="text-[10px] text-zinc-500 truncate">Providers, keys & team rules</p>
         </div>
       </div>
 
-      {/* Panel body */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-4">
+      {/* Sub-Tabs: Providers & Keys vs Team Rules */}
+      <div className="px-3 pt-1 border-b border-[var(--border-subtle)] flex items-center gap-1 bg-black/20 shrink-0">
+        <button
+          onClick={() => setSettingsTab('keys')}
+          className={`flex items-center gap-1.5 px-2.5 py-1.5 border-b-2 text-xs font-medium transition-colors cursor-pointer ${
+            settingsTab === 'keys'
+              ? 'border-indigo-500 text-white'
+              : 'border-transparent text-zinc-400 hover:text-zinc-200'
+          }`}
+        >
+          <Key size={12} />
+          <span>API Keys</span>
+        </button>
+        <button
+          onClick={() => setSettingsTab('rules')}
+          className={`flex items-center gap-1.5 px-2.5 py-1.5 border-b-2 text-xs font-medium transition-colors cursor-pointer ${
+            settingsTab === 'rules'
+              ? 'border-indigo-500 text-white'
+              : 'border-transparent text-zinc-400 hover:text-zinc-200'
+          }`}
+        >
+          <Users size={12} />
+          <span>Team Rules</span>
+        </button>
+      </div>
+
+      {settingsTab === 'rules' ? (
+        <WorkspaceRulesSettings />
+      ) : (
+        <>
+          {/* Panel body */}
+          <div className="flex-1 overflow-y-auto p-3 space-y-4">
         {/* Keychain status */}
         <div
           className={`p-2.5 rounded border flex items-start gap-2 ${
@@ -416,6 +448,8 @@ export const ProviderSettings: React.FC = () => {
           Save credentials
         </button>
       </div>
+        </>
+      )}
     </div>
   );
 };

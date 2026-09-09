@@ -1,5 +1,6 @@
 import { AIMessage, AIProviderConfig, AIPersona } from '../types/ai';
 import { composeSystemPrompt, resolveTier, effectiveTemperature } from './personas';
+import { WorkspaceRules } from '../types/workspace';
 
 export interface StreamUsage {
   in: number;
@@ -19,13 +20,14 @@ export function buildFullMessages(
   messages: AIMessage[],
   persona: AIPersona,
   documentContext?: DocumentContextInput,
-  opts: { config?: AIProviderConfig; customInstructions?: string } = {}
+  opts: { config?: AIProviderConfig; customInstructions?: string; workspaceRules?: WorkspaceRules } = {}
 ): WireMessage[] {
   const smallModel =
     resolveTier(opts.config?.modelTier, opts.config?.model || '') === 'small';
   const system = composeSystemPrompt(persona, {
     smallModel,
-    customInstructions: opts.customInstructions
+    customInstructions: opts.customInstructions,
+    workspaceRules: opts.workspaceRules
   });
   const full: WireMessage[] = [{ role: 'system', content: system }];
 
@@ -153,6 +155,7 @@ export interface StreamArgs {
   documentContext?: DocumentContextInput;
   signal: AbortSignal;
   customInstructions?: string;
+  workspaceRules?: WorkspaceRules;
   onToken: (t: string) => void;
 }
 
@@ -161,7 +164,8 @@ export async function streamAI(args: StreamArgs): Promise<{ text: string; usage?
   const persona = args.persona ?? 'friend';
   const fullMessages = buildFullMessages(messages, persona, args.documentContext, {
     config,
-    customInstructions: args.customInstructions
+    customInstructions: args.customInstructions,
+    workspaceRules: args.workspaceRules
   });
 
   switch (config.id) {
@@ -432,7 +436,8 @@ export async function callAI(
   apiKey: string,
   persona: AIPersona = 'friend',
   documentContext?: { name: string; format: string; content: string; selectedText?: string },
-  customInstructions?: string
+  customInstructions?: string,
+  workspaceRules?: WorkspaceRules
 ): Promise<string> {
   const ctrl = new AbortController();
   const { text } = await streamAI({
@@ -443,6 +448,7 @@ export async function callAI(
     documentContext,
     signal: ctrl.signal,
     customInstructions,
+    workspaceRules,
     onToken: () => undefined
   });
   return text;

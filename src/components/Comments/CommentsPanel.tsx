@@ -40,7 +40,8 @@ export const CommentsPanel: React.FC = () => {
     activeProvider,
     activePersona,
     aiConfigs,
-    customInstructions
+    customInstructions,
+    workspaceRules
   } = useAppStore();
 
   const [filter, setFilter] = useState<'open' | 'resolved' | 'all'>('open');
@@ -124,7 +125,8 @@ Provide your expert critique, answer, or recommendation directly and concisely.`
           content: activeDoc.content,
           selectedText: comment.highlightedText
         },
-        customInstructions
+        customInstructions,
+        workspaceRules
       );
 
       addReply(activeDoc.id, comment.id, replyText.trim(), `Omni (${PERSONA_LABELS[activePersona]})`, true);

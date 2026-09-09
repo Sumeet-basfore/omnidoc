@@ -175,18 +175,36 @@ export function resolveTier(
   return suggestTier(modelId);
 }
 
+import { WorkspaceRules } from '../types/workspace';
+
 /**
  * Layer 1 + Layer 2 composer. Small models get preamble + core only;
- * frontier additionally gets the extended block. Custom instructions
- * append last so they read as the highest-priority user directive.
+ * frontier additionally gets the extended block. Workspace rules and
+ * custom instructions append last so they read as highest-priority directives.
  */
 export function composeSystemPrompt(
   persona: AIPersona,
-  opts: { smallModel: boolean; customInstructions?: string }
+  opts: { smallModel: boolean; customInstructions?: string; workspaceRules?: WorkspaceRules }
 ): string {
   const kernel = PERSONA_KERNELS[persona];
   let prompt = `${STUDIO_PREAMBLE}\n\n${kernel.core}`;
   if (!opts.smallModel) prompt += `\n\n${kernel.extended}`;
+
+  if (opts.workspaceRules && (opts.workspaceRules.enforceInAllPersonas || persona !== 'brainstormer')) {
+    const r = opts.workspaceRules;
+    let rulesBlock = `\n\n[TEAM WORKSPACE EDITORIAL GUIDELINES - ${r.teamName || 'Workspace'}]`;
+    rulesBlock += `\n- Editorial Tone: ${r.editorialTone}`;
+    rulesBlock += `\n- Target Reading Complexity: ${r.targetReadingLevel.replace('_', ' ')}`;
+    rulesBlock += `\n- Citation Standard: ${r.citationStyle.replace('_', ' ').toUpperCase()}`;
+    if (r.prohibitedTerms && r.prohibitedTerms.length > 0) {
+      rulesBlock += `\n- STRICTLY PROHIBITED WORDS/CLICHES (never use these words): ${r.prohibitedTerms.join(', ')}`;
+    }
+    if (r.customDirectives && r.customDirectives.trim()) {
+      rulesBlock += `\n- Team Directives: ${r.customDirectives.trim()}`;
+    }
+    prompt += rulesBlock;
+  }
+
   const custom = (opts.customInstructions || '').trim();
   if (custom) prompt += `\n\nUSER INSTRUCTIONS (highest priority, always obey):\n${custom}`;
   return prompt;

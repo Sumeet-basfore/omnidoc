@@ -37,7 +37,8 @@ export const ChatPanel: React.FC = () => {
     agentMode,
     setAgentMode,
     selectedText,
-    customInstructions
+    customInstructions,
+    workspaceRules
   } = useAppStore();
 
   const [input, setInput] = useState<string>('');
@@ -277,6 +278,7 @@ export const ChatPanel: React.FC = () => {
         documentContext,
         signal: ctrl.signal,
         customInstructions: customInstructions || undefined,
+        workspaceRules,
         onToken: (t) => {
           acc += t;
           setStreaming(acc);

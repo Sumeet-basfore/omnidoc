@@ -4,6 +4,7 @@ import { DocumentFormat, DocumentItem, WorkspaceTab } from '../types/document';
 import { AIProviderId, AIPersona, AIMessage, AIProviderConfig } from '../types/ai';
 import { DocumentComment, CommentReply } from '../types/comment';
 import { KanbanBoard, KanbanCard, KanbanColumn } from '../types/kanban';
+import { WorkspaceRules, DEFAULT_WORKSPACE_RULES } from '../types/workspace';
 
 export interface PendingInsert {
   id: string;
@@ -119,6 +120,12 @@ interface AppState {
   deleteKanbanCard: (cardId: string) => void;
   addKanbanColumn: (title: string) => void;
   deleteKanbanColumn: (columnId: string) => void;
+
+  // Workspace Team Rules & Style
+  workspaceRules: WorkspaceRules;
+  updateWorkspaceRules: (rules: Partial<WorkspaceRules>) => void;
+  resetWorkspaceRules: () => void;
+  loadWorkspaceRulesFromJson: (jsonStr: string) => boolean;
 }
 
 const DEFAULT_AI_CONFIGS: Record<AIProviderId, AIProviderConfig> = {
@@ -208,6 +215,7 @@ export const useAppStore = create<AppState>()(
       mainView: 'editor',
       setMainView: (view) => set({ mainView: view }),
       kanbanBoard: DEFAULT_KANBAN_BOARD,
+      workspaceRules: DEFAULT_WORKSPACE_RULES,
 
       isSidebarOpen: true,
       leftPanel: 'files',
@@ -775,7 +783,32 @@ export const useAppStore = create<AppState>()(
               cards: remainingCards
             }
           };
-        })
+        }),
+
+      updateWorkspaceRules: (rules) =>
+        set((state) => ({
+          workspaceRules: { ...state.workspaceRules, ...rules }
+        })),
+
+      resetWorkspaceRules: () => set({ workspaceRules: DEFAULT_WORKSPACE_RULES }),
+
+      loadWorkspaceRulesFromJson: (jsonStr) => {
+        try {
+          const parsed = JSON.parse(jsonStr);
+          if (parsed && typeof parsed === 'object') {
+            set((state) => ({
+              workspaceRules: {
+                ...state.workspaceRules,
+                ...parsed
+              }
+            }));
+            return true;
+          }
+          return false;
+        } catch {
+          return false;
+        }
+      }
     }),
     {
       name: 'omnidoc-storage',
@@ -790,7 +823,8 @@ export const useAppStore = create<AppState>()(
         dailyTokenAlert: s.dailyTokenAlert,
         customInstructions: s.customInstructions,
         comments: s.comments,
-        kanbanBoard: s.kanbanBoard
+        kanbanBoard: s.kanbanBoard,
+        workspaceRules: s.workspaceRules
       })
     }
   )
