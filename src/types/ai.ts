@@ -12,6 +12,7 @@ export interface AIProviderConfig {
   baseUrl?: string; // Custom endpoint override e.g. http://localhost:11434/v1
   temperature: number;
   toolsBeta?: boolean; // Custom endpoints: allow JSON-fallback tool use
+  modelTier?: 'auto' | 'frontier' | 'small'; // Gates extended prompt blocks
 }
 
 export type AIPersona =
@@ -25,6 +26,7 @@ export interface AIMessage {
   role: 'user' | 'assistant' | 'system';
   content: string;
   timestamp: number;
+  kind?: 'message' | 'divider'; // dividers render as feed separators, never sent
   sources?: Array<{ title: string; url: string; snippet: string }>;
 }
 

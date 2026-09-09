@@ -8,6 +8,8 @@ import {
   WireMessage
 } from './aiService';
 import { AGENT_TOOLS, executeTool, ToolContext } from './tools';
+import { PERSONA_DEFAULTS } from './personas';
+import type { ToolDef } from './tools';
 
 export interface AgentToolCall {
   id: string;
@@ -26,10 +28,17 @@ export interface AgentStepEvent {
 interface NativeTranscript {
   kind: 'openai' | 'anthropic' | 'gemini';
   messages: any[];
+  tools?: ToolDef[];
+  system?: string;
 }
 
 interface Driver {
-  init(history: AIMessage[], persona: AIPersona, docCtx: any): NativeTranscript | AIMessage[];
+  init(
+    history: AIMessage[],
+    persona: AIPersona,
+    docCtx: any,
+    opts?: { customInstructions?: string }
+  ): NativeTranscript | AIMessage[];
   step(
     t: any,
     allowTools: boolean,
@@ -71,10 +80,11 @@ async function throwIfApiError(res: Response, prefix: string, custom404?: string
 }
 
 const openAIDriver = (config: AIProviderConfig, apiKey: string): Driver => ({
-  init(history, persona, docCtx) {
+  init(history, persona, docCtx, opts) {
     return {
       kind: 'openai',
-      messages: buildFullMessages(history, persona, docCtx).map((m) => ({
+      tools: AGENT_TOOLS.filter((t) => PERSONA_DEFAULTS[persona].tools.includes(t.name)),
+      messages: buildFullMessages(history, persona, docCtx, opts).map((m) => ({
         role: m.role,
         content: m.content
       }))
@@ -95,7 +105,7 @@ const openAIDriver = (config: AIProviderConfig, apiKey: string): Driver => ({
             temperature: config.temperature ?? 0.7,
             ...(allowTools
               ? {
-                  tools: AGENT_TOOLS.map((tool) => ({
+                  tools: (t.tools as ToolDef[]).map((tool) => ({
                     type: 'function',
                     function: {
                       name: tool.name,
@@ -143,10 +153,11 @@ const openAIDriver = (config: AIProviderConfig, apiKey: string): Driver => ({
 });
 
 const anthropicDriver = (config: AIProviderConfig, apiKey: string): Driver => ({
-  init(history, persona, docCtx) {
-    const full = buildFullMessages(history, persona, docCtx);
+  init(history, persona, docCtx, opts) {
+    const full = buildFullMessages(history, persona, docCtx, opts);
     return {
       kind: 'anthropic',
+      tools: AGENT_TOOLS.filter((t) => PERSONA_DEFAULTS[persona].tools.includes(t.name)),
       system: full
         .filter((m) => m.role === 'system')
         .map((m) => m.content)
@@ -180,7 +191,7 @@ const anthropicDriver = (config: AIProviderConfig, apiKey: string): Driver => ({
             temperature: config.temperature ?? 0.7,
             ...(allowTools
               ? {
-                  tools: AGENT_TOOLS.map((tool) => ({
+                  tools: (t.tools as ToolDef[]).map((tool) => ({
                     name: tool.name,
                     description: tool.description,
                     input_schema: tool.parameters
@@ -218,10 +229,11 @@ const anthropicDriver = (config: AIProviderConfig, apiKey: string): Driver => ({
 });
 
 const geminiDriver = (config: AIProviderConfig, apiKey: string): Driver => ({
-  init(history, persona, docCtx) {
-    const full = buildFullMessages(history, persona, docCtx);
+  init(history, persona, docCtx, opts) {
+    const full = buildFullMessages(history, persona, docCtx, opts);
     return {
       kind: 'gemini',
+      tools: AGENT_TOOLS.filter((t) => PERSONA_DEFAULTS[persona].tools.includes(t.name)),
       messages: full.map((m) => ({
         role: m.role === 'assistant' ? 'model' : 'user',
         parts: [
@@ -246,7 +258,7 @@ const geminiDriver = (config: AIProviderConfig, apiKey: string): Driver => ({
               ? {
                   tools: [
                     {
-                      function_declarations: AGENT_TOOLS.map((tool) => ({
+                      function_declarations: (t.tools as ToolDef[]).map((tool) => ({
                         name: tool.name,
                         description: tool.description,
                         parameters: tool.parameters
@@ -290,8 +302,8 @@ const geminiDriver = (config: AIProviderConfig, apiKey: string): Driver => ({
 
 const TOOL_FENCE = /```tool:([a-z_]+)\n([\s\S]*?)```/g;
 
-function toolManifest(): string {
-  const lines = AGENT_TOOLS.map((t) => {
+function toolManifest(tools: ToolDef[]): string {
+  const lines = tools.map((t) => {
     const props = (t.parameters as any)?.properties || {};
     const args = Object.keys(props).join(', ');
     return `- ${t.name}(${args}): ${t.description}`;
@@ -304,12 +316,15 @@ const fallbackDriver = (
   config: AIProviderConfig,
   apiKey: string,
   persona: AIPersona,
-  docCtx: any
+  docCtx: any,
+  customInstructions?: string
 ): Driver => {
+  const scoped = AGENT_TOOLS.filter((t) => PERSONA_DEFAULTS[persona].tools.includes(t.name));
   const withManifest = (history: AIMessage[]): AIMessage[] => [
-    { id: 'agent-manifest', role: 'system', content: toolManifest(), timestamp: 0 },
+    { id: 'agent-manifest', role: 'system', content: toolManifest(scoped), timestamp: 0 },
     ...history
   ];
+
   // Lazy delegate avoided: streamAI is imported statically (no cycle —
   // aiService never imports agentService).
   return {
@@ -331,6 +346,7 @@ const fallbackDriver = (
           persona,
           documentContext: docCtx,
           signal,
+          customInstructions,
           onToken: () => undefined
         });
         text = full;
@@ -411,6 +427,7 @@ export interface RunAgentArgs {
   maxSteps?: number;
   signal: AbortSignal;
   onStep: (s: AgentStepEvent) => void;
+  customInstructions?: string;
 }
 
 export async function runAgent(args: RunAgentArgs): Promise<{
@@ -419,6 +436,7 @@ export async function runAgent(args: RunAgentArgs): Promise<{
   steps: number;
 }> {
   const { task, history, config, apiKey, persona, documentContext, tools, signal, onStep } = args;
+  const customInstructions = args.customInstructions;
   const maxSteps = args.maxSteps ?? 6;
   const usage: StreamUsage = { in: 0, out: 0 };
   const addUsage = (u?: StreamUsage) => {
@@ -440,9 +458,9 @@ export async function runAgent(args: RunAgentArgs): Promise<{
         ? anthropicDriver(config, apiKey)
         : kind === 'gemini'
           ? geminiDriver(config, apiKey)
-          : fallbackDriver(config, apiKey, persona, documentContext);
+          : fallbackDriver(config, apiKey, persona, documentContext, customInstructions);
 
-  let t = driver.init(withTask, persona, documentContext);
+  let t = driver.init(withTask, persona, documentContext, { customInstructions });
   const driverKind = kind === 'fallback' ? 'fallback' : kind;
   const seen = new Set<string>();
   let steps = 0;

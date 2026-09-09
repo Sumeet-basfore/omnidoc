@@ -1,18 +1,5 @@
 import { AIMessage, AIProviderConfig, AIPersona } from '../types/ai';
-
-const PERSONA_SYSTEM_PROMPTS: Record<AIPersona, string> = {
-  friend: `You are "OmniDoc Friend", a warm, highly skilled, and encouraging AI co-writer and research partner inside OmniDoc Studio.
-Your style is constructive, clear, collaborative, and friendly. You provide insightful suggestions, help polish prose, brainstorm directions, and adapt to the author's tone while maintaining high quality standards. Keep responses focused, structured, and easy to apply directly to the document.`,
-
-  researcher: `You are a Senior Research Analyst inside OmniDoc Studio.
-Your style is objective, rigorous, analytical, and structured. You synthesize complex concepts clearly, structure data with headings and bullet points, call out key facts and technical specifications, and provide citations whenever references or sources are provided.`,
-
-  proofreader: `You are an expert Copyeditor and Proofreader inside OmniDoc Studio.
-Your focus is grammatical correctness, conciseness, flow, precision of terminology, and tone consistency. Highlight improvements cleanly, explain reasons for significant edits when helpful, and provide ready-to-paste revised text.`,
-
-  brainstormer: `You are a Creative Ideation & Strategy Partner inside OmniDoc Studio.
-Your focus is offering diverse angles, fresh outlines, alternative perspectives, counter-arguments, and creative variations to enrich the user's ideas.`
-};
+import { composeSystemPrompt, resolveTier, effectiveTemperature } from './personas';
 
 export interface StreamUsage {
   in: number;
@@ -31,9 +18,16 @@ export type WireMessage = { role: 'user' | 'assistant' | 'system'; content: stri
 export function buildFullMessages(
   messages: AIMessage[],
   persona: AIPersona,
-  documentContext?: DocumentContextInput
+  documentContext?: DocumentContextInput,
+  opts: { config?: AIProviderConfig; customInstructions?: string } = {}
 ): WireMessage[] {
-  const full: WireMessage[] = [{ role: 'system', content: PERSONA_SYSTEM_PROMPTS[persona] }];
+  const smallModel =
+    resolveTier(opts.config?.modelTier, opts.config?.model || '') === 'small';
+  const system = composeSystemPrompt(persona, {
+    smallModel,
+    customInstructions: opts.customInstructions
+  });
+  const full: WireMessage[] = [{ role: 'system', content: system }];
 
   if (documentContext) {
     let ctx = `[ACTIVE DOCUMENT CONTEXT]\nDocument: "${documentContext.name}" (${documentContext.format.toUpperCase()})\n`;
@@ -46,6 +40,7 @@ export function buildFullMessages(
   }
 
   for (const m of messages) {
+    if (m.kind === 'divider') continue;
     full.push({ role: m.role, content: m.content });
   }
   return full;
@@ -157,23 +152,27 @@ export interface StreamArgs {
   persona?: AIPersona;
   documentContext?: DocumentContextInput;
   signal: AbortSignal;
+  customInstructions?: string;
   onToken: (t: string) => void;
 }
 
 export async function streamAI(args: StreamArgs): Promise<{ text: string; usage?: StreamUsage }> {
   const { messages, config, apiKey } = args;
   const persona = args.persona ?? 'friend';
-  const fullMessages = buildFullMessages(messages, persona, args.documentContext);
+  const fullMessages = buildFullMessages(messages, persona, args.documentContext, {
+    config,
+    customInstructions: args.customInstructions
+  });
 
   switch (config.id) {
     case 'gemini':
-      return await streamGemini(fullMessages, config, apiKey, args.signal, args.onToken);
+      return await streamGemini(fullMessages, config, apiKey, persona, args.signal, args.onToken);
     case 'anthropic':
-      return await streamAnthropic(fullMessages, config, apiKey, args.signal, args.onToken);
+      return await streamAnthropic(fullMessages, config, apiKey, persona, args.signal, args.onToken);
     case 'openai':
     case 'openrouter':
     case 'custom':
-      return await streamOpenAICompat(fullMessages, config, apiKey, args.signal, args.onToken);
+      return await streamOpenAICompat(fullMessages, config, apiKey, persona, args.signal, args.onToken);
     default:
       throw new Error(`Unsupported AI provider: ${config.id}`);
   }
@@ -183,6 +182,7 @@ async function streamGemini(
   messages: WireMessage[],
   config: AIProviderConfig,
   apiKey: string,
+  persona: AIPersona,
   userSignal: AbortSignal,
   onToken: (t: string) => void
 ): Promise<{ text: string; usage?: StreamUsage }> {
@@ -203,7 +203,7 @@ async function streamGemini(
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents, generationConfig: { temperature: config.temperature ?? 0.7 } })
+        body: JSON.stringify({ contents, generationConfig: { temperature: effectiveTemperature(config.temperature, persona) } })
       },
       signal
     );
@@ -251,6 +251,7 @@ async function streamAnthropic(
   messages: WireMessage[],
   config: AIProviderConfig,
   apiKey: string,
+  persona: AIPersona,
   userSignal: AbortSignal,
   onToken: (t: string) => void
 ): Promise<{ text: string; usage?: StreamUsage }> {
@@ -281,7 +282,7 @@ async function streamAnthropic(
           max_tokens: 4096,
           system: systemMessage,
           messages: chatMessages,
-          temperature: config.temperature ?? 0.7,
+          temperature: effectiveTemperature(config.temperature, persona),
           stream: true
         })
       },
@@ -321,6 +322,7 @@ async function streamOpenAICompat(
   messages: WireMessage[],
   config: AIProviderConfig,
   apiKey: string,
+  persona: AIPersona,
   userSignal: AbortSignal,
   onToken: (t: string) => void
 ): Promise<{ text: string; usage?: StreamUsage }> {
@@ -366,7 +368,7 @@ async function streamOpenAICompat(
           body: JSON.stringify({
             model: config.model || defaultModel,
             messages,
-            temperature: config.temperature ?? 0.7,
+            temperature: effectiveTemperature(config.temperature, persona),
             stream: true,
             // Usage reporting; only OpenAI-family APIs understand this —
             // Ollama / LM Studio / proxies may 400 on unknown fields.
@@ -429,7 +431,8 @@ export async function callAI(
   config: AIProviderConfig,
   apiKey: string,
   persona: AIPersona = 'friend',
-  documentContext?: { name: string; format: string; content: string; selectedText?: string }
+  documentContext?: { name: string; format: string; content: string; selectedText?: string },
+  customInstructions?: string
 ): Promise<string> {
   const ctrl = new AbortController();
   const { text } = await streamAI({
@@ -439,6 +442,7 @@ export async function callAI(
     persona,
     documentContext,
     signal: ctrl.signal,
+    customInstructions,
     onToken: () => undefined
   });
   return text;

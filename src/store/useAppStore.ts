@@ -87,6 +87,8 @@ interface AppState {
   setPendingInlinePrompt: (prompt: string | null) => void;
   agentMode: boolean;
   setAgentMode: (on: boolean) => void;
+  customInstructions: string;
+  setCustomInstructions: (s: string) => void;
   lastSavedAt: number | null;
   setLastSavedAt: (t: number | null) => void;
   pendingInserts: Record<string, PendingInsert[]>;
@@ -384,6 +386,8 @@ export const useAppStore = create<AppState>()(
 
       agentMode: false,
       setAgentMode: (on) => set({ agentMode: on }),
+      customInstructions: '',
+      setCustomInstructions: (s) => set({ customInstructions: s }),
 
       lastSavedAt: null,
       setLastSavedAt: (t) => set({ lastSavedAt: t }),
@@ -454,7 +458,8 @@ export const useAppStore = create<AppState>()(
         sidebarWidth: s.sidebarWidth,
         drawerWidth: s.drawerWidth,
         usageLog: s.usageLog,
-        dailyTokenAlert: s.dailyTokenAlert
+        dailyTokenAlert: s.dailyTokenAlert,
+        customInstructions: s.customInstructions
       })
     }
   )

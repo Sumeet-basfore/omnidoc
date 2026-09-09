@@ -7,6 +7,7 @@ import { runAgent, AgentStepEvent } from '../../services/agentService';
 import { trimHistory } from '../../services/budget';
 import { keyService } from '../../services/keyService';
 
+import { PERSONA_LABELS, PERSONA_DEFAULTS, composeSystemPrompt, resolveTier } from '../../services/personas';
 import { AIPersona } from '../../types/ai';
 import agentLogo from '../../assets/agent_logo.png';
 
@@ -35,7 +36,8 @@ export const ChatPanel: React.FC = () => {
     setLeftPanel,
     agentMode,
     setAgentMode,
-    selectedText
+    selectedText,
+    customInstructions
   } = useAppStore();
 
   const [input, setInput] = useState<string>('');
@@ -70,7 +72,22 @@ export const ChatPanel: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pendingInlinePrompt]);
 
-  const canUseTools = aiConfigs[activeProvider].id !== 'custom' || !!aiConfigs[activeProvider].toolsBeta;
+  const canUseTools =
+    (aiConfigs[activeProvider].id !== 'custom' || !!aiConfigs[activeProvider].toolsBeta) &&
+    PERSONA_DEFAULTS[activePersona].tools.length > 0;
+
+  const handlePersonaChange = (p: AIPersona) => {
+    if (p === activePersona) return;
+    if (PERSONA_DEFAULTS[p].tools.length === 0) setAgentMode(false);
+    if (chatMessages.length > 0) {
+      addChatMessage({
+        role: 'system',
+        content: `— Switched to ${PERSONA_LABELS[p]} —`,
+        kind: 'divider'
+      });
+    }
+    setActivePersona(p);
+  };
 
   // Approximate selection line range for the grounding chip
   const selRange = (): string | null => {
@@ -200,6 +217,7 @@ export const ChatPanel: React.FC = () => {
         },
         maxSteps: 6,
         signal: ctrl.signal,
+        customInstructions: customInstructions || undefined,
         onStep: (s) => setAgentSteps((prev) => [...prev, s])
       });
 
@@ -258,6 +276,7 @@ export const ChatPanel: React.FC = () => {
         persona: activePersona,
         documentContext,
         signal: ctrl.signal,
+        customInstructions: customInstructions || undefined,
         onToken: (t) => {
           acc += t;
           setStreaming(acc);
@@ -405,9 +424,11 @@ export const ChatPanel: React.FC = () => {
               onClick={() => canUseTools && setAgentMode(!agentMode)}
               disabled={!canUseTools}
               title={
-                canUseTools
-                  ? 'Agent mode: model can search, read and propose edits'
-                  : 'Tools unavailable for this provider (enable tools beta in Settings for local models)'
+                PERSONA_DEFAULTS[activePersona].tools.length === 0
+                  ? 'The Brainstorm persona answers directly — no tools, no agent loop'
+                  : canUseTools
+                    ? 'Agent mode: model can search, read and propose edits'
+                    : 'Tools unavailable for this provider (enable tools beta in Settings for local models)'
               }
               className={`flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full border transition-all ${
                 agentMode
@@ -435,7 +456,7 @@ export const ChatPanel: React.FC = () => {
           {personas.map((p) => (
             <button
               key={p.id}
-              onClick={() => setActivePersona(p.id)}
+              onClick={() => handlePersonaChange(p.id)}
               className={`px-2.5 py-1 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 ${
                 activePersona === p.id
                   ? 'bg-[var(--accent-primary)] text-[var(--text-on-accent)]'
@@ -475,7 +496,12 @@ export const ChatPanel: React.FC = () => {
             — {trimNote} earlier message{trimNote === 1 ? '' : 's'} trimmed to save context —
           </div>
         )}
-        {chatMessages.map((msg, msgIdx) => (
+        {chatMessages.map((msg, msgIdx) =>
+          msg.kind === 'divider' ? (
+            <div key={msg.id} className="text-center text-[10px] font-mono text-zinc-600 select-none py-1">
+              {msg.content}
+            </div>
+          ) : (
           <div
             key={msg.id}
             className={`flex flex-col ${
