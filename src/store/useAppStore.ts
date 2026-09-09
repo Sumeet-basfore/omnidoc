@@ -5,6 +5,9 @@ import { AIProviderId, AIPersona, AIMessage, AIProviderConfig } from '../types/a
 import { DocumentComment, CommentReply } from '../types/comment';
 import { KanbanBoard, KanbanCard, KanbanColumn } from '../types/kanban';
 import { WorkspaceRules, DEFAULT_WORKSPACE_RULES } from '../types/workspace';
+import { TeamMember, TeamHubSubTab, DEFAULT_TEAM_MEMBERS } from '../types/team';
+
+export type MainView = 'studio' | 'team' | 'editor' | 'kanban';
 
 export interface PendingInsert {
   id: string;
@@ -28,8 +31,13 @@ interface AppState {
   activeTabId: string | null;
 
   // UI state
-  mainView: 'editor' | 'kanban';
-  setMainView: (view: 'editor' | 'kanban') => void;
+  mainView: MainView;
+  setMainView: (view: MainView) => void;
+  teamHubSubTab: TeamHubSubTab;
+  setTeamHubSubTab: (tab: TeamHubSubTab) => void;
+  teamMembers: TeamMember[];
+  addTeamMember: (member: Omit<TeamMember, 'id'>) => void;
+  removeTeamMember: (id: string) => void;
   isSidebarOpen: boolean;
   leftPanel: 'files' | 'settings';
   setLeftPanel: (view: 'files' | 'settings') => void;
@@ -212,8 +220,10 @@ export const useAppStore = create<AppState>()(
       tabs: [],
       activeTabId: null,
 
-      mainView: 'editor',
+      mainView: 'studio',
       setMainView: (view) => set({ mainView: view }),
+      teamHubSubTab: 'planning',
+      teamMembers: DEFAULT_TEAM_MEMBERS,
       kanbanBoard: DEFAULT_KANBAN_BOARD,
       workspaceRules: DEFAULT_WORKSPACE_RULES,
 
@@ -808,7 +818,22 @@ export const useAppStore = create<AppState>()(
         } catch {
           return false;
         }
-      }
+      },
+
+      setTeamHubSubTab: (tab) => set({ teamHubSubTab: tab }),
+
+      addTeamMember: (member) =>
+        set((state) => ({
+          teamMembers: [
+            ...state.teamMembers,
+            { ...member, id: `member-${Date.now()}` }
+          ]
+        })),
+
+      removeTeamMember: (id) =>
+        set((state) => ({
+          teamMembers: state.teamMembers.filter((m) => m.id !== id)
+        }))
     }),
     {
       name: 'omnidoc-storage',
@@ -824,7 +849,8 @@ export const useAppStore = create<AppState>()(
         customInstructions: s.customInstructions,
         comments: s.comments,
         kanbanBoard: s.kanbanBoard,
-        workspaceRules: s.workspaceRules
+        workspaceRules: s.workspaceRules,
+        teamMembers: s.teamMembers
       })
     }
   )

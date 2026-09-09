@@ -8,7 +8,8 @@ import {
   Cpu,
   MessageSquare,
   Kanban,
-  FileText
+  FileText,
+  Users
 } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import { downloadBlob } from '../../services/exportService';
@@ -159,29 +160,29 @@ export const TopBar: React.FC = () => {
 
       {/* Center: View Switcher & Command Launcher */}
       <div className="flex items-center gap-2.5">
-        {/* Studio vs Planning Switcher */}
+        {/* Studio vs Team Hub Switcher */}
         <div className="flex items-center bg-black/40 rounded-lg p-0.5 border border-white/10 text-xs">
           <button
-            onClick={() => setMainView('editor')}
+            onClick={() => setMainView('studio')}
             className={`px-2.5 py-0.5 rounded flex items-center gap-1.5 transition-colors cursor-pointer ${
-              mainView === 'editor'
+              mainView === 'studio' || mainView === 'editor'
                 ? 'bg-indigo-600 text-white font-medium shadow-sm'
                 : 'text-zinc-400 hover:text-zinc-200'
             }`}
           >
             <FileText size={12} />
-            <span>Docs</span>
+            <span>Studio</span>
           </button>
           <button
-            onClick={() => setMainView('kanban')}
+            onClick={() => setMainView('team')}
             className={`px-2.5 py-0.5 rounded flex items-center gap-1.5 transition-colors cursor-pointer ${
-              mainView === 'kanban'
+              mainView === 'team' || mainView === 'kanban'
                 ? 'bg-indigo-600 text-white font-medium shadow-sm'
                 : 'text-zinc-400 hover:text-zinc-200'
             }`}
           >
-            <Kanban size={12} />
-            <span>Planning</span>
+            <Users size={12} />
+            <span>Team Hub</span>
           </button>
         </div>
 

@@ -12,7 +12,7 @@ import { ExportModal } from './components/Layout/ExportModal';
 import { KeyboardShortcutsModal } from './components/Layout/KeyboardShortcutsModal';
 import { StatusBar } from './components/Layout/StatusBar';
 import { CommentsPanel } from './components/Comments/CommentsPanel';
-import { KanbanBoardView } from './components/Kanban/KanbanBoardView';
+import { TeamHubView } from './components/Team/TeamHubView';
 import { DocumentFormat, DocumentItem } from './types/document';
 
 export const App: React.FC = () => {
@@ -211,13 +211,13 @@ export const App: React.FC = () => {
       <TopBar />
 
       {/* Workspace Tabs */}
-      {mainView === 'editor' && <TabBar />}
+      {(mainView === 'studio' || mainView === 'editor') && <TabBar />}
 
       {/* Main Studio Viewport */}
       <div className="flex flex-1 overflow-hidden relative">
         <Sidebar />
-        {mainView === 'kanban' ? (
-          <KanbanBoardView />
+        {mainView === 'team' || mainView === 'kanban' ? (
+          <TeamHubView />
         ) : (
           <main className="flex-1 flex flex-col overflow-hidden relative">
             <PendingInserts />
