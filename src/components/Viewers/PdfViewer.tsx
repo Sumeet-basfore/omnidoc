@@ -291,7 +291,7 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({ documentId, content }) => 
       </div>
 
       {/* PDF Canvas Viewport */}
-      <div className="flex-1 overflow-auto p-6 flex justify-center items-start bg-[#111420]">
+      <div className="flex-1 overflow-auto p-6 flex justify-center items-start bg-[#1a1a1a]">
         {loading && (
           <div className="flex flex-col items-center justify-center h-64 gap-3 text-[var(--text-muted)]">
             <Loader2 size={28} className="animate-spin text-[var(--accent-primary)]" />
@@ -307,7 +307,10 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({ documentId, content }) => 
           </div>
         )}
 
-        <div className="relative shadow-2xl rounded border border-white/10 overflow-hidden">
+        <div
+          className="relative rounded overflow-hidden"
+          style={{ boxShadow: '0 12px 32px rgba(0, 0, 0, 0.6)' }}
+        >
           <canvas ref={canvasRef} className="block" />
           <div ref={textLayerRef} className="pdf-text-layer" />
         </div>
