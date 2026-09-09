@@ -123,22 +123,23 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({ documentId, content }) => 
           const textContent = await page.getTextContent();
           if (isCancelled) return;
 
-          if (typeof (pdfjsLib as any).renderTextLayer === 'function') {
-            const textTask = (pdfjsLib as any).renderTextLayer({
-              textContentSource: textContent,
-              container: textLayerRef.current,
-              viewport: viewport
-            });
-            textLayerTaskRef.current = textTask;
-            if (textTask.promise) await textTask.promise;
-          } else if (typeof (pdfjsLib as any).TextLayer === 'function') {
-            const textLayer = new (pdfjsLib as any).TextLayer({
+          const pdfjs = pdfjsLib as Record<string, any>;
+          if (typeof pdfjs['TextLayer'] === 'function') {
+            const textLayer = new pdfjs['TextLayer']({
               textContentSource: textContent,
               container: textLayerRef.current,
               viewport: viewport
             });
             textLayerTaskRef.current = textLayer;
             await textLayer.render();
+          } else if (typeof pdfjs['renderTextLayer'] === 'function') {
+            const textTask = pdfjs['renderTextLayer']({
+              textContentSource: textContent,
+              container: textLayerRef.current,
+              viewport: viewport
+            });
+            textLayerTaskRef.current = textTask;
+            if (textTask.promise) await textTask.promise;
           }
         }
       } catch (err: any) {
