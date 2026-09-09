@@ -3,6 +3,13 @@ import { persist } from 'zustand/middleware';
 import { DocumentFormat, DocumentItem, WorkspaceTab } from '../types/document';
 import { AIProviderId, AIPersona, AIMessage, AIProviderConfig } from '../types/ai';
 
+export interface PendingInsert {
+  id: string;
+  text: string;
+  label: string;
+  timestamp: number;
+}
+
 interface AppState {
   // Document workspace
   documents: Record<string, DocumentItem>;
@@ -61,6 +68,9 @@ interface AppState {
   setPendingInlinePrompt: (prompt: string | null) => void;
   lastSavedAt: number | null;
   setLastSavedAt: (t: number | null) => void;
+  pendingInserts: Record<string, PendingInsert[]>;
+  queueInsert: (docId: string, text: string, label: string) => void;
+  resolveInsert: (docId: string, insertId: string, accept: boolean) => void;
 }
 
 const DEFAULT_AI_CONFIGS: Record<AIProviderId, AIProviderConfig> = {
@@ -322,6 +332,49 @@ export const useAppStore = create<AppState>()(
 
       lastSavedAt: null,
       setLastSavedAt: (t) => set({ lastSavedAt: t }),
+
+      pendingInserts: {},
+      queueInsert: (docId, text, label) =>
+        set((state) => ({
+          pendingInserts: {
+            ...state.pendingInserts,
+            [docId]: [
+              ...(state.pendingInserts[docId] || []),
+              {
+                id: `ins-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+                text,
+                label,
+                timestamp: Date.now()
+              }
+            ]
+          }
+        })),
+
+      resolveInsert: (docId, insertId, accept) =>
+        set((state) => {
+          const list = state.pendingInserts[docId] || [];
+          const item = list.find((i) => i.id === insertId);
+          const remaining = list.filter((i) => i.id !== insertId);
+          let documents = state.documents;
+          if (accept && item) {
+            const doc = state.documents[docId];
+            if (doc) {
+              const separator = doc.content.trim() ? '\n\n' : '';
+              documents = {
+                ...state.documents,
+                [docId]: {
+                  ...doc,
+                  content: `${doc.content}${separator}${item.text}`,
+                  isDirty: true
+                }
+              };
+            }
+          }
+          return {
+            documents,
+            pendingInserts: { ...state.pendingInserts, [docId]: remaining }
+          };
+        }),
 
       setDocumentPath: (docId, filePath) =>
         set((state) => {

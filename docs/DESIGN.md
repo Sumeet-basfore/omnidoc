@@ -56,7 +56,9 @@ settings) · `Working…` spinner while the AI is generating.
 
 1. **Markdown**: toolbar (Bold → KaTeX, TOC, **Paper** toggle) + word
    count + Raw/Split/Preview switcher. Source stays dark mono; preview
-   renders on paper with serif headings; split uses percentage scroll sync.
+   renders on paper with serif headings; split uses block-anchored scroll
+   sync (fence-aware source blocks → preview elements, % fallback). Slash
+   commands (`/h1`…`/toc`) available in the source pane.
 2. **PDF**: dark desk, page nav (`Page n of m`), 50–300% zoom, selectable
    text layer, AI Extract-to-Markdown behind a disclaimer modal.
 3. **DOCX**: Mammoth → Tiptap. Info banner (dismissible), ghost toolbar

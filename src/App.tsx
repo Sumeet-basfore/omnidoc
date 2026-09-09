@@ -6,6 +6,7 @@ import { TabBar } from './components/Layout/TabBar';
 import { AICompanionDrawer } from './components/Layout/AICompanionDrawer';
 import { DocumentAdapterRouter } from './adapters/documentAdapterRouter';
 import { InlineSelectionToolbar } from './components/AI/InlineSelectionToolbar';
+import { PendingInserts } from './components/AI/PendingInserts';
 import { ProviderSettings } from './components/Settings/ProviderSettings';
 import { CommandPalette } from './components/CommandPalette/CommandPalette';
 import { ExportModal } from './components/Layout/ExportModal';
@@ -201,6 +202,7 @@ export const App: React.FC = () => {
       <div className="flex flex-1 overflow-hidden relative">
         <Sidebar />
         <main className="flex-1 flex flex-col overflow-hidden relative">
+          <PendingInserts />
           <DocumentAdapterRouter />
           <InlineSelectionToolbar />
         </main>

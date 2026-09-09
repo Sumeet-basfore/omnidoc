@@ -18,7 +18,7 @@ export const ChatPanel: React.FC = () => {
     documents,
     tabs,
     activeTabId,
-    updateDocumentContent,
+    queueInsert,
     setSettingsOpen,
     isAILoading,
     setAILoading,
@@ -111,9 +111,9 @@ export const ChatPanel: React.FC = () => {
   };
 
   const handleInsertIntoDoc = (text: string) => {
-    if (!activeDoc || activeDoc.format === 'pdf' || activeDoc.format === 'docx') return;
-    const separator = activeDoc.content.trim() ? '\n\n' : '';
-    updateDocumentContent(activeDoc.id, `${activeDoc.content}${separator}${text}`);
+    if (!activeDoc) return;
+    if (activeDoc.format !== 'markdown' && activeDoc.format !== 'text' && activeDoc.format !== 'code') return;
+    queueInsert(activeDoc.id, text, 'AI chat');
   };
 
   const personas: Array<{ id: AIPersona; label: string; icon: React.ReactNode }> = [
@@ -228,10 +228,14 @@ export const ChatPanel: React.FC = () => {
                     <span>{copiedId === msg.id ? 'Copied' : 'Copy'}</span>
                   </button>
 
-                  {activeDoc && (
+                  {activeDoc &&
+                    (activeDoc.format === 'markdown' ||
+                      activeDoc.format === 'text' ||
+                      activeDoc.format === 'code') && (
                     <button
                       onClick={() => handleInsertIntoDoc(msg.content)}
                       className="flex items-center gap-1 text-[10px] text-sky-400 hover:text-sky-300 transition-colors ml-auto"
+                      title="Queue for review before inserting"
                     >
                       <Plus size={11} />
                       <span>Insert in Doc</span>

@@ -6,7 +6,7 @@ import { keyService } from '../../services/keyService';
 import { DeepResearchResult, DeepResearchQuery } from '../../types/ai';
 
 export const DeepResearchPanel: React.FC = () => {
-  const { activeProvider, aiConfigs, openDocument, updateDocumentContent, tabs, activeTabId, documents, setSettingsOpen } =
+  const { activeProvider, aiConfigs, openDocument, queueInsert, tabs, activeTabId, documents, setSettingsOpen } =
     useAppStore();
 
   const [topic, setTopic] = useState<string>('');
@@ -80,12 +80,9 @@ export const DeepResearchPanel: React.FC = () => {
   };
 
   const handleInsertIntoActive = () => {
-    if (!result || !activeDoc || activeDoc.format === 'pdf' || activeDoc.format === 'docx') return;
-    const separator = activeDoc.content.trim() ? '\n\n' : '';
-    updateDocumentContent(
-      activeDoc.id,
-      `${activeDoc.content}${separator}# Research: ${result.title}\n\n${result.markdownContent}`
-    );
+    if (!result || !activeDoc) return;
+    if (activeDoc.format !== 'markdown' && activeDoc.format !== 'text' && activeDoc.format !== 'code') return;
+    queueInsert(activeDoc.id, `# Research: ${result.title}\n\n${result.markdownContent}`, 'Deep research');
   };
 
   return (
@@ -208,10 +205,14 @@ export const DeepResearchPanel: React.FC = () => {
                 <FileText size={13} />
                 <span>Open as New Tab</span>
               </button>
-              {activeDoc && (
+              {activeDoc &&
+                (activeDoc.format === 'markdown' ||
+                  activeDoc.format === 'text' ||
+                  activeDoc.format === 'code') && (
                 <button
                   onClick={handleInsertIntoActive}
                   className="py-1.5 px-3 rounded bg-white/5 hover:bg-white/10 text-zinc-300 border border-white/10 text-xs font-medium flex items-center justify-center gap-1.5 transition-all"
+                  title="Queue for review before inserting"
                 >
                   <Plus size={13} />
                   <span>Insert Here</span>

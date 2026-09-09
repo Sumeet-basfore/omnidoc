@@ -32,7 +32,8 @@ export const StatusBar: React.FC = () => {
     activeProvider,
     aiConfigs,
     isAILoading,
-    setSettingsOpen
+    setSettingsOpen,
+    pendingInserts
   } = useAppStore();
 
   const [showSaved, setShowSaved] = useState(false);
@@ -47,6 +48,7 @@ export const StatusBar: React.FC = () => {
   const currentTab = tabs.find((t) => t.id === activeTabId);
   const activeDoc = currentTab ? documents[currentTab.documentId] : null;
   const config = aiConfigs[activeProvider];
+  const pendingCount = activeDoc ? (pendingInserts[activeDoc.id] || []).length : 0;
 
   return (
     <footer className="h-6 border-t border-[var(--border-subtle)] bg-[var(--bg-dark-surface)] px-3 flex items-center justify-between text-[11px] select-none shrink-0">
@@ -68,6 +70,12 @@ export const StatusBar: React.FC = () => {
             ) : null}
             <span className="text-zinc-600">·</span>
             <span className="font-mono">{docStat(activeDoc.name, activeDoc.format, activeDoc.content)}</span>
+            {pendingCount > 0 && (
+              <>
+                <span className="text-zinc-600">·</span>
+                <span className="text-amber-300">{pendingCount} to review</span>
+              </>
+            )}
           </>
         ) : (
           <span>No document</span>
