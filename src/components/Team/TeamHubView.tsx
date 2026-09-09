@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Kanban,
   MessageSquare,
@@ -19,12 +19,16 @@ import {
   Check,
   Copy,
   AlertCircle,
-  X
+  X,
+  Radio
 } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import { KanbanBoardView } from '../Kanban/KanbanBoardView';
 import { WorkspaceRulesSettings } from '../Settings/WorkspaceRulesSettings';
 import { TeamBriefingModal } from './TeamBriefingModal';
+import { TeamP2PRoomModal } from './TeamP2PRoomModal';
+import { p2pService } from '../../services/p2pService';
+import type { P2PConnectionState } from '../../types/p2p';
 import {
   createTeamManifest,
   saveTeamToDisk,
@@ -58,6 +62,14 @@ export const TeamHubView: React.FC = () => {
   const [newMemberRole, setNewMemberRole] = useState('');
   const [newMemberColor, setNewMemberColor] = useState('#6366f1');
   const [isAddingMember, setIsAddingMember] = useState(false);
+
+  // P2P Room state
+  const [isP2PModalOpen, setIsP2PModalOpen] = useState(false);
+  const [p2pState, setP2PState] = useState<P2PConnectionState>(p2pService.getState());
+
+  useEffect(() => {
+    return p2pService.onStateChange(setP2PState);
+  }, []);
 
   // Briefing state
   const [isBriefingModalOpen, setIsBriefingModalOpen] = useState(false);
@@ -234,6 +246,20 @@ export const TeamHubView: React.FC = () => {
 
         {/* Action Controls */}
         <div className="flex items-center gap-2">
+          {/* P2P Room Button */}
+          <button
+            onClick={() => setIsP2PModalOpen(true)}
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded border text-xs font-medium transition-colors cursor-pointer ${
+              p2pState === 'connected'
+                ? 'bg-emerald-950/40 hover:bg-emerald-900/50 border-emerald-500/40 text-emerald-300'
+                : 'bg-indigo-950/30 hover:bg-indigo-900/40 border-indigo-500/20 text-indigo-300'
+            }`}
+            title="P2P Direct Room & Voice Message Pairing"
+          >
+            <Radio size={13} className={p2pState === 'connected' ? 'text-emerald-400 animate-pulse' : 'text-indigo-400'} />
+            <span>{p2pState === 'connected' ? 'Live Room' : 'P2P Room'}</span>
+          </button>
+
           {/* Team Briefing Button */}
           <button
             onClick={() => setIsBriefingModalOpen(true)}
@@ -718,6 +744,12 @@ git push origin main`}
       <TeamBriefingModal
         isOpen={isBriefingModalOpen}
         onClose={() => setIsBriefingModalOpen(false)}
+      />
+
+      {/* P2P Direct Pairing & Voice Modal */}
+      <TeamP2PRoomModal
+        isOpen={isP2PModalOpen}
+        onClose={() => setIsP2PModalOpen(false)}
       />
     </div>
   );
