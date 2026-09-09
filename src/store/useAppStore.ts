@@ -65,6 +65,7 @@ interface AppState {
   isCommandPaletteOpen: boolean;
   isExportModalOpen: boolean;
   isShortcutsModalOpen: boolean;
+  isUserGuideOpen: boolean;
   theme: 'dark';
 
   // AI companion state
@@ -97,6 +98,7 @@ interface AppState {
   setCommandPaletteOpen: (open: boolean) => void;
   setExportModalOpen: (open: boolean) => void;
   setShortcutsModalOpen: (open: boolean) => void;
+  setUserGuideOpen: (open: boolean) => void;
   setActiveProvider: (provider: AIProviderId) => void;
   setActivePersona: (persona: AIPersona) => void;
   updateAIConfig: (provider: AIProviderId, config: Partial<AIProviderConfig>) => void;
@@ -240,6 +242,7 @@ export const useAppStore = create<AppState>()(
       isCommandPaletteOpen: false,
       isExportModalOpen: false,
       isShortcutsModalOpen: false,
+      isUserGuideOpen: false,
       theme: 'dark',
 
       activeProvider: 'gemini',
@@ -414,6 +417,7 @@ export const useAppStore = create<AppState>()(
       setExportModalOpen: (open) => set({ isExportModalOpen: open }),
 
       setShortcutsModalOpen: (open) => set({ isShortcutsModalOpen: open }),
+      setUserGuideOpen: (open) => set({ isUserGuideOpen: open }),
 
       setActiveProvider: (provider) => set({ activeProvider: provider }),
 

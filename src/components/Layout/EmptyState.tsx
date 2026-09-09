@@ -1,11 +1,11 @@
 import React, { useRef } from 'react';
-import { FolderOpen, Plus, FileText, Table, Braces } from 'lucide-react';
+import { FolderOpen, Plus, FileText, Table, Braces, BookOpen } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import { DocumentFormat, DocumentItem } from '../../types/document';
 import appLogo from '../../assets/app_logo.png';
 
 export const EmptyState: React.FC = () => {
-  const { openDocument, createDocument, addRecentFile, setShortcutsModalOpen } = useAppStore();
+  const { openDocument, createDocument, addRecentFile, setShortcutsModalOpen, setUserGuideOpen } = useAppStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const detectFormat = (filename: string): DocumentFormat => {
@@ -163,6 +163,14 @@ export const EmptyState: React.FC = () => {
         >
           <kbd className="px-1.5 py-0.5 rounded bg-white/5 border border-white/10 font-mono text-[10px]">?</kbd>
           <span>Keyboard Shortcuts</span>
+        </button>
+        <span>•</span>
+        <button
+          onClick={() => setUserGuideOpen(true)}
+          className="flex items-center gap-1.5 text-indigo-400 hover:text-indigo-300 transition-colors cursor-pointer"
+        >
+          <BookOpen size={12} />
+          <span>User Guide</span>
         </button>
         <span>•</span>
         <span className="flex items-center gap-1.5 hover:text-zinc-300 transition-colors">

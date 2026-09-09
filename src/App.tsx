@@ -10,6 +10,7 @@ import { PendingInserts } from './components/AI/PendingInserts';
 import { CommandPalette } from './components/CommandPalette/CommandPalette';
 import { ExportModal } from './components/Layout/ExportModal';
 import { KeyboardShortcutsModal } from './components/Layout/KeyboardShortcutsModal';
+import { UserGuideModal } from './components/Layout/UserGuideModal';
 import { StatusBar } from './components/Layout/StatusBar';
 import { CommentsPanel } from './components/Comments/CommentsPanel';
 import { TeamHubView } from './components/Team/TeamHubView';
@@ -35,7 +36,9 @@ export const App: React.FC = () => {
     toggleCommentsPanel,
     leftPanel,
     setLeftPanel,
-    setShortcutsModalOpen
+    setShortcutsModalOpen,
+    isUserGuideOpen,
+    setUserGuideOpen
   } = useAppStore();
 
   // Handle native drag and drop files from OS
@@ -236,6 +239,7 @@ export const App: React.FC = () => {
       <CommandPalette />
       <ExportModal />
       <KeyboardShortcutsModal />
+      <UserGuideModal isOpen={isUserGuideOpen} onClose={() => setUserGuideOpen(false)} />
     </div>
   );
 };

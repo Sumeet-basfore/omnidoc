@@ -9,7 +9,8 @@ import {
   MessageSquare,
   Kanban,
   FileText,
-  Users
+  Users,
+  HelpCircle
 } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import { downloadBlob } from '../../services/exportService';
@@ -30,6 +31,7 @@ export const TopBar: React.FC = () => {
     setLeftPanel,
     setCommandPaletteOpen,
     setExportModalOpen,
+    setUserGuideOpen,
     activeProvider,
     aiConfigs,
     documents,
@@ -243,6 +245,16 @@ export const TopBar: React.FC = () => {
           <span className="font-medium text-[11px] hidden sm:inline">
             {currentAIConfig.name.split(' ')[0]}
           </span>
+        </button>
+
+        {/* User Guide & API Setup Center */}
+        <button
+          onClick={() => setUserGuideOpen(true)}
+          className="flex items-center gap-1 px-2 py-1 rounded border border-white/10 bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white text-xs cursor-pointer transition-all"
+          title="Open User Guide & API Setup Center"
+        >
+          <HelpCircle size={13} className="text-indigo-400" />
+          <span className="font-medium text-[11px] hidden md:inline">Guide</span>
         </button>
 
         {/* Toggle Comments & Review Threads */}

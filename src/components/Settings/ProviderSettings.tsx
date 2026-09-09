@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, Key, ShieldCheck, ShieldAlert, Check, Loader2, Cpu, Globe, RefreshCw, BarChart3, Users } from 'lucide-react';
+import { ChevronLeft, Key, ShieldCheck, ShieldAlert, Check, Loader2, Cpu, Globe, RefreshCw, BarChart3, Users, BookOpen } from 'lucide-react';
 import { listModels } from '../../services/modelDiscovery';
 import { useAppStore } from '../../store/useAppStore';
 import { keyService, KeyProvider } from '../../services/keyService';
@@ -16,7 +16,8 @@ export const ProviderSettings: React.FC = () => {
     updateAIConfig,
     usageLog,
     dailyTokenAlert,
-    setDailyTokenAlert
+    setDailyTokenAlert,
+    setUserGuideOpen
   } = useAppStore();
 
   const [settingsTab, setSettingsTab] = useState<'keys' | 'rules'>('keys');
@@ -194,6 +195,20 @@ export const ProviderSettings: React.FC = () => {
               ? 'Keys encrypted via OS keychain.'
               : 'Keychain unavailable — keys stored in app data.'}
           </p>
+        </div>
+
+        {/* Setup guide banner */}
+        <div className="p-2.5 rounded border border-indigo-500/30 bg-indigo-950/30 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 text-indigo-200 min-w-0">
+            <BookOpen size={14} className="text-indigo-400 shrink-0" />
+            <span className="text-[11px] font-medium truncate">Need keys or free local AI?</span>
+          </div>
+          <button
+            onClick={() => setUserGuideOpen(true)}
+            className="px-2 py-0.5 rounded bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-[10px] cursor-pointer transition-colors shrink-0"
+          >
+            Setup Guide
+          </button>
         </div>
 
         {/* Provider switcher */}
