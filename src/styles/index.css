@@ -1,0 +1,150 @@
+@import './design-system.css';
+
+/* Global Reset & Layout */
+* {
+  box-sizing: border-box;
+}
+
+#root {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Markdown Preview & Document Typography Styling */
+.doc-prose {
+  color: var(--text-main);
+  line-height: 1.7;
+  font-size: var(--text-base);
+  user-select: text;
+}
+
+.doc-prose h1, .doc-prose h2, .doc-prose h3, .doc-prose h4 {
+  font-family: var(--font-display);
+  color: #fff;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.doc-prose h1 {
+  font-size: 2rem;
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 0.3em;
+}
+
+.doc-prose h2 {
+  font-size: 1.5rem;
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 0.25em;
+}
+
+.doc-prose h3 {
+  font-size: 1.25rem;
+}
+
+.doc-prose p {
+  margin: 0.8em 0;
+}
+
+.doc-prose a {
+  color: var(--accent-secondary);
+  text-decoration: none;
+  border-bottom: 1px dashed rgba(6, 182, 212, 0.4);
+  transition: all 0.15s ease;
+}
+
+.doc-prose a:hover {
+  color: #38bdf8;
+  border-bottom-color: #38bdf8;
+}
+
+.doc-prose blockquote {
+  margin: 1em 0;
+  padding: 0.5em 1em;
+  border-left: 3px solid var(--accent-primary);
+  background: rgba(99, 102, 241, 0.08);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  color: var(--text-muted);
+}
+
+.doc-prose code:not(pre code) {
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  color: #f472b6;
+}
+
+.doc-prose pre {
+  background: #111420 !important;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  overflow-x: auto;
+  margin: 1.2em 0;
+}
+
+.doc-prose pre code {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  background: transparent;
+  padding: 0;
+  color: inherit;
+}
+
+.doc-prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5em 0;
+  font-size: 0.95rem;
+}
+
+.doc-prose th, .doc-prose td {
+  border: 1px solid var(--border-subtle);
+  padding: 0.6rem 0.9rem;
+  text-align: left;
+}
+
+.doc-prose th {
+  background: rgba(255, 255, 255, 0.04);
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.doc-prose tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.015);
+}
+
+.doc-prose hr {
+  border: none;
+  border-top: 1px solid var(--border-subtle);
+  margin: 2em 0;
+}
+
+.doc-prose ul, .doc-prose ol {
+  padding-left: 1.5em;
+  margin: 0.8em 0;
+}
+
+.doc-prose li {
+  margin: 0.3em 0;
+}
+
+/* Tiptap editor styling */
+.tiptap {
+  outline: none;
+  min-height: 100%;
+}
+
+.tiptap p.is-editor-empty:first-child::before {
+  color: var(--text-dim);
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}

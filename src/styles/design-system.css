@@ -1,0 +1,141 @@
+:root {
+  /* Surface Colors */
+  --bg-dark-base: #0a0c12;
+  --bg-dark-surface: #121622;
+  --bg-dark-elevated: #1a2030;
+  --bg-glass: rgba(18, 22, 34, 0.75);
+  --bg-glass-hover: rgba(26, 32, 48, 0.85);
+
+  /* Border & Divider Tokens */
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-medium: rgba(255, 255, 255, 0.15);
+  --border-active: #6366f1;
+
+  /* Accent & Highlight Colors */
+  --accent-primary: #6366f1;       /* Indigo / Violet */
+  --accent-primary-hover: #4f46e5;
+  --accent-secondary: #06b6d4;     /* Electric Cyan */
+  --accent-sparkle: #ec4899;       /* AI Pink Magenta */
+  --accent-success: #10b981;       /* Emerald */
+  --accent-warning: #f59e0b;       /* Amber */
+  --accent-danger: #ef4444;        /* Crimson */
+
+  /* Text & Content Tokens */
+  --text-main: #f3f4f6;
+  --text-muted: #9ca3af;
+  --text-dim: #6b7280;
+  --text-accent: #818cf8;
+
+  /* Shadows & Glassmorphism Blur */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
+  --glass-backdrop-blur: blur(16px);
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-pill: 9999px;
+
+  /* Typography */
+  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  --font-mono: 'Fira Code', 'JetBrains Mono', Consolas, Monaco, monospace;
+  --font-display: 'Outfit', 'Inter', sans-serif;
+
+  /* Type Scale */
+  --text-xs: 0.75rem;    /* 12px */
+  --text-sm: 0.875rem;   /* 14px */
+  --text-base: 1rem;     /* 16px */
+  --text-lg: 1.125rem;   /* 18px */
+  --text-xl: 1.25rem;    /* 20px */
+  --text-2xl: 1.5rem;    /* 24px */
+  --text-3xl: 1.875rem;  /* 30px */
+}
+
+/* Base Body Styles */
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-dark-base);
+  color: var(--text-main);
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Glassmorphism utility */
+.glass-panel {
+  background: var(--bg-glass);
+  backdrop-filter: var(--glass-backdrop-blur);
+  -webkit-backdrop-filter: var(--glass-backdrop-blur);
+  border: 1px solid var(--border-subtle);
+}
+
+.glass-panel-hover:hover {
+  background: var(--bg-glass-hover);
+  border-color: var(--border-medium);
+}
+
+.glow-accent {
+  box-shadow: 0 0 15px rgba(99, 102, 241, 0.35);
+}
+
+.glow-sparkle {
+  box-shadow: 0 0 15px rgba(236, 72, 153, 0.35);
+}
+
+.glow-cyan {
+  box-shadow: 0 0 15px rgba(6, 182, 212, 0.35);
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-pill);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Subtle transitions */
+.transition-smooth {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Keyframes */
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-modal {
+  animation: modalFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 8px rgba(99, 102, 241, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.7);
+  }
+}
+
+.animate-ai-pulse {
+  animation: pulseGlow 2s infinite ease-in-out;
+}

@@ -1,0 +1,316 @@
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import { DocumentFormat, DocumentItem, WorkspaceTab } from '../types/document';
+import { AIProviderId, AIPersona, AIMessage, AIProviderConfig } from '../types/ai';
+
+interface AppState {
+  // Document workspace
+  documents: Record<string, DocumentItem>;
+  tabs: WorkspaceTab[];
+  activeTabId: string | null;
+
+  // UI state
+  isSidebarOpen: boolean;
+  isAIDrawerOpen: boolean;
+  isSettingsOpen: boolean;
+  isCommandPaletteOpen: boolean;
+  theme: 'dark';
+
+  // AI companion state
+  activeProvider: AIProviderId;
+  activePersona: AIPersona;
+  chatMessages: AIMessage[];
+  isAILoading: boolean;
+  aiConfigs: Record<AIProviderId, AIProviderConfig>;
+
+  // Selection state for inline AI toolbar
+  selectedText: string;
+  selectionCoords: { top: number; left: number } | null;
+
+  // Recent files
+  recentFiles: string[];
+
+  // Actions
+  openDocument: (doc: DocumentItem) => void;
+  createDocument: (format: DocumentFormat, name?: string) => void;
+  closeTab: (tabId: string) => void;
+  setActiveTab: (tabId: string) => void;
+  updateDocumentContent: (docId: string, content: string) => void;
+  renameDocument: (docId: string, name: string) => void;
+  markDirty: (docId: string, dirty: boolean) => void;
+  setTabActiveView: (tabId: string, view: 'editor' | 'preview' | 'split' | 'grid') => void;
+  toggleSidebar: (force?: boolean) => void;
+  toggleAIDrawer: (force?: boolean) => void;
+  setSettingsOpen: (open: boolean) => void;
+  setCommandPaletteOpen: (open: boolean) => void;
+  setActiveProvider: (provider: AIProviderId) => void;
+  setActivePersona: (persona: AIPersona) => void;
+  updateAIConfig: (provider: AIProviderId, config: Partial<AIProviderConfig>) => void;
+  addChatMessage: (msg: Omit<AIMessage, 'id' | 'timestamp'>) => void;
+  clearChatMessages: () => void;
+  setAILoading: (loading: boolean) => void;
+  setSelectedText: (text: string, coords: { top: number; left: number } | null) => void;
+  addRecentFile: (filePath: string) => void;
+}
+
+const DEFAULT_AI_CONFIGS: Record<AIProviderId, AIProviderConfig> = {
+  gemini: {
+    id: 'gemini',
+    name: 'Google Gemini',
+    model: 'gemini-1.5-flash',
+    temperature: 0.7
+  },
+  openai: {
+    id: 'openai',
+    name: 'OpenAI',
+    model: 'gpt-4o-mini',
+    temperature: 0.7
+  },
+  anthropic: {
+    id: 'anthropic',
+    name: 'Anthropic Claude',
+    model: 'claude-3-5-sonnet-20241022',
+    temperature: 0.7
+  },
+  openrouter: {
+    id: 'openrouter',
+    name: 'OpenRouter',
+    model: 'anthropic/claude-3.5-sonnet',
+    temperature: 0.7
+  },
+  custom: {
+    id: 'custom',
+    name: 'Ollama / Local',
+    model: 'llama3',
+    baseUrl: 'http://localhost:11434/v1',
+    temperature: 0.7
+  }
+};
+
+export const useAppStore = create<AppState>()(
+  persist(
+    (set, get) => ({
+      documents: {},
+      tabs: [],
+      activeTabId: null,
+
+      isSidebarOpen: true,
+      isAIDrawerOpen: false,
+      isSettingsOpen: false,
+      isCommandPaletteOpen: false,
+      theme: 'dark',
+
+      activeProvider: 'gemini',
+      activePersona: 'friend',
+      chatMessages: [
+        {
+          id: 'welcome-msg',
+          role: 'assistant',
+          content: "Hello! I'm your AI Friend & Research Partner in OmniDoc Studio. How can I assist you with your document today? You can ask me to draft sections, summarize content, conduct deep research, or proofread your writing.",
+          timestamp: Date.now()
+        }
+      ],
+      isAILoading: false,
+      aiConfigs: DEFAULT_AI_CONFIGS,
+
+      selectedText: '',
+      selectionCoords: null,
+      recentFiles: [],
+
+      openDocument: (doc) =>
+        set((state) => {
+          // Check if already open in tabs
+          const existingTab = state.tabs.find((t) => state.documents[t.documentId]?.filePath && state.documents[t.documentId]?.filePath === doc.filePath);
+          if (existingTab) {
+            return {
+              activeTabId: existingTab.id,
+              documents: { ...state.documents, [doc.id]: doc }
+            };
+          }
+
+          const tab: WorkspaceTab = {
+            id: `tab-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+            documentId: doc.id,
+            activeView: doc.format === 'markdown' ? 'split' : doc.format === 'csv' || doc.format === 'json' ? 'grid' : 'preview'
+          };
+          return {
+            documents: { ...state.documents, [doc.id]: doc },
+            tabs: [...state.tabs, tab],
+            activeTabId: tab.id
+          };
+        }),
+
+      createDocument: (format, name) => {
+        const id = `doc-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+        const ext = format === 'markdown' ? 'md' : format === 'csv' ? 'csv' : format === 'json' ? 'json' : 'txt';
+        const docName = name || `Untitled.${ext}`;
+
+        let initialContent = '';
+        if (format === 'markdown') {
+          initialContent = `# ${docName.replace('.md', '')}\n\nStart writing your document here...\n`;
+        } else if (format === 'csv') {
+          initialContent = 'ID,Name,Role,Status\n1,Alice,Engineer,Active\n2,Bob,Designer,Review';
+        } else if (format === 'json') {
+          initialContent = '[\n  {\n    "id": 1,\n    "name": "Project Alpha",\n    "status": "in_progress"\n  }\n]';
+        }
+
+        const newDoc: DocumentItem = {
+          id,
+          name: docName,
+          format,
+          content: initialContent,
+          isDirty: false
+        };
+
+        const tab: WorkspaceTab = {
+          id: `tab-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+          documentId: id,
+          activeView: format === 'markdown' ? 'split' : format === 'csv' || format === 'json' ? 'grid' : 'editor'
+        };
+
+        set((state) => ({
+          documents: { ...state.documents, [id]: newDoc },
+          tabs: [...state.tabs, tab],
+          activeTabId: tab.id
+        }));
+      },
+
+      closeTab: (tabId) =>
+        set((state) => {
+          const newTabs = state.tabs.filter((t) => t.id !== tabId);
+          let newActiveId = state.activeTabId;
+          if (state.activeTabId === tabId) {
+            const index = state.tabs.findIndex((t) => t.id === tabId);
+            if (newTabs.length === 0) {
+              newActiveId = null;
+            } else if (index >= newTabs.length) {
+              newActiveId = newTabs[newTabs.length - 1].id;
+            } else {
+              newActiveId = newTabs[index].id;
+            }
+          }
+          return {
+            tabs: newTabs,
+            activeTabId: newActiveId
+          };
+        }),
+
+      setActiveTab: (tabId) => set({ activeTabId: tabId }),
+
+      updateDocumentContent: (docId, content) =>
+        set((state) => {
+          const doc = state.documents[docId];
+          if (!doc) return state;
+          return {
+            documents: {
+              ...state.documents,
+              [docId]: {
+                ...doc,
+                content,
+                isDirty: true,
+                metadata: {
+                  ...doc.metadata,
+                  wordCount: content.trim().split(/\s+/).filter(Boolean).length
+                }
+              }
+            }
+          };
+        }),
+
+      renameDocument: (docId, name) =>
+        set((state) => {
+          const doc = state.documents[docId];
+          if (!doc) return state;
+          return {
+            documents: {
+              ...state.documents,
+              [docId]: { ...doc, name, isDirty: true }
+            }
+          };
+        }),
+
+      markDirty: (docId, dirty) =>
+        set((state) => {
+          const doc = state.documents[docId];
+          if (!doc) return state;
+          return {
+            documents: {
+              ...state.documents,
+              [docId]: { ...doc, isDirty: dirty }
+            }
+          };
+        }),
+
+      setTabActiveView: (tabId, view) =>
+        set((state) => ({
+          tabs: state.tabs.map((t) => (t.id === tabId ? { ...t, activeView: view } : t))
+        })),
+
+      toggleSidebar: (force) =>
+        set((state) => ({
+          isSidebarOpen: force !== undefined ? force : !state.isSidebarOpen
+        })),
+
+      toggleAIDrawer: (force) =>
+        set((state) => ({
+          isAIDrawerOpen: force !== undefined ? force : !state.isAIDrawerOpen
+        })),
+
+      setSettingsOpen: (open) => set({ isSettingsOpen: open }),
+
+      setCommandPaletteOpen: (open) => set({ isCommandPaletteOpen: open }),
+
+      setActiveProvider: (provider) => set({ activeProvider: provider }),
+
+      setActivePersona: (persona) => set({ activePersona: persona }),
+
+      updateAIConfig: (provider, config) =>
+        set((state) => ({
+          aiConfigs: {
+            ...state.aiConfigs,
+            [provider]: {
+              ...state.aiConfigs[provider],
+              ...config
+            }
+          }
+        })),
+
+      addChatMessage: (msg) =>
+        set((state) => ({
+          chatMessages: [
+            ...state.chatMessages,
+            {
+              ...msg,
+              id: `msg-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+              timestamp: Date.now()
+            }
+          ]
+        })),
+
+      clearChatMessages: () => set({ chatMessages: [] }),
+
+      setAILoading: (loading) => set({ isAILoading: loading }),
+
+      setSelectedText: (text, coords) =>
+        set({
+          selectedText: text,
+          selectionCoords: coords
+        }),
+
+      addRecentFile: (filePath) =>
+        set((state) => {
+          const list = [filePath, ...state.recentFiles.filter((p) => p !== filePath)].slice(0, 20);
+          return { recentFiles: list };
+        })
+    }),
+    {
+      name: 'omnidoc-storage',
+      partialize: (s) => ({
+        recentFiles: s.recentFiles,
+        activeProvider: s.activeProvider,
+        activePersona: s.activePersona,
+        aiConfigs: s.aiConfigs
+      })
+    }
+  )
+);
