@@ -89,6 +89,12 @@ Copy / Insert-in-Doc (text formats only). Research panel: topic +
 depth + citations → Tavily/Exa synthesis → open-as-doc or insert.
 Keys live in OS keychain; empty-key errors surface inline with a
 settings shortcut.
+- **Deep research 2.0**: quick = single search + brief; standard =
+planner → parallel sub-searches (×3) → per-section synthesis →
+deterministic stitch; deep adds a gap-analysis follow-up round.
+Reranked/deduped sources (2-per-domain cap), regex citation
+verification with de-link counter, staged progress with cancel
+(keeps partial sources), session report history, versioned open-as-doc.
 
 ### 2.7 Inline Selection Toolbar
 Transient pill (the ostatni legitimate pill): Polish, Simplify, Expand,

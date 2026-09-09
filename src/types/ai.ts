@@ -45,4 +45,6 @@ export interface DeepResearchResult {
   title: string;
   markdownContent: string;
   sources: SearchResult[];
+  unverifiedRemoved?: number;
+  modelOnly?: boolean;
 }
