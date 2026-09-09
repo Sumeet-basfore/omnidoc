@@ -44,5 +44,5 @@ linux:
 
 publish:
   provider: github
-  owner: omnidoc
-  repo: omnidoc-studio
+  owner: Sumeet-basfore
+  repo: omnidoc
