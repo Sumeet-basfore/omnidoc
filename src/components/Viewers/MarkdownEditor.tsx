@@ -103,6 +103,52 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ documentId, cont
     }, 0);
   };
 
+  const isSyncingScroll = useRef(false);
+
+  const syncScroll = (source: 'editor' | 'preview') => {
+    if (activeView !== 'split' || isSyncingScroll.current) return;
+    isSyncingScroll.current = true;
+
+    if (source === 'editor' && textareaRef.current && previewRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = textareaRef.current;
+      const maxScroll = scrollHeight - clientHeight;
+      const pct = maxScroll > 0 ? scrollTop / maxScroll : 0;
+      const { scrollHeight: pH, clientHeight: pCH } = previewRef.current;
+      previewRef.current.scrollTop = pct * (pH - pCH);
+    } else if (source === 'preview' && previewRef.current && textareaRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = previewRef.current;
+      const maxScroll = scrollHeight - clientHeight;
+      const pct = maxScroll > 0 ? scrollTop / maxScroll : 0;
+      const { scrollHeight: eH, clientHeight: eCH } = textareaRef.current;
+      textareaRef.current.scrollTop = pct * (eH - eCH);
+    }
+
+    requestAnimationFrame(() => {
+      isSyncingScroll.current = false;
+    });
+  };
+
+  const handleInsertTOC = () => {
+    const headings = content.match(/^#{1,3} .+/gm) || [];
+    if (headings.length === 0) return;
+
+    const toc = headings
+      .map((h) => {
+        const level = h.match(/^(#+)/)?.[1].length ?? 1;
+        const title = h.replace(/^#+\s/, '');
+        const anchor = title
+          .toLowerCase()
+          .replace(/[^\w\s-]/g, '')
+          .replace(/\s+/g, '-');
+        const indent = '  '.repeat(level - 1);
+        return `${indent}- [${title}](#${anchor})`;
+      })
+      .join('\n');
+
+    const tocBlock = `## Table of Contents\n\n${toc}\n\n`;
+    updateDocumentContent(documentId, tocBlock + content);
+  };
+
   return (
     <div className="flex flex-col h-full w-full bg-[#0d1017] overflow-hidden">
       {/* Editor Sub-Header Toolbar */}
@@ -168,6 +214,13 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ documentId, cont
             <Table size={14} />
           </button>
           <button
+            onClick={handleInsertTOC}
+            className="px-2 py-1 rounded hover:bg-white/10 text-[var(--text-muted)] hover:text-white font-mono text-[11px] transition-colors"
+            title="Insert Table of Contents"
+          >
+            TOC
+          </button>
+          <button
             onClick={() => handleInsert('$$\n', '\n$$', 'E = mc^2')}
             className="px-2 py-1 rounded hover:bg-white/10 text-[var(--text-muted)] hover:text-white font-mono text-[11px] transition-colors"
             title="Insert KaTeX Math"
@@ -226,6 +279,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ documentId, cont
               ref={textareaRef}
               value={content}
               onChange={(e) => updateDocumentContent(documentId, e.target.value)}
+              onScroll={() => syncScroll('editor')}
               onSelect={handleSelection}
               onMouseUp={handleSelection}
               onKeyUp={handleSelection}
@@ -240,6 +294,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ documentId, cont
         {(activeView === 'preview' || activeView === 'split') && (
           <div
             ref={previewRef}
+            onScroll={() => syncScroll('preview')}
             onMouseUp={handleSelection}
             onKeyUp={handleSelection}
             className={`h-full overflow-y-auto p-8 bg-[var(--bg-dark-surface)]/50 ${activeView === 'split' ? 'w-1/2' : 'w-full'}`}

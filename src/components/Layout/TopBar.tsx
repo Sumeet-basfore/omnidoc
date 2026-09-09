@@ -10,7 +10,7 @@ import {
   Layers
 } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
-import { markdownToDocxBlob, downloadBlob } from '../../services/exportService';
+import { downloadBlob } from '../../services/exportService';
 
 export const TopBar: React.FC = () => {
   const {
@@ -20,6 +20,7 @@ export const TopBar: React.FC = () => {
     toggleAIDrawer,
     setSettingsOpen,
     setCommandPaletteOpen,
+    setExportModalOpen,
     activeProvider,
     aiConfigs,
     documents,
@@ -56,18 +57,9 @@ export const TopBar: React.FC = () => {
     }
   };
 
-  const handleExport = async () => {
+  const handleExport = () => {
     if (!activeDoc) return;
-
-    if (activeDoc.format === 'markdown') {
-      // Can export to DOCX or PDF
-      const docxBlob = await markdownToDocxBlob(activeDoc.content);
-      downloadBlob(docxBlob, `${activeDoc.name.replace(/\.md$/i, '')}.docx`);
-    } else if (window.electronAPI?.printToPDF) {
-      await window.electronAPI.printToPDF();
-    } else {
-      window.print();
-    }
+    setExportModalOpen(true);
   };
 
   return (

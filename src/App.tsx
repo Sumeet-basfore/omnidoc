@@ -8,6 +8,7 @@ import { DocumentAdapterRouter } from './adapters/documentAdapterRouter';
 import { InlineSelectionToolbar } from './components/AI/InlineSelectionToolbar';
 import { ProviderSettings } from './components/Settings/ProviderSettings';
 import { CommandPalette } from './components/CommandPalette/CommandPalette';
+import { ExportModal } from './components/Layout/ExportModal';
 import { DocumentFormat, DocumentItem } from './types/document';
 
 export const App: React.FC = () => {
@@ -163,6 +164,7 @@ export const App: React.FC = () => {
       {/* Global Modals */}
       <ProviderSettings />
       <CommandPalette />
+      <ExportModal />
     </div>
   );
 };

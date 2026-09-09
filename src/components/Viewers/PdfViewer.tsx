@@ -27,7 +27,9 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({ documentId, content }) => 
   const [showDisclaimer, setShowDisclaimer] = useState<boolean>(false);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const textLayerRef = useRef<HTMLDivElement>(null);
   const renderTaskRef = useRef<any>(null);
+  const textLayerTaskRef = useRef<any>(null);
 
   // Load PDF document from base64 content
   useEffect(() => {
@@ -112,6 +114,33 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({ documentId, content }) => 
         const renderTask = page.render(renderContext as any);
         renderTaskRef.current = renderTask;
         await renderTask.promise;
+
+        if (textLayerRef.current && !isCancelled) {
+          textLayerRef.current.innerHTML = '';
+          textLayerRef.current.style.width = `${viewport.width}px`;
+          textLayerRef.current.style.height = `${viewport.height}px`;
+
+          const textContent = await page.getTextContent();
+          if (isCancelled) return;
+
+          if (typeof (pdfjsLib as any).renderTextLayer === 'function') {
+            const textTask = (pdfjsLib as any).renderTextLayer({
+              textContentSource: textContent,
+              container: textLayerRef.current,
+              viewport: viewport
+            });
+            textLayerTaskRef.current = textTask;
+            if (textTask.promise) await textTask.promise;
+          } else if (typeof (pdfjsLib as any).TextLayer === 'function') {
+            const textLayer = new (pdfjsLib as any).TextLayer({
+              textContentSource: textContent,
+              container: textLayerRef.current,
+              viewport: viewport
+            });
+            textLayerTaskRef.current = textLayer;
+            await textLayer.render();
+          }
+        }
       } catch (err: any) {
         if (err?.name !== 'RenderingCancelledException') {
           console.error('Page render error:', err);
@@ -125,6 +154,9 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({ documentId, content }) => 
       isCancelled = true;
       if (renderTaskRef.current) {
         renderTaskRef.current.cancel();
+      }
+      if (textLayerTaskRef.current?.cancel) {
+        textLayerTaskRef.current.cancel();
       }
     };
   }, [pdfDoc, currentPage, zoom]);
@@ -277,6 +309,7 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({ documentId, content }) => 
 
         <div className="relative shadow-2xl rounded border border-white/10 overflow-hidden">
           <canvas ref={canvasRef} className="block" />
+          <div ref={textLayerRef} className="pdf-text-layer" />
         </div>
       </div>
 

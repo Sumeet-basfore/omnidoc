@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import hljs from 'highlight.js';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { codeToHtml } from 'shiki';
 import { Copy, Check, WrapText, Sparkles, Code2, Search } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 
@@ -14,6 +14,8 @@ export const CodeViewer: React.FC<CodeViewerProps> = ({ documentId, name, conten
   const [copied, setCopied] = useState<boolean>(false);
   const [wordWrap, setWordWrap] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [highlightedHtml, setHighlightedHtml] = useState<string>('');
+  const codeContainerRef = useRef<HTMLDivElement>(null);
 
   // Detect language from file extension
   const detectedLang = useMemo(() => {
@@ -31,7 +33,7 @@ export const CodeViewer: React.FC<CodeViewerProps> = ({ documentId, name, conten
       c: 'c',
       cpp: 'cpp',
       cs: 'csharp',
-      html: 'xml',
+      html: 'html',
       xml: 'xml',
       css: 'css',
       scss: 'scss',
@@ -45,6 +47,44 @@ export const CodeViewer: React.FC<CodeViewerProps> = ({ documentId, name, conten
   }, [name]);
 
   const lines = useMemo(() => content.split('\n'), [content]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const highlight = async () => {
+      try {
+        const html = await codeToHtml(content, {
+          lang: detectedLang === 'plaintext' ? 'text' : detectedLang,
+          theme: 'one-dark-pro'
+        });
+        if (!cancelled) setHighlightedHtml(html);
+      } catch {
+        // If lang unsupported, fall back to plain text render
+        if (!cancelled) setHighlightedHtml('');
+      }
+    };
+    highlight();
+    return () => {
+      cancelled = true;
+    };
+  }, [content, detectedLang]);
+
+  // Highlight matching lines when searching in Shiki output
+  useEffect(() => {
+    if (!codeContainerRef.current) return;
+    const wrapper = codeContainerRef.current.querySelector('.shiki-wrapper');
+    if (!wrapper) return;
+
+    const codeLines = wrapper.querySelectorAll('.line');
+    codeLines.forEach((lineEl) => {
+      const text = lineEl.textContent || '';
+      if (searchQuery && text.toLowerCase().includes(searchQuery.toLowerCase())) {
+        (lineEl as HTMLElement).style.backgroundColor = 'rgba(234, 179, 8, 0.25)';
+        (lineEl as HTMLElement).style.borderRadius = '2px';
+      } else {
+        (lineEl as HTMLElement).style.backgroundColor = '';
+      }
+    });
+  }, [searchQuery, highlightedHtml]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(content);
@@ -148,6 +188,7 @@ export const CodeViewer: React.FC<CodeViewerProps> = ({ documentId, name, conten
 
       {/* Code Viewer Body */}
       <div
+        ref={codeContainerRef}
         onMouseUp={handleSelection}
         onKeyUp={handleSelection}
         className="flex-1 overflow-auto bg-[#0a0c12] p-4 font-mono text-xs leading-relaxed select-text"
@@ -162,20 +203,27 @@ export const CodeViewer: React.FC<CodeViewerProps> = ({ documentId, name, conten
             ))}
           </div>
 
-          {/* Code Lines */}
-          <div className={`pl-4 flex-1 ${wordWrap ? 'whitespace-pre-wrap break-all' : 'whitespace-pre'}`}>
-            {lines.map((line, i) => {
-              const isMatch = searchQuery && line.toLowerCase().includes(searchQuery.toLowerCase());
-              return (
-                <div
-                  key={i}
-                  className={`h-5 font-mono ${isMatch ? 'bg-yellow-500/20 text-yellow-200' : 'text-zinc-300'}`}
-                >
-                  {line || ' '}
-                </div>
-              );
-            })}
-          </div>
+          {/* Code Body (Shiki Syntax Highlighted or Fallback) */}
+          {highlightedHtml ? (
+            <div
+              className={`shiki-wrapper pl-4 flex-1 ${wordWrap ? 'whitespace-pre-wrap break-all' : 'whitespace-pre'}`}
+              dangerouslySetInnerHTML={{ __html: highlightedHtml }}
+            />
+          ) : (
+            <div className={`pl-4 flex-1 ${wordWrap ? 'whitespace-pre-wrap break-all' : 'whitespace-pre'}`}>
+              {lines.map((line, i) => {
+                const isMatch = searchQuery && line.toLowerCase().includes(searchQuery.toLowerCase());
+                return (
+                  <div
+                    key={i}
+                    className={`h-5 font-mono ${isMatch ? 'bg-yellow-500/20 text-yellow-200' : 'text-zinc-300'}`}
+                  >
+                    {line || ' '}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
     </div>

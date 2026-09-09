@@ -25,7 +25,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
-import { markdownToDocxBlob, downloadBlob } from '../../services/exportService';
+import { tiptapToDocxBlob, downloadBlob } from '../../services/exportService';
 
 interface DocxEditorProps {
   documentId: string;
@@ -107,8 +107,7 @@ export const DocxEditor: React.FC<DocxEditorProps> = ({ documentId, name, conten
 
   const handleExportDocx = async () => {
     if (!editor) return;
-    const text = editor.getText();
-    const blob = await markdownToDocxBlob(text);
+    const blob = await tiptapToDocxBlob(editor.getJSON());
     downloadBlob(blob, name.endsWith('.docx') ? name : `${name}.docx`);
   };
 

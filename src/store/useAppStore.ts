@@ -14,6 +14,7 @@ interface AppState {
   isAIDrawerOpen: boolean;
   isSettingsOpen: boolean;
   isCommandPaletteOpen: boolean;
+  isExportModalOpen: boolean;
   theme: 'dark';
 
   // AI companion state
@@ -43,6 +44,7 @@ interface AppState {
   toggleAIDrawer: (force?: boolean) => void;
   setSettingsOpen: (open: boolean) => void;
   setCommandPaletteOpen: (open: boolean) => void;
+  setExportModalOpen: (open: boolean) => void;
   setActiveProvider: (provider: AIProviderId) => void;
   setActivePersona: (persona: AIPersona) => void;
   updateAIConfig: (provider: AIProviderId, config: Partial<AIProviderConfig>) => void;
@@ -98,6 +100,7 @@ export const useAppStore = create<AppState>()(
       isAIDrawerOpen: false,
       isSettingsOpen: false,
       isCommandPaletteOpen: false,
+      isExportModalOpen: false,
       theme: 'dark',
 
       activeProvider: 'gemini',
@@ -259,6 +262,8 @@ export const useAppStore = create<AppState>()(
       setSettingsOpen: (open) => set({ isSettingsOpen: open }),
 
       setCommandPaletteOpen: (open) => set({ isCommandPaletteOpen: open }),
+
+      setExportModalOpen: (open) => set({ isExportModalOpen: open }),
 
       setActiveProvider: (provider) => set({ activeProvider: provider }),
 

@@ -149,3 +149,50 @@
   height: 0;
   pointer-events: none;
 }
+
+/* Shiki code block reset */
+.shiki-wrapper .shiki {
+  background: transparent !important;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1.25rem;
+}
+
+.shiki-wrapper pre {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.shiki-wrapper code {
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+/* pdfjs text selection layer */
+.pdf-text-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+  opacity: 0.25;
+  line-height: 1;
+  user-select: text;
+}
+
+.pdf-text-layer span {
+  color: transparent;
+  position: absolute;
+  white-space: pre;
+  cursor: text;
+  transform-origin: 0% 0%;
+}
+
+.pdf-text-layer ::selection {
+  background: rgba(99, 102, 241, 0.4);
+  color: transparent;
+}
+
