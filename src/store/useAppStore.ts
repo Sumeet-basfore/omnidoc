@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware';
 import { DocumentFormat, DocumentItem, WorkspaceTab } from '../types/document';
 import { AIProviderId, AIPersona, AIMessage, AIProviderConfig } from '../types/ai';
 import { DocumentComment, CommentReply } from '../types/comment';
+import { KanbanBoard, KanbanCard, KanbanColumn } from '../types/kanban';
 
 export interface PendingInsert {
   id: string;
@@ -26,6 +27,8 @@ interface AppState {
   activeTabId: string | null;
 
   // UI state
+  mainView: 'editor' | 'kanban';
+  setMainView: (view: 'editor' | 'kanban') => void;
   isSidebarOpen: boolean;
   leftPanel: 'files' | 'settings';
   setLeftPanel: (view: 'files' | 'settings') => void;
@@ -107,6 +110,15 @@ interface AppState {
   resolveComment: (docId: string, commentId: string, resolved?: boolean) => void;
   deleteComment: (docId: string, commentId: string) => void;
   deleteReply: (docId: string, commentId: string, replyId: string) => void;
+
+  // Team Planning & Kanban
+  kanbanBoard: KanbanBoard;
+  addKanbanCard: (columnId: string, card: Omit<KanbanCard, 'id' | 'createdAt' | 'updatedAt'>) => string;
+  updateKanbanCard: (cardId: string, updates: Partial<KanbanCard>) => void;
+  moveKanbanCard: (cardId: string, sourceColId: string, targetColId: string, targetIndex?: number) => void;
+  deleteKanbanCard: (cardId: string) => void;
+  addKanbanColumn: (title: string) => void;
+  deleteKanbanColumn: (columnId: string) => void;
 }
 
 const DEFAULT_AI_CONFIGS: Record<AIProviderId, AIProviderConfig> = {
@@ -143,12 +155,59 @@ const DEFAULT_AI_CONFIGS: Record<AIProviderId, AIProviderConfig> = {
   }
 };
 
+const DEFAULT_KANBAN_BOARD: KanbanBoard = {
+  id: 'board-default',
+  title: 'Workspace Planning Board',
+  columns: [
+    { id: 'col-backlog', title: 'Backlog', cardIds: ['card-1'] },
+    { id: 'col-in-progress', title: 'In Progress', cardIds: ['card-2'] },
+    { id: 'col-review', title: 'Review & QA', cardIds: ['card-3'] },
+    { id: 'col-done', title: 'Done', cardIds: [] }
+  ],
+  cards: {
+    'card-1': {
+      id: 'card-1',
+      title: 'Architect team review & comment workflow',
+      description: 'Define threaded annotations and sidecar metadata for document review.',
+      priority: 'high',
+      assignee: 'Lead',
+      tags: ['Architecture', 'Review'],
+      createdAt: Date.now() - 3600000,
+      updatedAt: Date.now() - 3600000
+    },
+    'card-2': {
+      id: 'card-2',
+      title: 'Implement Markdown-backed Kanban planner',
+      description: 'Add drag-and-drop planning board linked to active workspace documents.',
+      priority: 'urgent',
+      assignee: 'Dev',
+      tags: ['Feature', 'UI'],
+      createdAt: Date.now() - 7200000,
+      updatedAt: Date.now() - 7200000
+    },
+    'card-3': {
+      id: 'card-3',
+      title: 'Review persona prompt system specs',
+      description: 'Verify 4 persona prompts against academic writing benchmarks.',
+      priority: 'medium',
+      assignee: 'Research',
+      tags: ['Docs', 'AI'],
+      createdAt: Date.now() - 10800000,
+      updatedAt: Date.now() - 10800000
+    }
+  }
+};
+
 export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
       documents: {},
       tabs: [],
       activeTabId: null,
+
+      mainView: 'editor',
+      setMainView: (view) => set({ mainView: view }),
+      kanbanBoard: DEFAULT_KANBAN_BOARD,
 
       isSidebarOpen: true,
       leftPanel: 'files',
@@ -569,6 +628,153 @@ export const useAppStore = create<AppState>()(
               [docId]: updated
             }
           };
+        }),
+
+      addKanbanCard: (columnId, cardData) => {
+        const id = `card-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+        const now = Date.now();
+        const newCard: KanbanCard = {
+          ...cardData,
+          id,
+          createdAt: now,
+          updatedAt: now
+        };
+        set((state) => {
+          const board = state.kanbanBoard;
+          const columns = board.columns.map((col) => {
+            if (col.id !== columnId) return col;
+            return {
+              ...col,
+              cardIds: [id, ...col.cardIds]
+            };
+          });
+          return {
+            kanbanBoard: {
+              ...board,
+              columns,
+              cards: {
+                ...board.cards,
+                [id]: newCard
+              }
+            }
+          };
+        });
+        return id;
+      },
+
+      updateKanbanCard: (cardId, updates) =>
+        set((state) => {
+          const board = state.kanbanBoard;
+          const existing = board.cards[cardId];
+          if (!existing) return state;
+          return {
+            kanbanBoard: {
+              ...board,
+              cards: {
+                ...board.cards,
+                [cardId]: {
+                  ...existing,
+                  ...updates,
+                  updatedAt: Date.now()
+                }
+              }
+            }
+          };
+        }),
+
+      moveKanbanCard: (cardId, sourceColId, targetColId, targetIndex) =>
+        set((state) => {
+          const board = state.kanbanBoard;
+          const sourceCol = board.columns.find((c) => c.id === sourceColId);
+          const targetCol = board.columns.find((c) => c.id === targetColId);
+          if (!sourceCol || !targetCol) return state;
+
+          const newSourceCardIds = sourceCol.cardIds.filter((id) => id !== cardId);
+          const newTargetCardIds =
+            sourceColId === targetColId
+              ? [...newSourceCardIds]
+              : targetCol.cardIds.filter((id) => id !== cardId);
+
+          const insertIdx =
+            targetIndex !== undefined
+              ? Math.max(0, Math.min(targetIndex, newTargetCardIds.length))
+              : newTargetCardIds.length;
+
+          newTargetCardIds.splice(insertIdx, 0, cardId);
+
+          const updatedColumns = board.columns.map((col) => {
+            if (col.id === sourceColId && sourceColId === targetColId) {
+              return { ...col, cardIds: newTargetCardIds };
+            }
+            if (col.id === sourceColId) {
+              return { ...col, cardIds: newSourceCardIds };
+            }
+            if (col.id === targetColId) {
+              return { ...col, cardIds: newTargetCardIds };
+            }
+            return col;
+          });
+
+          return {
+            kanbanBoard: {
+              ...board,
+              columns: updatedColumns,
+              cards: {
+                ...board.cards,
+                [cardId]: {
+                  ...board.cards[cardId],
+                  updatedAt: Date.now()
+                }
+              }
+            }
+          };
+        }),
+
+      deleteKanbanCard: (cardId) =>
+        set((state) => {
+          const board = state.kanbanBoard;
+          const columns = board.columns.map((col) => ({
+            ...col,
+            cardIds: col.cardIds.filter((id) => id !== cardId)
+          }));
+          const remainingCards = { ...board.cards };
+          delete remainingCards[cardId];
+          return {
+            kanbanBoard: {
+              ...board,
+              columns,
+              cards: remainingCards
+            }
+          };
+        }),
+
+      addKanbanColumn: (title) =>
+        set((state) => {
+          const id = `col-${Date.now()}`;
+          const newCol: KanbanColumn = { id, title: title.trim(), cardIds: [] };
+          return {
+            kanbanBoard: {
+              ...state.kanbanBoard,
+              columns: [...state.kanbanBoard.columns, newCol]
+            }
+          };
+        }),
+
+      deleteKanbanColumn: (columnId) =>
+        set((state) => {
+          const board = state.kanbanBoard;
+          const colToDelete = board.columns.find((c) => c.id === columnId);
+          if (!colToDelete) return state;
+          const remainingColumns = board.columns.filter((c) => c.id !== columnId);
+          const remainingCards = { ...board.cards };
+          colToDelete.cardIds.forEach((id) => delete remainingCards[id]);
+          return {
+            kanbanBoard: {
+              ...board,
+              columns: remainingColumns,
+              cards: remainingCards
+            }
+          };
         })
     }),
     {
@@ -583,7 +789,8 @@ export const useAppStore = create<AppState>()(
         usageLog: s.usageLog,
         dailyTokenAlert: s.dailyTokenAlert,
         customInstructions: s.customInstructions,
-        comments: s.comments
+        comments: s.comments,
+        kanbanBoard: s.kanbanBoard
       })
     }
   )

@@ -6,7 +6,9 @@ import {
   Download,
   Search,
   Cpu,
-  MessageSquare
+  MessageSquare,
+  Kanban,
+  FileText
 } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import { downloadBlob } from '../../services/exportService';
@@ -14,6 +16,8 @@ import appLogo from '../../assets/app_logo.png';
 
 export const TopBar: React.FC = () => {
   const {
+    mainView,
+    setMainView,
     isSidebarOpen,
     toggleSidebar,
     isAIDrawerOpen,
@@ -153,11 +157,37 @@ export const TopBar: React.FC = () => {
         )}
       </div>
 
-      {/* Center: Command Launcher */}
-      <div className="flex items-center">
+      {/* Center: View Switcher & Command Launcher */}
+      <div className="flex items-center gap-2.5">
+        {/* Studio vs Planning Switcher */}
+        <div className="flex items-center bg-black/40 rounded-lg p-0.5 border border-white/10 text-xs">
+          <button
+            onClick={() => setMainView('editor')}
+            className={`px-2.5 py-0.5 rounded flex items-center gap-1.5 transition-colors cursor-pointer ${
+              mainView === 'editor'
+                ? 'bg-indigo-600 text-white font-medium shadow-sm'
+                : 'text-zinc-400 hover:text-zinc-200'
+            }`}
+          >
+            <FileText size={12} />
+            <span>Docs</span>
+          </button>
+          <button
+            onClick={() => setMainView('kanban')}
+            className={`px-2.5 py-0.5 rounded flex items-center gap-1.5 transition-colors cursor-pointer ${
+              mainView === 'kanban'
+                ? 'bg-indigo-600 text-white font-medium shadow-sm'
+                : 'text-zinc-400 hover:text-zinc-200'
+            }`}
+          >
+            <Kanban size={12} />
+            <span>Planning</span>
+          </button>
+        </div>
+
         <button
           onClick={() => setCommandPaletteOpen(true)}
-          className="flex items-center gap-2 px-3 py-1 rounded bg-black/40 hover:bg-white/5 border border-white/10 text-xs text-zinc-400 hover:text-zinc-200 transition-all cursor-pointer shadow-inner w-52 justify-between"
+          className="flex items-center gap-2 px-3 py-1 rounded bg-black/40 hover:bg-white/5 border border-white/10 text-xs text-zinc-400 hover:text-zinc-200 transition-all cursor-pointer shadow-inner w-48 justify-between"
         >
           <div className="flex items-center gap-1.5">
             <Search size={13} />

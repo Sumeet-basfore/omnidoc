@@ -12,12 +12,14 @@ import { ExportModal } from './components/Layout/ExportModal';
 import { KeyboardShortcutsModal } from './components/Layout/KeyboardShortcutsModal';
 import { StatusBar } from './components/Layout/StatusBar';
 import { CommentsPanel } from './components/Comments/CommentsPanel';
+import { KanbanBoardView } from './components/Kanban/KanbanBoardView';
 import { DocumentFormat, DocumentItem } from './types/document';
 
 export const App: React.FC = () => {
   const {
     openDocument,
     createDocument,
+    mainView,
     tabs,
     activeTabId,
     documents,
@@ -209,16 +211,20 @@ export const App: React.FC = () => {
       <TopBar />
 
       {/* Workspace Tabs */}
-      <TabBar />
+      {mainView === 'editor' && <TabBar />}
 
       {/* Main Studio Viewport */}
       <div className="flex flex-1 overflow-hidden relative">
         <Sidebar />
-        <main className="flex-1 flex flex-col overflow-hidden relative">
-          <PendingInserts />
-          <DocumentAdapterRouter />
-          <InlineSelectionToolbar />
-        </main>
+        {mainView === 'kanban' ? (
+          <KanbanBoardView />
+        ) : (
+          <main className="flex-1 flex flex-col overflow-hidden relative">
+            <PendingInserts />
+            <DocumentAdapterRouter />
+            <InlineSelectionToolbar />
+          </main>
+        )}
         <CommentsPanel />
         <AICompanionDrawer />
       </div>
