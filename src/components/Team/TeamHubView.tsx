@@ -20,13 +20,17 @@ import {
   Copy,
   AlertCircle,
   X,
-  Radio
+  Radio,
+  Building2,
+  ChevronDown,
+  Share2
 } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import { KanbanBoardView } from '../Kanban/KanbanBoardView';
 import { WorkspaceRulesSettings } from '../Settings/WorkspaceRulesSettings';
 import { TeamBriefingModal } from './TeamBriefingModal';
 import { TeamP2PRoomModal } from './TeamP2PRoomModal';
+import { WorkspaceManagerModal } from './WorkspaceManagerModal';
 import { p2pService } from '../../services/p2pService';
 import type { P2PConnectionState } from '../../types/p2p';
 import {
@@ -55,13 +59,21 @@ export const TeamHubView: React.FC = () => {
     addTeamMember,
     removeTeamMember,
     kanbanBoard,
-    setKanbanBoard
+    setKanbanBoard,
+    teamWorkspaces,
+    activeWorkspaceId
   } = useAppStore();
 
   const [newMemberName, setNewMemberName] = useState('');
   const [newMemberRole, setNewMemberRole] = useState('');
   const [newMemberColor, setNewMemberColor] = useState('#6366f1');
   const [isAddingMember, setIsAddingMember] = useState(false);
+
+  // Workspace Manager state
+  const [isWsManagerOpen, setIsWsManagerOpen] = useState(false);
+  const [wsManagerTab, setWsManagerTab] = useState<'share' | 'create' | 'join' | 'manage'>('manage');
+
+  const activeWorkspace = teamWorkspaces[activeWorkspaceId];
 
   // P2P Room state
   const [isP2PModalOpen, setIsP2PModalOpen] = useState(false);
@@ -168,24 +180,34 @@ export const TeamHubView: React.FC = () => {
       {/* Team Hub Top Navigation Bar */}
       <div className="h-12 px-4 border-b border-[var(--border-subtle)] bg-[#121622] flex items-center justify-between gap-3 shrink-0">
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
-              <Users size={15} />
+          {/* Workspace Selector & Manager */}
+          <button
+            type="button"
+            onClick={() => {
+              setWsManagerTab('manage');
+              setIsWsManagerOpen(true);
+            }}
+            className="flex items-center gap-2 p-1.5 -ml-1.5 rounded hover:bg-white/5 transition-colors cursor-pointer text-left group"
+            title="Switch or manage team workspaces"
+          >
+            <div className="w-7 h-7 rounded bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-400 group-hover:border-indigo-500/50">
+              <Building2 size={15} />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <span className="font-semibold text-xs text-white leading-none">
-                  {workspaceRules.teamName || 'Team Workspace'}
+              <div className="flex items-center gap-1.5">
+                <span className="font-semibold text-xs text-white leading-none group-hover:text-indigo-200">
+                  {activeWorkspace?.name || workspaceRules.teamName || 'Team Workspace'}
                 </span>
-                <span className="px-1.5 py-0.2 rounded-full bg-indigo-500/20 text-[9px] font-mono text-indigo-300 border border-indigo-500/30 uppercase">
-                  Team Hub
+                <span className="px-1.5 py-0.2 rounded bg-indigo-500/20 text-[9px] font-mono text-indigo-300 border border-indigo-500/30 uppercase">
+                  {activeWorkspace?.code || 'OMNI-CORE'}
                 </span>
+                <ChevronDown size={11} className="text-zinc-500 group-hover:text-zinc-300" />
               </div>
               <span className="text-[10px] text-zinc-500 font-mono">
                 {teamMembers.length} members · {openComments.length} active reviews
               </span>
             </div>
-          </div>
+          </button>
 
           {/* Sub-Tab Navigation */}
           <div className="flex items-center bg-black/40 rounded-lg p-0.5 border border-white/10 text-xs ml-4">
@@ -246,6 +268,18 @@ export const TeamHubView: React.FC = () => {
 
         {/* Action Controls */}
         <div className="flex items-center gap-2">
+          {/* Share / Invite Code Button */}
+          <button
+            onClick={() => {
+              setWsManagerTab('share');
+              setIsWsManagerOpen(true);
+            }}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 hover:text-white text-xs font-medium transition-colors cursor-pointer"
+            title="Share workspace invite passkey and code with teammates"
+          >
+            <Share2 size={13} className="text-zinc-400" />
+            <span>Invite</span>
+          </button>
           {/* P2P Room Button */}
           <button
             onClick={() => setIsP2PModalOpen(true)}
@@ -750,6 +784,13 @@ git push origin main`}
       <TeamP2PRoomModal
         isOpen={isP2PModalOpen}
         onClose={() => setIsP2PModalOpen(false)}
+      />
+
+      {/* Team Workspaces Manager Modal */}
+      <WorkspaceManagerModal
+        isOpen={isWsManagerOpen}
+        onClose={() => setIsWsManagerOpen(false)}
+        initialTab={wsManagerTab}
       />
     </div>
   );

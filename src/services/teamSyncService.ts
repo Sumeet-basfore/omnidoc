@@ -1,4 +1,10 @@
-import type { TeamMember, TeamManifest, TeamSyncResult } from '../types/team';
+import type {
+  TeamMember,
+  TeamManifest,
+  TeamSyncResult,
+  TeamWorkspace,
+  WorkspaceInvitePayload
+} from '../types/team';
 import type { WorkspaceRules } from '../types/workspace';
 import type { KanbanBoard } from '../types/kanban';
 import { downloadBlob } from './exportService';
@@ -292,3 +298,92 @@ export async function loadTeamFromDisk(): Promise<{
     input.click();
   });
 }
+
+/**
+ * Generates a memorable alphanumeric workspace code (e.g. "DOCS-7X9A")
+ */
+export function generateWorkspaceCode(name: string): string {
+  const clean = name.replace(/[^a-zA-Z]/g, '').slice(0, 4).toUpperCase();
+  const prefix = clean.length >= 3 ? clean : 'OMNI';
+  const randomPart = Math.random().toString(36).slice(2, 6).toUpperCase();
+  return `${prefix}-${randomPart}`;
+}
+
+/**
+ * Packs a full workspace snapshot into a self-contained Base64 invite token
+ */
+export function encodeWorkspaceInvite(workspace: TeamWorkspace): string {
+  const payload: WorkspaceInvitePayload = {
+    version: 1,
+    workspaceId: workspace.id,
+    name: workspace.name,
+    code: workspace.code,
+    description: workspace.description,
+    members: workspace.members,
+    workspaceRules: workspace.workspaceRules,
+    kanbanBoard: workspace.kanbanBoard,
+    exportedAt: new Date().toISOString()
+  };
+  return btoa(encodeURIComponent(JSON.stringify(payload)));
+}
+
+/**
+ * Decodes and validates a workspace invite token or JSON payload
+ */
+export function decodeWorkspaceInvite(inviteToken: string): {
+  valid: boolean;
+  payload?: WorkspaceInvitePayload;
+  error?: string;
+} {
+  try {
+    const trimmed = inviteToken.trim();
+    let jsonStr = '';
+
+    // Handle both raw JSON and Base64-encoded tickets
+    if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+      jsonStr = trimmed;
+    } else {
+      jsonStr = decodeURIComponent(atob(trimmed));
+    }
+
+    const data = JSON.parse(jsonStr);
+    if (!data || typeof data !== 'object' || !data.name) {
+      return { valid: false, error: 'Invalid workspace token format: missing workspace name' };
+    }
+
+    const payload: WorkspaceInvitePayload = {
+      version: typeof data.version === 'number' ? data.version : 1,
+      workspaceId: data.workspaceId || `ws-${Date.now()}`,
+      name: data.name,
+      code: data.code || generateWorkspaceCode(data.name),
+      description: data.description || '',
+      members: Array.isArray(data.members) ? data.members : [],
+      workspaceRules: data.workspaceRules || {
+        teamName: data.name,
+        editorialTone: 'technical',
+        prohibitedTerms: [],
+        citationStyle: 'inline_url',
+        targetReadingLevel: 'high_school',
+        customDirectives: '',
+        enforceInAllPersonas: true
+      },
+      kanbanBoard: data.kanbanBoard || {
+        id: `board-${Date.now()}`,
+        title: `${data.name} Planning Board`,
+        columns: [
+          { id: 'col-backlog', title: 'Backlog', cardIds: [] },
+          { id: 'col-in-progress', title: 'In Progress', cardIds: [] },
+          { id: 'col-review', title: 'Review & QA', cardIds: [] },
+          { id: 'col-done', title: 'Done', cardIds: [] }
+        ],
+        cards: {}
+      },
+      exportedAt: data.exportedAt || new Date().toISOString()
+    };
+
+    return { valid: true, payload };
+  } catch (err) {
+    return { valid: false, error: 'Invalid workspace invite code. Please check and try again.' };
+  }
+}
+

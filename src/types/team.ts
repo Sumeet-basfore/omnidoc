@@ -33,3 +33,27 @@ export interface TeamSyncResult {
   };
   error?: string;
 }
+
+export interface TeamWorkspace {
+  id: string;
+  name: string;
+  code: string;
+  description?: string;
+  createdAt: number;
+  updatedAt: number;
+  members: TeamMember[];
+  workspaceRules: WorkspaceRules;
+  kanbanBoard: KanbanBoard;
+}
+
+export interface WorkspaceInvitePayload {
+  version: number;
+  workspaceId: string;
+  name: string;
+  code: string;
+  description?: string;
+  members: TeamMember[];
+  workspaceRules: WorkspaceRules;
+  kanbanBoard: KanbanBoard;
+  exportedAt: string;
+}

@@ -5,7 +5,14 @@ import { AIProviderId, AIPersona, AIMessage, AIProviderConfig } from '../types/a
 import { DocumentComment, CommentReply } from '../types/comment';
 import { KanbanBoard, KanbanCard, KanbanColumn } from '../types/kanban';
 import { WorkspaceRules, DEFAULT_WORKSPACE_RULES } from '../types/workspace';
-import { TeamMember, TeamHubSubTab, DEFAULT_TEAM_MEMBERS } from '../types/team';
+import {
+  TeamMember,
+  TeamHubSubTab,
+  DEFAULT_TEAM_MEMBERS,
+  TeamWorkspace,
+  WorkspaceInvitePayload
+} from '../types/team';
+import { generateWorkspaceCode } from '../services/teamSyncService';
 
 export type MainView = 'studio' | 'team' | 'editor' | 'kanban';
 
@@ -39,6 +46,14 @@ interface AppState {
   setTeamMembers: (members: TeamMember[]) => void;
   addTeamMember: (member: Omit<TeamMember, 'id'>) => void;
   removeTeamMember: (id: string) => void;
+
+  // Multiple Team Workspaces
+  teamWorkspaces: Record<string, TeamWorkspace>;
+  activeWorkspaceId: string;
+  createTeamWorkspace: (name: string, description?: string) => string;
+  switchTeamWorkspace: (id: string) => void;
+  deleteTeamWorkspace: (id: string) => void;
+  importTeamWorkspace: (payload: WorkspaceInvitePayload) => string;
   isSidebarOpen: boolean;
   leftPanel: 'files' | 'settings';
   setLeftPanel: (view: 'files' | 'settings') => void;
@@ -184,6 +199,19 @@ const DEFAULT_KANBAN_BOARD: KanbanBoard = {
   cards: {}
 };
 
+const DEFAULT_WORKSPACE_ID = 'ws-default';
+const DEFAULT_WORKSPACE: TeamWorkspace = {
+  id: DEFAULT_WORKSPACE_ID,
+  name: 'OmniDoc Core Team',
+  code: 'OMNI-CORE',
+  description: 'Primary team workspace for sprint planning, reviews, and documents.',
+  createdAt: Date.now(),
+  updatedAt: Date.now(),
+  members: DEFAULT_TEAM_MEMBERS,
+  workspaceRules: DEFAULT_WORKSPACE_RULES,
+  kanbanBoard: DEFAULT_KANBAN_BOARD
+};
+
 export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
@@ -197,6 +225,9 @@ export const useAppStore = create<AppState>()(
       teamMembers: DEFAULT_TEAM_MEMBERS,
       kanbanBoard: DEFAULT_KANBAN_BOARD,
       workspaceRules: DEFAULT_WORKSPACE_RULES,
+
+      teamWorkspaces: { [DEFAULT_WORKSPACE_ID]: DEFAULT_WORKSPACE },
+      activeWorkspaceId: DEFAULT_WORKSPACE_ID,
 
       isSidebarOpen: true,
       leftPanel: 'files',
@@ -808,11 +839,190 @@ export const useAppStore = create<AppState>()(
       removeTeamMember: (id) =>
         set((state) => ({
           teamMembers: state.teamMembers.filter((m) => m.id !== id)
-        }))
+        })),
+
+      createTeamWorkspace: (name, description) => {
+        const id = `ws-${Date.now()}`;
+        const code = generateWorkspaceCode(name);
+        const newWs: TeamWorkspace = {
+          id,
+          name,
+          code,
+          description: description || '',
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+          members: [],
+          workspaceRules: {
+            ...DEFAULT_WORKSPACE_RULES,
+            teamName: name
+          },
+          kanbanBoard: {
+            id: `board-${id}`,
+            title: `${name} Planning Board`,
+            columns: [
+              { id: 'col-backlog', title: 'Backlog', cardIds: [] },
+              { id: 'col-in-progress', title: 'In Progress', cardIds: [] },
+              { id: 'col-review', title: 'Review & QA', cardIds: [] },
+              { id: 'col-done', title: 'Done', cardIds: [] }
+            ],
+            cards: {}
+          }
+        };
+
+        const state = get();
+        const currentWs = state.teamWorkspaces[state.activeWorkspaceId];
+        const updatedWorkspaces = {
+          ...state.teamWorkspaces,
+          ...(currentWs
+            ? {
+                [currentWs.id]: {
+                  ...currentWs,
+                  updatedAt: Date.now(),
+                  members: state.teamMembers,
+                  workspaceRules: state.workspaceRules,
+                  kanbanBoard: state.kanbanBoard
+                }
+              }
+            : {}),
+          [id]: newWs
+        };
+
+        set({
+          teamWorkspaces: updatedWorkspaces,
+          activeWorkspaceId: id,
+          teamMembers: newWs.members,
+          workspaceRules: newWs.workspaceRules,
+          kanbanBoard: newWs.kanbanBoard
+        });
+        return id;
+      },
+
+      switchTeamWorkspace: (id) => {
+        const state = get();
+        const currentWs = state.teamWorkspaces[state.activeWorkspaceId];
+        const targetWs = state.teamWorkspaces[id];
+        if (!targetWs) return;
+
+        const updatedWorkspaces = {
+          ...state.teamWorkspaces,
+          ...(currentWs
+            ? {
+                [currentWs.id]: {
+                  ...currentWs,
+                  updatedAt: Date.now(),
+                  members: state.teamMembers,
+                  workspaceRules: state.workspaceRules,
+                  kanbanBoard: state.kanbanBoard
+                }
+              }
+            : {})
+        };
+
+        set({
+          teamWorkspaces: updatedWorkspaces,
+          activeWorkspaceId: id,
+          teamMembers: targetWs.members,
+          workspaceRules: targetWs.workspaceRules,
+          kanbanBoard: targetWs.kanbanBoard
+        });
+      },
+
+      deleteTeamWorkspace: (id) => {
+        set((state) => {
+          const remaining = { ...state.teamWorkspaces };
+          delete remaining[id];
+          const remainingIds = Object.keys(remaining);
+          if (remainingIds.length === 0) {
+            const defId = 'ws-default';
+            const defWs: TeamWorkspace = {
+              id: defId,
+              name: 'OmniDoc Core Team',
+              code: 'OMNI-CORE',
+              description: 'Primary workspace',
+              createdAt: Date.now(),
+              updatedAt: Date.now(),
+              members: [],
+              workspaceRules: DEFAULT_WORKSPACE_RULES,
+              kanbanBoard: DEFAULT_KANBAN_BOARD
+            };
+            return {
+              teamWorkspaces: { [defId]: defWs },
+              activeWorkspaceId: defId,
+              teamMembers: defWs.members,
+              workspaceRules: defWs.workspaceRules,
+              kanbanBoard: defWs.kanbanBoard
+            };
+          }
+          const nextId = state.activeWorkspaceId === id ? remainingIds[0] : state.activeWorkspaceId;
+          const nextWs = remaining[nextId];
+          return {
+            teamWorkspaces: remaining,
+            activeWorkspaceId: nextId,
+            teamMembers: nextWs.members,
+            workspaceRules: nextWs.workspaceRules,
+            kanbanBoard: nextWs.kanbanBoard
+          };
+        });
+      },
+
+      importTeamWorkspace: (payload) => {
+        const id = payload.workspaceId || `ws-${Date.now()}`;
+        const ws: TeamWorkspace = {
+          id,
+          name: payload.name,
+          code: payload.code || generateWorkspaceCode(payload.name),
+          description: payload.description || '',
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+          members: payload.members || [],
+          workspaceRules: payload.workspaceRules || {
+            ...DEFAULT_WORKSPACE_RULES,
+            teamName: payload.name
+          },
+          kanbanBoard: payload.kanbanBoard || {
+            id: `board-${id}`,
+            title: `${payload.name} Planning Board`,
+            columns: [
+              { id: 'col-backlog', title: 'Backlog', cardIds: [] },
+              { id: 'col-in-progress', title: 'In Progress', cardIds: [] },
+              { id: 'col-review', title: 'Review & QA', cardIds: [] },
+              { id: 'col-done', title: 'Done', cardIds: [] }
+            ],
+            cards: {}
+          }
+        };
+
+        const state = get();
+        const currentWs = state.teamWorkspaces[state.activeWorkspaceId];
+        const updatedWorkspaces = {
+          ...state.teamWorkspaces,
+          ...(currentWs
+            ? {
+                [currentWs.id]: {
+                  ...currentWs,
+                  updatedAt: Date.now(),
+                  members: state.teamMembers,
+                  workspaceRules: state.workspaceRules,
+                  kanbanBoard: state.kanbanBoard
+                }
+              }
+            : {}),
+          [id]: ws
+        };
+
+        set({
+          teamWorkspaces: updatedWorkspaces,
+          activeWorkspaceId: id,
+          teamMembers: ws.members,
+          workspaceRules: ws.workspaceRules,
+          kanbanBoard: ws.kanbanBoard
+        });
+        return id;
+      }
     }),
     {
       name: 'omnidoc-storage',
-      version: 2,
+      version: 3,
       migrate: (persistedState: any, version: number) => {
         if (version < 2 && persistedState) {
           const demoMemberIds = ['member-1', 'member-2', 'member-3', 'member-4'];
@@ -834,6 +1044,24 @@ export const useAppStore = create<AppState>()(
             }
           }
         }
+        if (version < 3 && persistedState) {
+          if (!persistedState.teamWorkspaces || Object.keys(persistedState.teamWorkspaces).length === 0) {
+            const id = 'ws-default';
+            const initialWs: TeamWorkspace = {
+              id,
+              name: persistedState.workspaceRules?.teamName || 'OmniDoc Core Team',
+              code: 'OMNI-CORE',
+              description: 'Primary team workspace for sprint planning and reviews.',
+              createdAt: Date.now(),
+              updatedAt: Date.now(),
+              members: Array.isArray(persistedState.teamMembers) ? persistedState.teamMembers : [],
+              workspaceRules: persistedState.workspaceRules || DEFAULT_WORKSPACE_RULES,
+              kanbanBoard: persistedState.kanbanBoard || DEFAULT_KANBAN_BOARD
+            };
+            persistedState.teamWorkspaces = { [id]: initialWs };
+            persistedState.activeWorkspaceId = id;
+          }
+        }
         return persistedState;
       },
       partialize: (s) => ({
@@ -849,7 +1077,9 @@ export const useAppStore = create<AppState>()(
         comments: s.comments,
         kanbanBoard: s.kanbanBoard,
         workspaceRules: s.workspaceRules,
-        teamMembers: s.teamMembers
+        teamMembers: s.teamMembers,
+        teamWorkspaces: s.teamWorkspaces,
+        activeWorkspaceId: s.activeWorkspaceId
       })
     }
   )
