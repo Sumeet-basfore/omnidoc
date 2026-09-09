@@ -12,11 +12,24 @@ import {
   CornerDownRight,
   ExternalLink,
   ChevronRight,
-  Sparkles
+  Sparkles,
+  GitBranch,
+  Download,
+  Upload,
+  Check,
+  Copy,
+  AlertCircle,
+  X
 } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import { KanbanBoardView } from '../Kanban/KanbanBoardView';
 import { WorkspaceRulesSettings } from '../Settings/WorkspaceRulesSettings';
+import {
+  createTeamManifest,
+  saveTeamToDisk,
+  loadTeamFromDisk,
+  mergeTeamManifest
+} from '../../services/teamSyncService';
 import type { TeamHubSubTab } from '../../types/team';
 
 export const TeamHubView: React.FC = () => {
@@ -25,6 +38,7 @@ export const TeamHubView: React.FC = () => {
     setTeamHubSubTab,
     setMainView,
     workspaceRules,
+    updateWorkspaceRules,
     comments,
     documents,
     tabs,
@@ -32,14 +46,24 @@ export const TeamHubView: React.FC = () => {
     resolveComment,
     deleteComment,
     teamMembers,
+    setTeamMembers,
     addTeamMember,
-    removeTeamMember
+    removeTeamMember,
+    kanbanBoard,
+    setKanbanBoard
   } = useAppStore();
 
   const [newMemberName, setNewMemberName] = useState('');
   const [newMemberRole, setNewMemberRole] = useState('');
   const [newMemberColor, setNewMemberColor] = useState('#6366f1');
   const [isAddingMember, setIsAddingMember] = useState(false);
+
+  // Git Sync state
+  const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [syncStrategy, setSyncStrategy] = useState<'merge' | 'replace'>('merge');
+  const [copiedGitCmd, setCopiedGitCmd] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   // Compute total open comments across all documents
   const allComments = Object.entries(comments).flatMap(([docId, docComments]) =>
@@ -53,6 +77,62 @@ export const TeamHubView: React.FC = () => {
       setActiveTab(targetTab.id);
     }
     setMainView('studio');
+  };
+
+  const handleExportTeam = async () => {
+    try {
+      setIsSyncing(true);
+      const manifest = createTeamManifest({
+        members: teamMembers,
+        workspaceRules,
+        kanbanBoard
+      });
+      const res = await saveTeamToDisk(manifest, 'team.json');
+      if (res.success) {
+        setSyncStatus({
+          type: 'success',
+          text: `Exported team state to ${res.filePath || 'team.json'} for Git tracking.`
+        });
+      } else if (res.error && res.error !== 'Save canceled') {
+        setSyncStatus({ type: 'error', text: res.error });
+      }
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const handleImportTeam = async () => {
+    try {
+      setIsSyncing(true);
+      const res = await loadTeamFromDisk();
+      if (!res.success || !res.manifest) {
+        if (res.error && res.error !== 'Open canceled') {
+          setSyncStatus({ type: 'error', text: res.error });
+        }
+        return;
+      }
+      const merged = mergeTeamManifest(
+        { members: teamMembers, workspaceRules, kanbanBoard },
+        res.manifest,
+        syncStrategy
+      );
+      setTeamMembers(merged.members);
+      updateWorkspaceRules(merged.workspaceRules);
+      setKanbanBoard(merged.kanbanBoard);
+      setSyncStatus({
+        type: 'success',
+        text: `Synced from ${res.filePath || 'team.json'}: +${merged.stats.addedMembers} members, +${merged.stats.addedCards} tasks, guidelines updated.`
+      });
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const handleCopyGitCmd = () => {
+    const cmd = `git add .omnidoc/team.json\ngit commit -m "chore(team): sync sprint board & workspace rules"\ngit push origin main`;
+    navigator.clipboard.writeText(cmd);
+    setCopiedGitCmd(true);
+    setTimeout(() => setCopiedGitCmd(false), 2000);
   };
 
   const handleCreateMember = () => {
@@ -148,16 +228,55 @@ export const TeamHubView: React.FC = () => {
           </div>
         </div>
 
-        {/* Back to Studio Button */}
-        <button
-          onClick={() => setMainView('studio')}
-          className="flex items-center gap-1.5 px-3 py-1 rounded bg-white/10 hover:bg-white/15 text-white text-xs font-medium transition-colors cursor-pointer"
-          title="Return to document editing"
-        >
-          <FileText size={13} />
-          <span>Back to Studio</span>
-        </button>
+        {/* Action Controls */}
+        <div className="flex items-center gap-2">
+          {/* Git Sync Button */}
+          <button
+            onClick={() => setIsSyncModalOpen(true)}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-indigo-950/40 hover:bg-indigo-900/50 border border-indigo-500/30 text-indigo-300 hover:text-white text-xs font-medium transition-colors cursor-pointer"
+            title="Git & Offline File Sync (.omnidoc/team.json)"
+          >
+            <GitBranch size={13} className="text-indigo-400" />
+            <span>Git Sync</span>
+          </button>
+
+          {/* Back to Studio Button */}
+          <button
+            onClick={() => setMainView('studio')}
+            className="flex items-center gap-1.5 px-3 py-1 rounded bg-white/10 hover:bg-white/15 text-white text-xs font-medium transition-colors cursor-pointer"
+            title="Return to document editing"
+          >
+            <FileText size={13} />
+            <span>Back to Studio</span>
+          </button>
+        </div>
       </div>
+
+      {/* Sync Status Banner */}
+      {syncStatus && (
+        <div
+          className={`px-4 py-2 border-b flex items-center justify-between text-xs transition-all ${
+            syncStatus.type === 'success'
+              ? 'bg-emerald-950/40 border-emerald-500/30 text-emerald-200'
+              : 'bg-red-950/40 border-red-500/30 text-red-200'
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            {syncStatus.type === 'success' ? (
+              <CheckCircle2 size={14} className="text-emerald-400 shrink-0" />
+            ) : (
+              <AlertCircle size={14} className="text-red-400 shrink-0" />
+            )}
+            <span>{syncStatus.text}</span>
+          </div>
+          <button
+            onClick={() => setSyncStatus(null)}
+            className="p-1 hover:bg-white/10 rounded text-zinc-400 hover:text-white cursor-pointer"
+          >
+            <X size={13} />
+          </button>
+        </div>
+      )}
 
       {/* Main Sub-Tab Viewport */}
       <div className="flex-1 overflow-hidden relative">
@@ -435,6 +554,151 @@ export const TeamHubView: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Git Sync Modal */}
+      {isSyncModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 animate-fade-in">
+          <div className="w-full max-w-lg bg-[#121622] rounded-lg border border-white/10 shadow-2xl overflow-hidden flex flex-col">
+            {/* Modal Header */}
+            <div className="px-5 py-4 border-b border-white/10 flex items-center justify-between bg-black/20">
+              <div className="flex items-center gap-2.5">
+                <div className="p-1.5 rounded bg-indigo-500/20 text-indigo-400">
+                  <GitBranch size={16} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-white">Git & Offline Team Sync</h3>
+                  <p className="text-[11px] text-zinc-400">
+                    Collaborate with teammates via <code className="text-indigo-300">.omnidoc/team.json</code> in your Git repo
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsSyncModalOpen(false)}
+                className="p-1 rounded text-zinc-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-5 space-y-4 max-h-[75vh] overflow-y-auto">
+              {/* Action Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* Export Card */}
+                <div className="p-4 rounded-lg bg-black/30 border border-white/10 hover:border-indigo-500/30 flex flex-col justify-between transition-colors">
+                  <div className="space-y-1.5 mb-3">
+                    <div className="flex items-center gap-2 text-indigo-400">
+                      <Download size={15} />
+                      <h4 className="text-xs font-semibold text-white">Export to File</h4>
+                    </div>
+                    <p className="text-[11px] text-zinc-400 leading-relaxed">
+                      Saves current tasks, members, and rules to disk as <span className="font-mono text-indigo-300 text-[10px]">team.json</span> for Git committing.
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleExportTeam}
+                    disabled={isSyncing}
+                    className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white font-medium text-xs cursor-pointer shadow-sm transition-colors"
+                  >
+                    <Download size={13} />
+                    <span>Save team.json</span>
+                  </button>
+                </div>
+
+                {/* Import Card */}
+                <div className="p-4 rounded-lg bg-black/30 border border-white/10 hover:border-indigo-500/30 flex flex-col justify-between transition-colors">
+                  <div className="space-y-1.5 mb-3">
+                    <div className="flex items-center gap-2 text-emerald-400">
+                      <Upload size={15} />
+                      <h4 className="text-xs font-semibold text-white">Import from File</h4>
+                    </div>
+                    <p className="text-[11px] text-zinc-400 leading-relaxed">
+                      Load updated team state pulled from your Git repo into OmniDoc.
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-[10px] text-zinc-400">
+                      <span>Strategy:</span>
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => setSyncStrategy('merge')}
+                          className={`px-1.5 py-0.5 rounded cursor-pointer ${
+                            syncStrategy === 'merge'
+                              ? 'bg-indigo-600 text-white font-medium'
+                              : 'bg-white/5 text-zinc-400 hover:bg-white/10'
+                          }`}
+                        >
+                          Merge
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setSyncStrategy('replace')}
+                          className={`px-1.5 py-0.5 rounded cursor-pointer ${
+                            syncStrategy === 'replace'
+                              ? 'bg-indigo-600 text-white font-medium'
+                              : 'bg-white/5 text-zinc-400 hover:bg-white/10'
+                          }`}
+                        >
+                          Replace
+                        </button>
+                      </div>
+                    </div>
+                    <button
+                      onClick={handleImportTeam}
+                      disabled={isSyncing}
+                      className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded bg-emerald-700 hover:bg-emerald-600 disabled:opacity-40 text-white font-medium text-xs cursor-pointer shadow-sm transition-colors"
+                    >
+                      <Upload size={13} />
+                      <span>Load team.json</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Git Workflow Guide */}
+              <div className="p-3.5 rounded-lg bg-black/40 border border-white/10 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-semibold text-zinc-300 uppercase tracking-wider">
+                    Recommended Git Workflow
+                  </span>
+                  <button
+                    onClick={handleCopyGitCmd}
+                    className="flex items-center gap-1 text-[10px] text-indigo-400 hover:text-indigo-300 cursor-pointer"
+                  >
+                    {copiedGitCmd ? <Check size={11} className="text-emerald-400" /> : <Copy size={11} />}
+                    <span>{copiedGitCmd ? 'Copied' : 'Copy Commands'}</span>
+                  </button>
+                </div>
+                <pre className="p-2.5 rounded bg-black/60 text-[11px] font-mono text-zinc-300 overflow-x-auto border border-white/5 leading-relaxed">
+                  <code>
+{`# 1. Pull teammate updates
+git pull origin main
+
+# 2. In OmniDoc Team Hub: click "Load team.json"
+
+# 3. Plan tasks / edit guidelines, then click "Save team.json"
+git add .omnidoc/team.json
+git commit -m "chore(team): update sprint tasks & guidelines"
+git push origin main`}
+                  </code>
+                </pre>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="px-5 py-3 border-t border-white/10 bg-black/20 flex items-center justify-end">
+              <button
+                onClick={() => setIsSyncModalOpen(false)}
+                className="px-3.5 py-1.5 rounded bg-white/10 hover:bg-white/15 text-white text-xs font-medium cursor-pointer transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

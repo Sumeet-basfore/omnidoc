@@ -1,3 +1,6 @@
+import type { WorkspaceRules } from './workspace';
+import type { KanbanBoard } from './kanban';
+
 export interface TeamMember {
   id: string;
   name: string;
@@ -9,3 +12,24 @@ export interface TeamMember {
 export type TeamHubSubTab = 'planning' | 'reviews' | 'guidelines' | 'roster';
 
 export const DEFAULT_TEAM_MEMBERS: TeamMember[] = [];
+
+export interface TeamManifest {
+  $schema?: string;
+  version: number;
+  exportedAt: string;
+  teamName: string;
+  members: TeamMember[];
+  workspaceRules: WorkspaceRules;
+  kanbanBoard: KanbanBoard;
+}
+
+export interface TeamSyncResult {
+  success: boolean;
+  message: string;
+  stats?: {
+    membersCount: number;
+    tasksCount: number;
+    hasRules: boolean;
+  };
+  error?: string;
+}

@@ -36,6 +36,7 @@ interface AppState {
   teamHubSubTab: TeamHubSubTab;
   setTeamHubSubTab: (tab: TeamHubSubTab) => void;
   teamMembers: TeamMember[];
+  setTeamMembers: (members: TeamMember[]) => void;
   addTeamMember: (member: Omit<TeamMember, 'id'>) => void;
   removeTeamMember: (id: string) => void;
   isSidebarOpen: boolean;
@@ -122,6 +123,7 @@ interface AppState {
 
   // Team Planning & Kanban
   kanbanBoard: KanbanBoard;
+  setKanbanBoard: (board: KanbanBoard) => void;
   addKanbanCard: (columnId: string, card: Omit<KanbanCard, 'id' | 'createdAt' | 'updatedAt'>) => string;
   updateKanbanCard: (cardId: string, updates: Partial<KanbanCard>) => void;
   moveKanbanCard: (cardId: string, sourceColId: string, targetColId: string, targetIndex?: number) => void;
@@ -617,6 +619,8 @@ export const useAppStore = create<AppState>()(
           };
         }),
 
+      setKanbanBoard: (board) => set({ kanbanBoard: board }),
+
       addKanbanCard: (columnId, cardData) => {
         const id = `card-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
         const now = Date.now();
@@ -790,6 +794,8 @@ export const useAppStore = create<AppState>()(
       },
 
       setTeamHubSubTab: (tab) => set({ teamHubSubTab: tab }),
+
+      setTeamMembers: (members) => set({ teamMembers: members }),
 
       addTeamMember: (member) =>
         set((state) => ({
