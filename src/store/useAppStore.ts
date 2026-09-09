@@ -114,6 +114,8 @@ interface AppState {
   setAILoading: (loading: boolean) => void;
   setSelectedText: (text: string, coords: { top: number; left: number } | null) => void;
   addRecentFile: (filePath: string) => void;
+  removeRecentFile: (filePath: string) => void;
+  clearRecentFiles: () => void;
   pendingInlinePrompt: string | null;
   setPendingInlinePrompt: (prompt: string | null) => void;
   agentMode: boolean;
@@ -546,6 +548,13 @@ export const useAppStore = create<AppState>()(
           const list = [filePath, ...state.recentFiles.filter((p) => p !== filePath)].slice(0, 20);
           return { recentFiles: list };
         }),
+
+      removeRecentFile: (filePath) =>
+        set((state) => ({
+          recentFiles: state.recentFiles.filter((p) => p !== filePath)
+        })),
+
+      clearRecentFiles: () => set({ recentFiles: [] }),
 
       toggleCommentsPanel: (force) =>
         set((state) => ({

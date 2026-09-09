@@ -3,7 +3,8 @@ import {
   FolderOpen,
   Plus,
   Clock,
-  UploadCloud
+  UploadCloud,
+  X
 } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import { ProviderSettings } from '../Settings/ProviderSettings';
@@ -17,6 +18,8 @@ export const Sidebar: React.FC = () => {
     createDocument,
     recentFiles,
     addRecentFile,
+    removeRecentFile,
+    clearRecentFiles,
     sidebarWidth,
     setSidebarWidth
   } = useAppStore();
@@ -251,7 +254,17 @@ export const Sidebar: React.FC = () => {
                 <Clock size={12} className="text-zinc-400" />
                 <span>Recent Files</span>
               </div>
-              <span className="text-[10px] font-mono text-zinc-500">{recentFiles.length} files</span>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-mono text-zinc-500">{recentFiles.length} files</span>
+                <button
+                  type="button"
+                  onClick={() => clearRecentFiles()}
+                  className="text-[10px] font-mono text-zinc-500 hover:text-rose-400 hover:underline transition-colors cursor-pointer"
+                  title="Clear all recent files"
+                >
+                  Clear
+                </button>
+              </div>
             </div>
             <div className="space-y-1.5">
               {recentFiles.slice(0, 8).map((path, idx) => {
@@ -280,8 +293,20 @@ export const Sidebar: React.FC = () => {
                     className={`relative pl-2.5 pr-2 py-1 rounded-r-md bg-white/[0.02] hover:bg-white/[0.06] border-l-[3px] ${meta.borderClass} cursor-pointer flex flex-col gap-0.5 transition-all text-[11px] group`}
                     title={path}
                   >
-                    <div className="flex items-center justify-between">
-                      <span className="text-zinc-200 font-bold font-mono text-[11px] truncate">{name}</span>
+                    <div className="flex items-center justify-between gap-1">
+                      <span className="text-zinc-200 font-bold font-mono text-[11px] truncate flex-1">{name}</span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeRecentFile(path);
+                        }}
+                        className="opacity-0 group-hover:opacity-100 p-0.5 rounded text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 transition-all cursor-pointer shrink-0"
+                        title="Remove from recent files"
+                        aria-label={`Remove ${name} from recent files`}
+                      >
+                        <X size={12} />
+                      </button>
                     </div>
                     <div className="flex items-center justify-between text-[10px] pt-0.5">
                       <span className={`px-1 py-0.2 rounded text-[9px] font-mono font-medium shrink-0 ${meta.badgeClass}`}>
