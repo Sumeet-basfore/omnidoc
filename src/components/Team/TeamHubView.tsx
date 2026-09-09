@@ -24,6 +24,7 @@ import {
 import { useAppStore } from '../../store/useAppStore';
 import { KanbanBoardView } from '../Kanban/KanbanBoardView';
 import { WorkspaceRulesSettings } from '../Settings/WorkspaceRulesSettings';
+import { TeamBriefingModal } from './TeamBriefingModal';
 import {
   createTeamManifest,
   saveTeamToDisk,
@@ -57,6 +58,9 @@ export const TeamHubView: React.FC = () => {
   const [newMemberRole, setNewMemberRole] = useState('');
   const [newMemberColor, setNewMemberColor] = useState('#6366f1');
   const [isAddingMember, setIsAddingMember] = useState(false);
+
+  // Briefing state
+  const [isBriefingModalOpen, setIsBriefingModalOpen] = useState(false);
 
   // Git Sync state
   const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
@@ -230,6 +234,16 @@ export const TeamHubView: React.FC = () => {
 
         {/* Action Controls */}
         <div className="flex items-center gap-2">
+          {/* Team Briefing Button */}
+          <button
+            onClick={() => setIsBriefingModalOpen(true)}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-pink-950/40 hover:bg-pink-900/50 border border-pink-500/30 text-pink-300 hover:text-white text-xs font-medium transition-colors cursor-pointer"
+            title="Generate & Export Team Briefing Report"
+          >
+            <Sparkles size={13} className="text-pink-400" />
+            <span>Briefing</span>
+          </button>
+
           {/* Git Sync Button */}
           <button
             onClick={() => setIsSyncModalOpen(true)}
@@ -699,6 +713,12 @@ git push origin main`}
           </div>
         </div>
       )}
+
+      {/* Team Briefing Modal */}
+      <TeamBriefingModal
+        isOpen={isBriefingModalOpen}
+        onClose={() => setIsBriefingModalOpen(false)}
+      />
     </div>
   );
 };
