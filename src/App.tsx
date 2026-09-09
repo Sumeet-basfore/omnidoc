@@ -9,6 +9,7 @@ import { InlineSelectionToolbar } from './components/AI/InlineSelectionToolbar';
 import { ProviderSettings } from './components/Settings/ProviderSettings';
 import { CommandPalette } from './components/CommandPalette/CommandPalette';
 import { ExportModal } from './components/Layout/ExportModal';
+import { KeyboardShortcutsModal } from './components/Layout/KeyboardShortcutsModal';
 import { DocumentFormat, DocumentItem } from './types/document';
 
 export const App: React.FC = () => {
@@ -18,7 +19,10 @@ export const App: React.FC = () => {
     tabs,
     activeTabId,
     documents,
-    markDirty
+    markDirty,
+    toggleSidebar,
+    toggleAIDrawer,
+    setShortcutsModalOpen
   } = useAppStore();
 
   // Handle native drag and drop files from OS
@@ -128,7 +132,23 @@ export const App: React.FC = () => {
               });
             }
           }
+        } else if (e.key === 'b') {
+          e.preventDefault();
+          toggleSidebar();
+        } else if (e.key === '/') {
+          e.preventDefault();
+          setShortcutsModalOpen(true);
+        } else if (e.shiftKey && (e.key === 'r' || e.key === 'R')) {
+          e.preventDefault();
+          toggleAIDrawer(true);
         }
+      } else if (e.key === '?') {
+        const target = e.target as HTMLElement;
+        if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
+          return;
+        }
+        e.preventDefault();
+        setShortcutsModalOpen(true);
       }
     };
 
@@ -165,6 +185,7 @@ export const App: React.FC = () => {
       <ProviderSettings />
       <CommandPalette />
       <ExportModal />
+      <KeyboardShortcutsModal />
     </div>
   );
 };

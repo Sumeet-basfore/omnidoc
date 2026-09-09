@@ -8,12 +8,16 @@ export const AICompanionDrawer: React.FC = () => {
   const { isAIDrawerOpen, toggleAIDrawer, activeProvider, aiConfigs, setSettingsOpen } = useAppStore();
   const [activeTab, setActiveTab] = useState<'chat' | 'research'>('chat');
 
-  if (!isAIDrawerOpen) return null;
-
   const currentConfig = aiConfigs[activeProvider];
 
   return (
-    <aside className="w-[380px] h-full flex flex-col border-l border-[var(--border-subtle)] bg-[#0d101a] z-30 transition-all select-none shadow-2xl">
+    <aside
+      className={`w-[380px] h-full flex flex-col border-l border-[var(--border-subtle)] bg-[#0d101a] z-30 transition-transform duration-300 ease-out select-none shadow-2xl ${
+        isAIDrawerOpen ? 'translate-x-0' : 'translate-x-full pointer-events-none'
+      }`}
+      style={{ position: isAIDrawerOpen ? undefined : 'absolute', right: 0 }}
+      aria-hidden={!isAIDrawerOpen}
+    >
       {/* Drawer Header */}
       <div className="h-14 px-4 border-b border-[var(--border-subtle)] flex items-center justify-between bg-[var(--bg-glass)]">
         <div className="flex items-center gap-2">

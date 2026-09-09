@@ -38,6 +38,65 @@ export const Sidebar: React.FC = () => {
     return 'code';
   };
 
+  const getFileMeta = (filename: string, idx: number) => {
+    const ext = filename.split('.').pop()?.toLowerCase() || '';
+    const times = ['2m ago', '15m ago', '1h ago', '3h ago', 'Yesterday', '2d ago', '5d ago', '1w ago'];
+    const time = times[idx] || 'Earlier';
+
+    if (['md', 'markdown'].includes(ext)) {
+      return {
+        format: 'markdown' as DocumentFormat,
+        badge: 'MD',
+        borderClass: 'border-l-cyan-400',
+        badgeClass: 'bg-cyan-500/15 text-cyan-400 border border-cyan-500/30',
+        time
+      };
+    }
+    if (ext === 'pdf') {
+      return {
+        format: 'pdf' as DocumentFormat,
+        badge: 'PDF',
+        borderClass: 'border-l-red-500',
+        badgeClass: 'bg-red-500/15 text-red-400 border border-red-500/30',
+        time
+      };
+    }
+    if (['docx', 'doc'].includes(ext)) {
+      return {
+        format: 'docx' as DocumentFormat,
+        badge: 'DOC',
+        borderClass: 'border-l-indigo-500',
+        badgeClass: 'bg-indigo-500/15 text-indigo-400 border border-indigo-500/30',
+        time
+      };
+    }
+    if (ext === 'csv') {
+      return {
+        format: 'csv' as DocumentFormat,
+        badge: 'CSV',
+        borderClass: 'border-l-emerald-500',
+        badgeClass: 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30',
+        time
+      };
+    }
+    if (ext === 'json') {
+      return {
+        format: 'json' as DocumentFormat,
+        badge: 'JSON',
+        borderClass: 'border-l-pink-500',
+        badgeClass: 'bg-pink-500/15 text-pink-400 border border-pink-500/30',
+        time
+      };
+    }
+    return {
+      format: 'code' as DocumentFormat,
+      badge: (ext || 'CODE').toUpperCase().slice(0, 4),
+      borderClass: 'border-l-amber-500',
+      badgeClass: 'bg-amber-500/15 text-amber-400 border border-amber-500/30',
+      time
+    };
+  };
+
   const handleOpenFile = async () => {
     if (window.electronAPI?.openFileDialog) {
       const filePath = await window.electronAPI.openFileDialog();
@@ -160,20 +219,30 @@ export const Sidebar: React.FC = () => {
           <span>Open File...</span>
         </button>
 
-        <div className="grid grid-cols-2 gap-1.5 pt-1">
+        <div className="grid grid-cols-3 gap-1.5 pt-1">
           <button
             onClick={() => createDocument('markdown')}
-            className="py-1.5 px-2 rounded-md bg-white/5 hover:bg-white/10 text-zinc-300 border border-white/5 flex items-center gap-1.5 transition-colors"
+            className="py-1.5 px-1.5 rounded-md bg-white/5 hover:bg-white/10 text-cyan-300 border border-white/5 flex items-center justify-center gap-1 transition-colors text-[11px] font-medium"
+            title="New Markdown Document"
           >
-            <Plus size={12} className="text-cyan-400" />
-            <span>+ Markdown</span>
+            <Plus size={11} className="text-cyan-400 shrink-0" />
+            <span>+ MD</span>
           </button>
           <button
             onClick={() => createDocument('csv')}
-            className="py-1.5 px-2 rounded-md bg-white/5 hover:bg-white/10 text-zinc-300 border border-white/5 flex items-center gap-1.5 transition-colors"
+            className="py-1.5 px-1.5 rounded-md bg-white/5 hover:bg-white/10 text-emerald-300 border border-white/5 flex items-center justify-center gap-1 transition-colors text-[11px] font-medium"
+            title="New Data Grid"
           >
-            <Plus size={12} className="text-emerald-400" />
-            <span>+ Data Grid</span>
+            <Plus size={11} className="text-emerald-400 shrink-0" />
+            <span>+ Grid</span>
+          </button>
+          <button
+            onClick={() => createDocument('docx')}
+            className="py-1.5 px-1.5 rounded-md bg-white/5 hover:bg-white/10 text-indigo-300 border border-white/5 flex items-center justify-center gap-1 transition-colors text-[11px] font-medium"
+            title="New Word Document"
+          >
+            <Plus size={11} className="text-indigo-400 shrink-0" />
+            <span>+ DOCX</span>
           </button>
         </div>
       </div>
@@ -229,13 +298,17 @@ export const Sidebar: React.FC = () => {
         {/* Recent Files */}
         {recentFiles.length > 0 && (
           <div>
-            <div className="flex items-center gap-1.5 text-[11px] font-semibold text-zinc-400 uppercase tracking-wider mb-2">
-              <Clock size={12} className="text-zinc-400" />
-              <span>Recent Files</span>
+            <div className="flex items-center justify-between text-[11px] font-semibold text-zinc-400 uppercase tracking-wider mb-2">
+              <div className="flex items-center gap-1.5">
+                <Clock size={12} className="text-zinc-400" />
+                <span>Recent Files</span>
+              </div>
+              <span className="text-[10px] font-mono text-zinc-500">{recentFiles.length} TOTAL</span>
             </div>
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               {recentFiles.slice(0, 8).map((path, idx) => {
                 const name = path.split(/[/\\]/).pop() || path;
+                const meta = getFileMeta(name, idx);
                 return (
                   <div
                     key={idx}
@@ -246,7 +319,7 @@ export const Sidebar: React.FC = () => {
                           openDocument({
                             id: `doc-${Date.now()}`,
                             name,
-                            format: detectFormat(name),
+                            format: meta.format,
                             content: fileData.data,
                             filePath: path,
                             isDirty: false
@@ -256,11 +329,18 @@ export const Sidebar: React.FC = () => {
                         }
                       }
                     }}
-                    className="p-1.5 rounded hover:bg-white/5 text-zinc-400 hover:text-white cursor-pointer truncate flex items-center gap-2 transition-colors text-[11px]"
+                    className={`relative pl-2.5 pr-2 py-1.5 rounded-r-md bg-white/[0.02] hover:bg-white/[0.06] border-l-[3px] ${meta.borderClass} cursor-pointer flex flex-col gap-0.5 transition-all text-[11px] group`}
                     title={path}
                   >
-                    <File size={12} className="text-zinc-500 shrink-0" />
-                    <span className="truncate">{name}</span>
+                    <div className="flex items-center justify-between">
+                      <span className="text-zinc-200 font-bold font-mono text-[11px] truncate">{name}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-[10px] pt-0.5">
+                      <span className={`px-1 py-0.2 rounded text-[9px] font-mono font-medium shrink-0 ${meta.badgeClass}`}>
+                        {meta.badge}
+                      </span>
+                      <span className="font-mono text-[9.5px] text-zinc-400">{meta.time}</span>
+                    </div>
                   </div>
                 );
               })}

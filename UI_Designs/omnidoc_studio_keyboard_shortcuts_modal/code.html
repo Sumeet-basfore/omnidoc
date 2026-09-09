@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500;600&amp;family=Outfit:wght@500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "on-error": "#690005",
+          "primary-fixed": "#e1e0ff",
+          "text-muted": "#9ca3af",
+          "error-container": "#93000a",
+          "tertiary-fixed": "#ffd9e4",
+          "bg-glass": "rgba(18, 22, 34, 0.75)",
+          "text-main": "#f3f4f6",
+          "on-primary-fixed": "#07006c",
+          "surface-container-highest": "#303442",
+          "inverse-surface": "#dfe2f3",
+          "on-secondary-fixed-variant": "#004e5c",
+          "accent-danger": "#ef4444",
+          "border-active": "#6366f1",
+          "on-tertiary-fixed": "#3e0022",
+          "tertiary-container": "#f751a1",
+          "secondary-fixed-dim": "#4cd7f6",
+          "on-tertiary-container": "#570032",
+          "on-secondary-fixed": "#001f26",
+          "surface-container": "#1b1f2c",
+          "on-secondary": "#003640",
+          "surface-tint": "#c0c1ff",
+          "on-background": "#dfe2f3",
+          "on-tertiary": "#640039",
+          "on-surface-variant": "#c7c4d7",
+          "bg-glass-hover": "rgba(26, 32, 48, 0.85)",
+          "on-primary-fixed-variant": "#2f2ebe",
+          "surface-container-low": "#171b27",
+          "on-primary": "#1000a9",
+          "surface-container-lowest": "#0a0e19",
+          "on-secondary-container": "#00424e",
+          "text-dim": "#6b7280",
+          "tertiary": "#ffb0cd",
+          "primary-fixed-dim": "#c0c1ff",
+          "primary": "#c0c1ff",
+          "on-surface": "#dfe2f3",
+          "accent-warning": "#f59e0b",
+          "background": "#0f131f",
+          "on-tertiary-fixed-variant": "#8c0053",
+          "inverse-primary": "#494bd6",
+          "surface-variant": "#303442",
+          "on-primary-container": "#0d0096",
+          "surface-container-high": "#262a36",
+          "secondary-container": "#03b5d3",
+          "tertiary-fixed-dim": "#ffb0cd",
+          "bg-surface": "#121622",
+          "error": "#ffb4ab",
+          "bg-elevated": "#1a2030",
+          "bg-base": "#0a0c12",
+          "secondary-fixed": "#acedff",
+          "outline-variant": "#464554",
+          "surface-bright": "#353946",
+          "text-accent": "#818cf8",
+          "primary-container": "#8083ff",
+          "secondary": "#4cd7f6",
+          "border-subtle": "rgba(255, 255, 255, 0.08)",
+          "surface-dim": "#0f131f",
+          "accent-success": "#10b981",
+          "on-error-container": "#ffdad6",
+          "outline": "#908fa0",
+          "surface": "#0f131f",
+          "inverse-on-surface": "#2c303d",
+          "border-medium": "rgba(255, 255, 255, 0.15)"
+        },
+        "borderRadius": {
+          "DEFAULT": "0.25rem",
+          "lg": "0.5rem",
+          "xl": "0.75rem",
+          "full": "9999px"
+        },
+        "spacing": {
+          "topbar-height": "48px",
+          "space-2xl": "24px",
+          "drawer-width-default": "380px",
+          "sidebar-collapsed-width": "56px",
+          "sidebar-width": "260px",
+          "drawer-width-min": "280px",
+          "space-sm": "8px",
+          "space-lg": "16px",
+          "space-4xl": "48px",
+          "tabbar-height": "36px",
+          "space-xs": "4px",
+          "space-2xs": "2px",
+          "space-xl": "20px",
+          "space-md": "12px",
+          "drawer-width-max": "720px",
+          "space-3xl": "32px"
+        },
+        "fontFamily": {
+          "label-md": [
+            "Inter"
+          ],
+          "headline-md": [
+            "Outfit"
+          ],
+          "code-sm": [
+            "JetBrains Mono"
+          ],
+          "body-md": [
+            "Inter"
+          ],
+          "headline-lg": [
+            "Outfit"
+          ],
+          "badge-mono": [
+            "JetBrains Mono"
+          ],
+          "headline-sm": [
+            "Outfit"
+          ],
+          "body-sm": [
+            "Inter"
+          ],
+          "label-sm": [
+            "Inter"
+          ],
+          "headline-xl": [
+            "Outfit"
+          ],
+          "body-lg": [
+            "Inter"
+          ],
+          "code-md": [
+            "JetBrains Mono"
+          ]
+        },
+        "fontSize": {
+          "label-md": [
+            "12px",
+            {
+              "lineHeight": "16px",
+              "letterSpacing": "0.02em",
+              "fontWeight": "500"
+            }
+          ],
+          "headline-md": [
+            "20px",
+            {
+              "lineHeight": "28px",
+              "letterSpacing": "-0.015em",
+              "fontWeight": "600"
+            }
+          ],
+          "code-sm": [
+            "12px",
+            {
+              "lineHeight": "18px",
+              "fontWeight": "400"
+            }
+          ],
+          "body-md": [
+            "14px",
+            {
+              "lineHeight": "22px",
+              "fontWeight": "400"
+            }
+          ],
+          "headline-lg": [
+            "24px",
+            {
+              "lineHeight": "32px",
+              "letterSpacing": "-0.02em",
+              "fontWeight": "600"
+            }
+          ],
+          "badge-mono": [
+            "10px",
+            {
+              "lineHeight": "12px",
+              "letterSpacing": "0.05em",
+              "fontWeight": "600"
+            }
+          ],
+          "headline-sm": [
+            "18px",
+            {
+              "lineHeight": "26px",
+              "letterSpacing": "-0.01em",
+              "fontWeight": "500"
+            }
+          ],
+          "body-sm": [
+            "13px",
+            {
+              "lineHeight": "18px",
+              "fontWeight": "400"
+            }
+          ],
+          "label-sm": [
+            "11px",
+            {
+              "lineHeight": "14px",
+              "letterSpacing": "0.04em",
+              "fontWeight": "600"
+            }
+          ],
+          "headline-xl": [
+            "30px",
+            {
+              "lineHeight": "38px",
+              "letterSpacing": "-0.025em",
+              "fontWeight": "600"
+            }
+          ],
+          "body-lg": [
+            "16px",
+            {
+              "lineHeight": "26px",
+              "fontWeight": "400"
+            }
+          ],
+          "code-md": [
+            "13px",
+            {
+              "lineHeight": "20px",
+              "fontWeight": "400"
+            }
+          ]
+        }
+      },
+    },
+  }</script></head><body class="bg-background font-body-md text-on-surface select-none"><header class="fixed top-0 left-0 right-0 z-50 flex flex-col bg-surface-container-lowest/90 backdrop-blur-xl"><div class="h-[48px] px-space-md flex items-center justify-between gap-space-md shadow-[0_1px_8px_rgba(0,0,0,0.25)]"><div class="flex items-center gap-space-md shrink-0"><div class="flex items-center gap-1.5 mr-space-xs"><span class="w-3 h-3 rounded-full bg-accent-danger/80 block"></span><span class="w-3 h-3 rounded-full bg-accent-warning/80 block"></span><span class="w-3 h-3 rounded-full bg-accent-success/80 block"></span></div><button aria-label="Toggle Sidebar" class="w-7 h-7 rounded flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" type="button"><span class="material-symbols-outlined text-[18px]">dock_to_left</span></button><div class="flex items-center gap-space-xs px-2 py-0.5 rounded bg-primary-container/20"><span class="font-headline-sm text-headline-sm font-bold bg-gradient-to-br from-primary via-secondary to-tertiary bg-clip-text text-transparent leading-none">OD</span><span class="font-badge-mono text-badge-mono text-secondary uppercase tracking-wider">v2.0</span></div><div class="h-4 w-[1px] bg-outline-variant/30 hidden sm:block"></div><div class="hidden sm:flex items-center gap-space-xs"><span class="font-badge-mono text-badge-mono px-1.5 py-0.5 rounded bg-secondary/15 text-secondary">MD</span><span class="font-code-sm text-code-sm text-on-surface truncate max-w-[180px]">Product_Roadmap.md</span></div></div><div class="flex-1 max-w-[420px] mx-space-sm"><button class="w-full h-8 px-space-md rounded-lg bg-surface-container-low/80 hover:bg-surface-container hover:text-on-surface text-on-surface-variant flex items-center justify-between shadow-[0_1px_4px_rgba(0,0,0,0.2)] transition-colors" type="button"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[16px]">search</span><span class="font-body-sm text-body-sm text-on-surface-variant">Search or command...</span></div><kbd class="font-badge-mono text-badge-mono px-1.5 py-0.5 rounded bg-surface-container-highest text-on-surface-variant">⌘K</kbd></button></div><div class="flex items-center gap-space-xs shrink-0"><button aria-label="Save Document" class="w-7 h-7 rounded flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" type="button"><span class="material-symbols-outlined text-[18px]">save</span></button><button aria-label="Export Document" class="w-7 h-7 rounded flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" type="button"><span class="material-symbols-outlined text-[18px]">ios_share</span></button><div class="hidden md:flex items-center gap-1.5 px-2 py-1 rounded bg-surface-container text-on-surface-variant font-label-sm text-label-sm"><span class="material-symbols-outlined text-secondary text-[16px]">memory</span><span>Google Gemini</span></div><button aria-label="Studio Settings" class="w-7 h-7 rounded flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" type="button"><span class="material-symbols-outlined text-[18px]">settings</span></button><button class="flex items-center gap-1 px-2.5 py-1 rounded-full bg-gradient-to-r from-primary-container to-tertiary-container hover:from-primary hover:to-tertiary text-on-primary font-label-sm text-label-sm shadow-[0_0_12px_rgba(99,102,241,0.35)] transition-all" type="button"><span class="material-symbols-outlined text-[15px]">auto_awesome</span><span>AI Friend</span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center ml-space-xs"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div><div class="h-[36px] px-space-md flex items-center gap-space-xs bg-surface-container-lowest"><div class="flex items-center gap-space-xs overflow-x-auto h-full"><div class="h-full px-space-md flex items-center gap-space-xs bg-surface-container-low rounded-t-lg shadow-[inset_0_2px_0_#6366f1] text-on-surface shrink-0"><span class="material-symbols-outlined text-secondary text-[16px]">description</span><span class="font-label-md text-label-md">Product_Roadmap.md</span><span class="w-2 h-2 rounded-full bg-accent-warning shrink-0"></span></div><div class="h-full px-space-md flex items-center gap-space-xs text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low/50 rounded-t-lg transition-colors shrink-0"><span class="material-symbols-outlined text-error text-[16px]">picture_as_pdf</span><span class="font-label-md text-label-md">Spec_Architecture.pdf</span></div><div class="h-full px-space-md flex items-center gap-space-xs text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low/50 rounded-t-lg transition-colors shrink-0"><span class="material-symbols-outlined text-primary text-[16px]">article</span><span class="font-label-md text-label-md">API_Guidelines.docx</span></div><div class="h-full px-space-md flex items-center gap-space-xs text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low/50 rounded-t-lg transition-colors shrink-0"><span class="material-symbols-outlined text-accent-success text-[16px]">table_chart</span><span class="font-label-md text-label-md">Benchmark_Metrics.csv</span></div></div><button aria-label="New Workspace Tab" class="w-6 h-6 rounded flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors ml-1" type="button"><span class="material-symbols-outlined text-[16px]">add</span></button></div></header><aside class="fixed left-0 top-[84px] bottom-0 w-64 bg-surface-container-lowest z-40 flex flex-col p-space-md shadow-[0_1px_8px_rgba(0,0,0,0.3)]"><div class="flex items-center justify-between px-space-xs mb-space-md"><span class="font-label-sm text-label-sm uppercase tracking-wider text-text-dim">Explorer &amp; Tools</span><span class="material-symbols-outlined text-on-surface-variant text-[16px]">tune</span></div><nav class="flex-1 flex flex-col gap-1" data-active-classes="bg-surface-container-high text-on-surface font-semibold rounded-lg"><a aria-current="page" class="flex items-center px-3 py-2 transition-colors bg-surface-container-high text-on-surface font-semibold rounded-lg" data-path="document-editor" href="#"><span class="material-symbols-outlined mr-3 text-[18px]">edit_document</span>Document Editor</a><a class="flex items-center px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-body-sm text-body-sm" data-path="multi-format-viewer" href="#"><span class="material-symbols-outlined mr-3 text-[18px]">preview</span>Multi-Format Viewer</a><a class="flex items-center px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-body-sm text-body-sm" data-path="ai-research-studio" href="#"><span class="material-symbols-outlined mr-3 text-[18px]">psychology</span>AI Research Studio</a><a class="flex items-center px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-body-sm text-body-sm" data-path="file-explorer" href="#"><span class="material-symbols-outlined mr-3 text-[18px]">folder_open</span>File Explorer</a><a class="flex items-center px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-body-sm text-body-sm" data-path="knowledge-graph" href="#"><span class="material-symbols-outlined mr-3 text-[18px]">hub</span>Knowledge Graph</a><a class="flex items-center px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-body-sm text-body-sm" data-path="version-history" href="#"><span class="material-symbols-outlined mr-3 text-[18px]">history</span>Version History</a></nav><div class="mt-auto pt-space-md flex flex-col gap-2"><div class="p-space-sm rounded-lg bg-surface-container-low flex items-center justify-between"><div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-accent-success"></span><span class="font-code-sm text-code-sm text-on-surface">Studio Sync Active</span></div><span class="font-badge-mono text-badge-mono text-text-dim">ONLINE</span></div></div></aside><div class="pl-64"><main class="relative pt-[84px] bg-surface min-h-screen w-full px-8"><div class="flex flex-col w-full">
+<div class="relative w-full flex items-center justify-center p-space-sm sm:p-space-lg lg:p-space-2xl min-h-[calc(100vh-100px)]">
+<!-- Background Workspace Preview (Immersive Glimpse of OmniDoc Studio behind Scrim) -->
+<div class="absolute inset-0 pointer-events-none select-none opacity-40 overflow-hidden flex flex-col gap-space-lg p-space-lg">
+<div class="flex items-center justify-between bg-surface-container-low rounded-xl p-space-md shadow-md">
+<div class="flex items-center gap-space-md">
+<div class="w-2.5 h-2.5 rounded-full bg-accent-danger"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-accent-warning"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-accent-success"></div>
+<span class="font-code-sm text-code-sm text-on-surface-variant">OmniDoc_Kernel_v2.4.ts</span>
+</div>
+<div class="flex items-center gap-space-sm">
+<span class="font-badge-mono text-badge-mono px-space-sm py-0.5 rounded bg-primary/15 text-primary">SYNC_OK</span>
+<span class="font-code-sm text-code-sm text-text-dim">UTF-8 • TSX</span>
+</div>
+</div>
+<div class="grid grid-cols-12 gap-space-md flex-1">
+<div class="col-span-3 bg-surface-container-lowest rounded-xl p-space-md flex flex-col gap-space-sm">
+<div class="h-3 w-28 bg-surface-container-highest rounded"></div>
+<div class="h-3 w-40 bg-surface-container-high rounded"></div>
+<div class="h-3 w-32 bg-surface-container-high rounded"></div>
+<div class="h-3 w-44 bg-surface-container-high rounded"></div>
+</div>
+<div class="col-span-9 bg-surface-container rounded-xl p-space-lg flex flex-col gap-space-md">
+<div class="h-4 w-3/4 bg-surface-container-highest rounded"></div>
+<div class="h-4 w-1/2 bg-surface-container-high rounded"></div>
+<div class="h-28 w-full bg-surface-container-low rounded-lg"></div>
+<div class="grid grid-cols-3 gap-space-sm">
+<div class="h-16 bg-surface-container-high rounded"></div>
+<div class="h-16 bg-surface-container-high rounded"></div>
+<div class="h-16 bg-surface-container-high rounded"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Scrim Overlay Backdrop -->
+<div class="absolute inset-0 bg-surface-container-lowest/85 backdrop-blur-md"></div>
+<!-- Ambient Neon Cyber Glow Orbs -->
+<div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[640px] h-[220px] bg-gradient-to-r from-primary/20 via-secondary/15 to-tertiary/15 blur-3xl pointer-events-none"></div>
+<!-- Main Modal Window -->
+<div class="relative z-10 w-full max-w-[840px] max-h-[85vh] sm:max-h-[640px] flex flex-col rounded-2xl bg-surface-container-low/95 backdrop-blur-2xl shadow-2xl overflow-hidden transition-all duration-300" id="shortcuts-modal">
+<!-- Top Neon Borderline Accent Gradient -->
+<div class="h-[2px] w-full bg-gradient-to-r from-secondary via-primary to-tertiary"></div>
+<!-- Modal Header -->
+<div class="px-space-xl pt-space-lg pb-space-md bg-surface-container flex flex-col gap-space-md">
+<div class="flex items-center justify-between gap-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center text-primary shadow-inner">
+<span class="material-symbols-outlined text-[20px]">keyboard</span>
+</div>
+<div>
+<div class="flex items-center gap-space-sm">
+<h2 class="font-headline-sm text-headline-sm text-text-main font-semibold tracking-tight">Keyboard Shortcuts &amp; Hotkeys</h2>
+<span class="font-badge-mono text-badge-mono px-2 py-0.5 rounded-full bg-primary-container/20 text-primary uppercase">Cheat Sheet</span>
+</div>
+<p class="font-body-sm text-body-sm text-text-muted mt-0.5">High-velocity command maps for OmniDoc Studio technical workbench</p>
+</div>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="hidden sm:inline-flex items-center px-2 py-1 rounded bg-surface-container-high text-on-surface-variant font-code-sm text-code-sm">
+              Esc to close
+            </span>
+<button aria-label="Close shortcuts modal" class="w-8 h-8 rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-on-surface-variant hover:text-text-main flex items-center justify-center transition-colors" id="close-modal-icon" type="button">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+</div>
+<!-- Quick Filter Input Box -->
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[18px] text-text-dim">search</span>
+<input class="w-full h-10 pl-10 pr-24 rounded-lg bg-surface-container-lowest text-text-main placeholder:text-text-dim font-body-sm text-body-sm focus:outline-none focus:bg-surface-container-high/60 transition-all shadow-inner" id="shortcut-search" placeholder="Filter shortcuts... (e.g., ai, markdown, navigation, split)" type="text"/>
+<div class="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
+<kbd class="font-badge-mono text-badge-mono px-1.5 py-0.5 rounded bg-surface-container-high text-text-muted">⌘ /</kbd>
+<span class="hidden cursor-pointer font-badge-mono text-badge-mono px-1.5 py-0.5 rounded bg-surface-container-highest text-text-main hover:bg-primary hover:text-on-primary" id="clear-search-btn">✕</span>
+</div>
+</div>
+<!-- Filter Category Tabs -->
+<div class="flex items-center gap-1.5 overflow-x-auto pt-space-2xs pb-space-2xs scrollbar-none">
+<button class="cat-pill px-3 py-1 rounded-full font-label-sm text-label-sm whitespace-nowrap bg-primary-container text-on-primary font-semibold shadow-sm transition-all" data-category="all">
+            All Shortcuts
+          </button>
+<button class="cat-pill px-3 py-1 rounded-full font-label-sm text-label-sm whitespace-nowrap bg-surface-container-high text-on-surface-variant hover:text-text-main hover:bg-surface-container-highest transition-all" data-category="general">
+            General &amp; Navigation
+          </button>
+<button class="cat-pill px-3 py-1 rounded-full font-label-sm text-label-sm whitespace-nowrap bg-surface-container-high text-on-surface-variant hover:text-text-main hover:bg-surface-container-highest transition-all" data-category="editor">
+            Document Editor
+          </button>
+<button class="cat-pill px-3 py-1 rounded-full font-label-sm text-label-sm whitespace-nowrap bg-surface-container-high text-on-surface-variant hover:text-text-main hover:bg-surface-container-highest transition-all" data-category="ai">
+            AI &amp; Research
+          </button>
+<button class="cat-pill px-3 py-1 rounded-full font-label-sm text-label-sm whitespace-nowrap bg-surface-container-high text-on-surface-variant hover:text-text-main hover:bg-surface-container-highest transition-all" data-category="viewport">
+            Multi-Format Viewports
+          </button>
+</div>
+</div>
+<!-- Modal Body (Two-Column Interactive Catalog) -->
+<div class="flex-1 overflow-y-auto px-space-xl py-space-lg grid grid-cols-1 md:grid-cols-2 gap-space-lg bg-surface-container-lowest/80" id="shortcuts-grid">
+<!-- Category: General & Navigation -->
+<div class="shortcut-category flex flex-col gap-space-sm" data-section="general">
+<div class="flex items-center justify-between pb-space-xs">
+<div class="flex items-center gap-2">
+<span class="w-1.5 h-3 rounded-full bg-secondary"></span>
+<span class="font-headline-sm text-[15px] font-semibold text-text-main uppercase tracking-wider">General &amp; Navigation</span>
+</div>
+<span class="font-badge-mono text-badge-mono px-2 py-0.5 rounded bg-surface-container text-secondary">GLOBAL</span>
+</div>
+<div class="flex flex-col gap-1.5">
+<div class="shortcut-row flex items-center justify-between p-2 rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors" data-tags="command palette search general k">
+<div class="flex items-center gap-2 min-w-0 pr-2">
+<span class="material-symbols-outlined text-[16px] text-secondary shrink-0">terminal</span>
+<span class="font-body-sm text-body-sm text-text-main truncate">Command Palette</span>
+</div>
+<div class="flex items-center gap-1 shrink-0">
+<kbd class="font-code-sm text-code-sm px-2 py-1 rounded bg-surface-container-high text-secondary shadow-sm">⌘</kbd>
+<kbd class="font-code-sm text-code-sm px-2 py-1 rounded bg-surface-container-high text-secondary shadow-sm">K</kbd>
+</div>
+</div>
+<div class="shortcut-row flex items-center justify-between p-2 rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors" data-tags="keyboard shortcuts hotkeys help slash">
+<div class="flex items-center gap-2 min-w-0 pr-2">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant shrink-0">keyboard</span>
+<span class="font-body-sm text-body-sm text-text-main truncate">Keyboard Shortcuts Cheat Sheet</span>
+</div>
+<div class="flex items-center gap-1 shrink-0">
+<kbd class="font-code-sm text-code-sm px-2 py-1 rounded bg-surface-container-high text-primary shadow-sm">⌘</kbd>
+<kbd class="font-code-sm text-code-sm px-2 py-1 rounded bg-surface-container-high text-primary shadow-sm">/</kbd>
+</div>
+</div>
+<div class="shortcut-row flex items-center justify-between p-2 rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors" data-tags="quick open file explorer o">
+<div class="flex items-center gap-2 min-w-0 pr-2">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant shrink-0">file_open</span>
+<span class="font-body-sm text-body-sm text-text-main truncate">Quick Open File</span>
+</div>
+<div class="flex items-center gap-1 shrink-0">
+<kbd class="font-code-sm text-code-sm px-2 py-1 rounded bg-surface-container-high text-on-surface-variant shadow-sm">⌘</kbd>
+<kbd class="font-code-sm text-code-sm px-2 py-1 rounded bg-surface-container-high text-on-surface-variant shadow-sm">O</kbd>
+</div>
+</div>
+<div class="shortcut-row flex items-center justify-between p-2 rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors" data-tags="toggle sidebar explorer drawer hide b">
+<div class="flex items-center gap-2 min-w-0 pr-2">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant shrink-0">dock_to_left</span>
+<span class="font-body-sm text-body-sm text-text-main truncate">Toggle Sidebar &amp; Explorer</span>
+</div>
+<div class="flex items-center gap-1 shrink-0">
+<kbd class="font-code-sm text-code-sm px-2 py-1 rounded bg-surface-container-high text-on-surface-variant shadow-sm">⌘</kbd>
+<kbd class="font-code-sm text-code-sm px-2 py-1 rounded bg-surface-container-high text-on-surface-variant shadow-sm">B</kbd>
+</div>
+</div>
+<div class="shortcut-row flex items-center justify-between p-2 rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors" data-tags="toggle ai companion chat flyout panel j">
+<div class="flex items-center gap-2 min-w-0 pr-2">
+<span class="material-symbols-outlined text-[16px] text-tertiary shrink-0">auto_awesome</span>
+<span class="font-body-sm text-body-sm text-text-main truncate">Toggle AI Companion Drawer</span>
+</div>
+<div class="flex items-center gap-1 shrink-0">
+<kbd class="font-code-sm text-code-sm px-2 py-1 rounded bg-surface-container-high text-tertiary shadow-sm">⌘</kbd>
+<kbd class="font-code-sm text-code-sm px-2 py-1 rounded bg-surface-container-high text-tertiary shadow-sm">J</kbd>
+</div>
+</div>
+<div class="shortcut-row flex items-center justify-between p-2 rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors" data-tags="global settings preferences comma config">
+<div class="flex items-center gap-2 min-w-0 pr-2">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant shrink-0">settings</span>
+<span class="font-body-sm text-body-sm text-text-main truncate">Studio Settings</span>
+</div>
+<div class="flex items-center gap-1 shrink-0">
+<kbd class="font-code-sm text-code-sm px-2 py-1 rounded bg-surface-container-high text-on-surface-variant shadow-sm">⌘</kbd>
+<kbd class="font-code-sm text-code-sm px-2 py-1 rounded bg-surface-container-high text-on-surface-variant shadow-sm">,</kbd>
+</div>
+</div>
+<div class="shortcut-row flex items-center justify-between p-2 rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors" data-tags="close active tab modal window esc w">
+<div class="flex items-center gap-2 min-w-0 pr-2">
+<span class="material-symbols-outlined text-[16px] text-accent-danger shrink-0">tab_close</span>
+<span class="font-body-sm text-body-sm text-text-main truncate">Close Active Tab / Dismiss Modal</span>
+</div>
+<div class="flex items-center gap-1 shrink-0">
+<kbd class="font-code-sm text-code-sm px-2 py-1 rounded bg-surface-container-high text-text-muted shadow-sm">⌘</kbd>
+<kbd class="font-code-sm text-code-sm px-2 py-1 rounded bg-surface-container-high text-text-muted shadow-sm">W</kbd>
+<span class="font-body-sm text-text-dim">/</span>
+<kbd class="font-code-sm text-code-sm px-2 py-1 rounded bg-surface-container-high text-text-muted shadow-sm">Esc</kbd>
+</div>
+</div>
+</div>
+</div>
+<!-- Category: Document Editor & Formatting -->
+<div class="shortcut-category flex flex-col gap-space-sm" data-section="editor">
+<div class="flex items-center justify-between pb-space-xs">
+<div class="flex items-center gap-2">
+<span class="w-1.5 h-3 rounded-full bg-primary"></span>
+<span class="font-headline-sm text-[15px] font-semibold text-text-main uppercase tracking-wider">Document Editor</span>
+</div>
+<span class="font-badge-mono text-badge-mono px-2 py-0.5 rounded bg-surface-container text-primary">CANVAS</span>
+</div>
+<div class="flex flex-col gap-1.5">
+<div class="shortcut-row flex items-center justify-between p-2 rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors" data-tags="save document snapshot disk s">
+<div class="flex items-center gap-2 min-w-0 pr-2">
+<span class="material-symbols-outlined text-[16px] text-accent-success shrink-0">save</span>
+<span class="font-body-sm text-body-sm text-text-main truncate">Save Document Snapshot</span>
+</div>
+<div class="flex items-center gap-1 shrink-0">
+<kbd class="font-code-sm text-code-sm px-2 py-1 rounded bg-surface-container-high text-accent-success shadow-sm">⌘</kbd>
+<kbd class="font-code-sm text-code-sm px-2 py-1 rounded bg-surface-container-high text-accent-success shadow-sm">S</kbd>
+</div>
+</div>
+<div class="shortcut-row flex items-center justify-between p-2 rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors" data-tags="format code prettier markdown document f">
+<div class="flex items-center gap-2 min-w-0 pr-2">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant shrink-0">code_blocks</span>
+<span class="font-body-sm text-body-sm text-text-main truncate">Format Markdown / Code</span>
+</div>
+<div class="flex items-center gap-1 shrink-0">
+<kbd class="font-code-sm text-code-sm px-2 py-1 rounded bg-surface-container-high text-on-surface-variant shadow-sm">⇧</kbd>
+<kbd class="font-code-sm text-code-sm px-2 py-1 rounded bg-surface-container-high text-on-surface-variant shadow-sm">⌥</kbd>
+<kbd class="font-code-sm text-code-sm px-2 py-1 rounded bg-surface-container-high text-on-surface-variant shadow-sm">F</kbd>
+</div>
+</div>
+<div class="shortcut-row flex items-center justify-between p-2 rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors" data-tags="split view dual pane column side by side">
+<div class="flex items-center gap-2 min-w-0 pr-2">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant shrink-0">view_column</span>
+<span class="font-body-sm text-body-sm text-text-main truncate">Dual-Pane Split View Toggle</span>
+</div>
+<div class="flex items-center gap-1 shrink-0">
+<kbd class="font-code-sm text-code-sm px-2 py-1 rounded bg-surface-container-high text-on-surface-variant shadow-sm">⌘</kbd>
+<kbd class="font-code-sm text-code-sm px-2 py-1 rounded bg-surface-container-high text-on-surface-variant shadow-sm">\</kbd>
+</div>
+</div>
+<div class="shortcut-row flex items-center justify-between p-2 rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors" data-tags="inline ai prompt assistant cursor generate i">
+<div class="flex items-center gap-2 min-w-0 pr-2">
+<span class="material-symbols-outlined text-[16px] text-primary shrink-0">psychology</span>
+<span class="font-body-sm text-body-sm text-text-main truncate">Inline AI Prompt Assistant</span>
+</div>
+<div class="flex items-center gap-1 shrink-0">
+<kbd class="font-code-sm text-code-sm px-2 py-1 rounded bg-surface-container-high text-primary shadow-sm">⌘</kbd>
+<kbd class="font-code-sm text-code-sm px-2 py-1 rounded bg-surface-container-high text-primary shadow-sm">I</kbd>
+</div>
+</div>
+<div class="shortcut-row flex items-center justify-between p-2 rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors" data-tags="bold italic code inline text formatting markdown">
+<div class="flex items-center gap-2 min-w-0 pr-2">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant shrink-0">format_bold</span>
+<span class="font-body-sm text-body-sm text-text-main truncate">Bold / Italic / Inline Code</span>
+</div>
+<div class="flex items-center gap-1 shrink-0">
+<kbd class="font-code-sm text-code-sm px-1.5 py-1 rounded bg-surface-container-high text-on-surface-variant shadow-sm">⌘B</kbd>
+<kbd class="font-code-sm text-code-sm px-1.5 py-1 rounded bg-surface-container-high text-on-surface-variant shadow-sm">⌘I</kbd>
+<kbd class="font-code-sm text-code-sm px-1.5 py-1 rounded bg-surface-container-high text-on-surface-variant shadow-sm">⌘`</kbd>
+</div>
+</div>
+<div class="shortcut-row flex items-center justify-between p-2 rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors" data-tags="katex math latex equation formula block m">
+<div class="flex items-center gap-2 min-w-0 pr-2">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant shrink-0">functions</span>
+<span class="font-body-sm text-body-sm text-text-main truncate">Toggle KaTeX Math Block</span>
+</div>
+<div class="flex items-center gap-1 shrink-0">
+<kbd class="font-code-sm text-code-sm px-2 py-1 rounded bg-surface-container-high text-on-surface-variant shadow-sm">⌥</kbd>
+<kbd class="font-code-sm text-code-sm px-2 py-1 rounded bg-surface-container-high text-on-surface-variant shadow-sm">⇧</kbd>
+<kbd class="font-code-sm text-code-sm px-2 py-1 rounded bg-surface-container-high text-on-surface-variant shadow-sm">M</kbd>
+</div>
+</div>
+<div class="shortcut-row flex items-center justify-between p-2 rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors" data-tags="find document search replace match regex f">
+<div class="flex items-center gap-2 min-w-0 pr-2">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant shrink-0">find_replace</span>
+<span class="font-body-sm text-body-sm text-text-main truncate">Find / Replace in Canvas</span>
+</div>
+<div class="flex items-center gap-1 shrink-0">
+<kbd class="font-code-sm text-code-sm px-2 py-1 rounded bg-surface-container-high text-on-surface-variant shadow-sm">⌘</kbd>
+<kbd class="font-code-sm text-code-sm px-2 py-1 rounded bg-surface-container-high text-on-surface-variant shadow-sm">F</kbd>
+<span class="font-body-sm text-text-dim">/</span>
+<kbd class="font-code-sm text-code-sm px-1.5 py-1 rounded bg-surface-container-high text-text-muted shadow-sm">⌥⌘F</kbd>
+</div>
+</div>
+</div>
+</div>
+<!-- Category: AI & Research -->
+<div class="shortcut-category flex flex-col gap-space-sm" data-section="ai">
+<div class="flex items-center justify-between pb-space-xs">
+<div class="flex items-center gap-2">
+<span class="w-1.5 h-3 rounded-full bg-tertiary"></span>
+<span class="font-headline-sm text-[15px] font-semibold text-text-main uppercase tracking-wider">AI &amp; Research Engine</span>
+</div>
+<span class="font-badge-mono text-badge-mono px-2 py-0.5 rounded bg-surface-container text-tertiary">INTELLIGENCE</span>
+</div>
+<div class="flex flex-col gap-1.5">
+<div class="shortcut-row flex items-center justify-between p-2 rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors" data-tags="deep research rag agent synthesize search r">
+<div class="flex items-center gap-2 min-w-0 pr-2">
+<span class="material-symbols-outlined text-[16px] text-tertiary shrink-0">travel_explore</span>
+<span class="font-body-sm text-body-sm text-text-main truncate">Trigger Deep Web &amp; Vector Research</span>
+</div>
+<div class="flex items-center gap-1 shrink-0">
+<kbd class="font-code-sm text-code-sm px-2 py-1 rounded bg-surface-container-high text-tertiary shadow-sm">⇧</kbd>
+<kbd class="font-code-sm text-code-sm px-2 py-1 rounded bg-surface-container-high text-tertiary shadow-sm">⌘</kbd>
+<kbd class="font-code-sm text-code-sm px-2 py-1 rounded bg-surface-container-high text-tertiary shadow-sm">R</kbd>
+</div>
+</div>
+<div class="shortcut-row flex items-center justify-between p-2 rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors" data-tags="accept ai suggestion diff inline autocomplete enter tab">
+<div class="flex items-center gap-2 min-w-0 pr-2">
+<span class="material-symbols-outlined text-[16px] text-accent-success shrink-0">done_all</span>
+<span class="font-body-sm text-body-sm text-text-main truncate">Accept AI Suggestion / Diff</span>
+</div>
+<div class="flex items-center gap-1 shrink-0">
+<kbd class="font-code-sm text-code-sm px-2 py-1 rounded bg-surface-container-high text-accent-success shadow-sm">Tab</kbd>
+<span class="font-body-sm text-text-dim">/</span>
+<kbd class="font-code-sm text-code-sm px-2 py-1 rounded bg-surface-container-high text-accent-success shadow-sm">⌘ ↵</kbd>
+</div>
+</div>
+<div class="shortcut-row flex items-center justify-between p-2 rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors" data-tags="synthesize batch annotations summarize citations notes a">
+<div class="flex items-center gap-2 min-w-0 pr-2">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant shrink-0">auto_stories</span>
+<span class="font-body-sm text-body-sm text-text-main truncate">Batch Synthesize Annotations</span>
+</div>
+<div class="flex items-center gap-1 shrink-0">
+<kbd class="font-code-sm text-code-sm px-2 py-1 rounded bg-surface-container-high text-on-surface-variant shadow-sm">⌥</kbd>
+<kbd class="font-code-sm text-code-sm px-2 py-1 rounded bg-surface-container-high text-on-surface-variant shadow-sm">⌘</kbd>
+<kbd class="font-code-sm text-code-sm px-2 py-1 rounded bg-surface-container-high text-on-surface-variant shadow-sm">A</kbd>
+</div>
+</div>
+</div>
+</div>
+<!-- Category: Multi-Format Viewports -->
+<div class="shortcut-category flex flex-col gap-space-sm" data-section="viewport">
+<div class="flex items-center justify-between pb-space-xs">
+<div class="flex items-center gap-2">
+<span class="w-1.5 h-3 rounded-full bg-accent-warning"></span>
+<span class="font-headline-sm text-[15px] font-semibold text-text-main uppercase tracking-wider">Multi-Format Viewports</span>
+</div>
+<span class="font-badge-mono text-badge-mono px-2 py-0.5 rounded bg-surface-container text-accent-warning">EXTRACT</span>
+</div>
+<div class="flex flex-col gap-1.5">
+<div class="shortcut-row flex items-center justify-between p-2 rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors" data-tags="pdf extract markdown ocr convert e">
+<div class="flex items-center gap-2 min-w-0 pr-2">
+<span class="material-symbols-outlined text-[16px] text-accent-danger shrink-0">picture_as_pdf</span>
+<span class="font-body-sm text-body-sm text-text-main truncate">PDF Extract to Markdown &amp; Math</span>
+</div>
+<div class="flex items-center gap-1 shrink-0">
+<kbd class="font-code-sm text-code-sm px-2 py-1 rounded bg-surface-container-high text-on-surface-variant shadow-sm">⇧</kbd>
+<kbd class="font-code-sm text-code-sm px-2 py-1 rounded bg-surface-container-high text-on-surface-variant shadow-sm">⌘</kbd>
+<kbd class="font-code-sm text-code-sm px-2 py-1 rounded bg-surface-container-high text-accent-warning shadow-sm">E</kbd>
+</div>
+</div>
+<div class="shortcut-row flex items-center justify-between p-2 rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors" data-tags="data grid raw visual csv table sheets g">
+<div class="flex items-center gap-2 min-w-0 pr-2">
+<span class="material-symbols-outlined text-[16px] text-accent-success shrink-0">table_chart</span>
+<span class="font-body-sm text-body-sm text-text-main truncate">Toggle Data Grid Raw / Visual</span>
+</div>
+<div class="flex items-center gap-1 shrink-0">
+<kbd class="font-code-sm text-code-sm px-2 py-1 rounded bg-surface-container-high text-on-surface-variant shadow-sm">⌘</kbd>
+<kbd class="font-code-sm text-code-sm px-2 py-1 rounded bg-surface-container-high text-accent-success shadow-sm">G</kbd>
+</div>
+</div>
+<div class="shortcut-row flex items-center justify-between p-2 rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors" data-tags="run code snippet benchmark execute repl terminal enter">
+<div class="flex items-center gap-2 min-w-0 pr-2">
+<span class="material-symbols-outlined text-[16px] text-secondary shrink-0">play_circle</span>
+<span class="font-body-sm text-body-sm text-text-main truncate">Run Code Snippet / Benchmark</span>
+</div>
+<div class="flex items-center gap-1 shrink-0">
+<kbd class="font-code-sm text-code-sm px-2 py-1 rounded bg-surface-container-high text-secondary shadow-sm">⇧</kbd>
+<kbd class="font-code-sm text-code-sm px-2 py-1 rounded bg-surface-container-high text-secondary shadow-sm">↵</kbd>
+</div>
+</div>
+</div>
+</div>
+<!-- Empty State Filter Notice (hidden by default) -->
+<div class="col-span-1 md:col-span-2 hidden py-12 flex flex-col items-center justify-center text-center" id="no-results-state">
+<div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center text-text-dim mb-space-sm">
+<span class="material-symbols-outlined text-[24px]">search_off</span>
+</div>
+<span class="font-headline-sm text-headline-sm text-text-main font-medium">No matching shortcuts found</span>
+<p class="font-body-sm text-body-sm text-text-muted mt-1">Try querying general actions like "save", "split", "find", or "companion".</p>
+<button class="mt-4 px-3 py-1.5 rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-primary font-label-sm text-label-sm transition-colors" id="reset-filter-btn">
+            Reset Filters
+          </button>
+</div>
+</div>
+<!-- Modal Footer -->
+<div class="px-space-xl py-space-md bg-surface-container flex flex-col sm:flex-row items-center justify-between gap-space-md shadow-lg">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-[18px] text-secondary">info</span>
+<p class="font-body-sm text-body-sm text-text-muted">
+            Modifiers auto-adapt for macOS (<span class="font-code-sm text-primary">⌘, ⌥, ⇧</span>) &amp; Windows/Linux (<span class="font-code-sm text-secondary">Ctrl, Alt, Shift</span>).
+          </p>
+</div>
+<div class="flex items-center gap-space-sm w-full sm:w-auto justify-end">
+<button class="px-3.5 py-1.5 rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-label-md text-label-md transition-colors shadow-sm flex items-center gap-1.5" type="button">
+<span class="material-symbols-outlined text-[16px]">tune</span>
+<span>Customize Keybindings</span>
+</button>
+<button class="px-4 py-1.5 rounded-lg bg-primary hover:bg-primary-fixed text-on-primary font-label-md text-label-md font-semibold transition-all shadow-md flex items-center gap-1.5" id="close-modal-btn" type="button">
+<span>Close</span>
+<kbd class="font-badge-mono text-badge-mono px-1 py-0.2 rounded bg-on-primary/20 text-on-primary">ESC</kbd>
+</button>
+</div>
+</div>
+</div>
+</div>
+<script>
+    (function() {
+      const searchInput = document.getElementById('shortcut-search');
+      const clearBtn = document.getElementById('clear-search-btn');
+      const resetBtn = document.getElementById('reset-filter-btn');
+      const catPills = document.querySelectorAll('.cat-pill');
+      const rows = document.querySelectorAll('.shortcut-row');
+      const categories = document.querySelectorAll('.shortcut-category');
+      const noResults = document.getElementById('no-results-state');
+      const modal = document.getElementById('shortcuts-modal');
+      const closeBtn = document.getElementById('close-modal-btn');
+      const closeIcon = document.getElementById('close-modal-icon');
+
+      let currentCategory = 'all';
+
+      function filterShortcuts() {
+        const query = searchInput.value.toLowerCase().trim();
+        clearBtn.classList.toggle('hidden', query.length === 0);
+
+        let visibleRowCount = 0;
+
+        categories.forEach(cat => {
+          const sectionType = cat.getAttribute('data-section');
+          const matchesCategory = (currentCategory === 'all' || currentCategory === sectionType);
+
+          let sectionHasVisibleRows = false;
+
+          const catRows = cat.querySelectorAll('.shortcut-row');
+          catRows.forEach(row => {
+            const tags = row.getAttribute('data-tags') || '';
+            const textContent = row.textContent.toLowerCase();
+            const matchesQuery = query === '' || tags.includes(query) || textContent.includes(query);
+
+            if (matchesCategory && matchesQuery) {
+              row.classList.remove('hidden');
+              sectionHasVisibleRows = true;
+              visibleRowCount++;
+            } else {
+              row.classList.add('hidden');
+            }
+          });
+
+          if (sectionHasVisibleRows) {
+            cat.classList.remove('hidden');
+          } else {
+            cat.classList.add('hidden');
+          }
+        });
+
+        if (visibleRowCount === 0) {
+          noResults.classList.remove('hidden');
+        } else {
+          noResults.classList.add('hidden');
+        }
+      }
+
+      // Search input handler
+      searchInput.addEventListener('input', filterShortcuts);
+
+      // Clear search button
+      clearBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        searchInput.focus();
+        filterShortcuts();
+      });
+
+      resetBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        currentCategory = 'all';
+        catPills.forEach(p => {
+          p.classList.remove('bg-primary-container', 'text-on-primary', 'font-semibold');
+          p.classList.add('bg-surface-container-high', 'text-on-surface-variant');
+        });
+        catPills[0].classList.add('bg-primary-container', 'text-on-primary', 'font-semibold');
+        catPills[0].classList.remove('bg-surface-container-high', 'text-on-surface-variant');
+        filterShortcuts();
+      });
+
+      // Category Pill switcher
+      catPills.forEach(pill => {
+        pill.addEventListener('click', () => {
+          catPills.forEach(p => {
+            p.classList.remove('bg-primary-container', 'text-on-primary', 'font-semibold');
+            p.classList.add('bg-surface-container-high', 'text-on-surface-variant');
+          });
+          pill.classList.add('bg-primary-container', 'text-on-primary', 'font-semibold');
+          pill.classList.remove('bg-surface-container-high', 'text-on-surface-variant');
+
+          currentCategory = pill.getAttribute('data-category');
+          filterShortcuts();
+        });
+      });
+
+      // Keyboard Esc listener for dismiss simulation
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          modal.style.transform = 'scale(0.96)';
+          modal.style.opacity = '0.7';
+          setTimeout(() => {
+            modal.style.transform = 'scale(1)';
+            modal.style.opacity = '1';
+          }, 150);
+        } else if ((e.metaKey || e.ctrlKey) && e.key === '/') {
+          e.preventDefault();
+          searchInput.focus();
+          searchInput.select();
+        }
+      });
+
+      const pulseClose = () => {
+        modal.style.transform = 'scale(0.98)';
+        setTimeout(() => modal.style.transform = 'scale(1)', 120);
+      };
+
+      closeBtn.addEventListener('click', pulseClose);
+      closeIcon.addEventListener('click', pulseClose);
+    })();
+  </script>
+</div></main></div></body></html>

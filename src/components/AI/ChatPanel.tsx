@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, Sparkles, Copy, Check, Plus, AlertCircle, Trash2, Loader2 } from 'lucide-react';
+import { marked } from 'marked';
 import { useAppStore } from '../../store/useAppStore';
 import { callAI } from '../../services/aiService';
 import { keyService } from '../../services/keyService';
@@ -192,7 +193,14 @@ export const ChatPanel: React.FC = () => {
                   : 'bg-[#141927] text-zinc-200 border border-white/10 shadow-lg rounded-tl-sm'
               }`}
             >
-              <div className="whitespace-pre-wrap">{msg.content}</div>
+              {msg.role === 'assistant' ? (
+                <div
+                  className="doc-prose text-xs [&>p]:mb-2 [&>p:last-child]:mb-0 [&>ul]:list-disc [&>ul]:pl-4 [&>ol]:list-decimal [&>ol]:pl-4 [&>pre]:bg-black/50 [&>pre]:p-2.5 [&>pre]:rounded-lg [&>code]:bg-white/10 [&>code]:px-1 [&>code]:rounded overflow-x-auto"
+                  dangerouslySetInnerHTML={{ __html: marked.parse(msg.content) as string }}
+                />
+              ) : (
+                <div className="whitespace-pre-wrap">{msg.content}</div>
+              )}
 
               {msg.role === 'assistant' && (
                 <div className="flex items-center gap-2 mt-2 pt-2 border-t border-white/5 select-none">
