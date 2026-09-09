@@ -24,14 +24,24 @@ export const AICompanionDrawer: React.FC = () => {
     window.addEventListener('mouseup', onUp);
   };
 
-  const currentConfig = aiConfigs[activeProvider];
+  const currentConfig =
+    (aiConfigs && aiConfigs[activeProvider]) || {
+      id: activeProvider || 'gemini',
+      name: 'AI Companion',
+      model: 'gemini-2.0-flash',
+      temperature: 0.7
+    };
 
   if (!isAIDrawerOpen) return null;
 
+  const safeWidth = typeof drawerWidth === 'number' && !isNaN(drawerWidth) && drawerWidth >= 300
+    ? Math.min(600, drawerWidth)
+    : 380;
+
   return (
     <aside
-      style={{ width: drawerWidth }}
-      className="h-full flex flex-col border-l border-[var(--border-subtle)] bg-[var(--bg-dark-surface)] z-30 select-none shadow-2xl relative shrink-0"
+      style={{ width: `${safeWidth}px` }}
+      className="h-full flex flex-col border-l border-[var(--border-subtle)] bg-[var(--bg-dark-surface)] z-30 select-none shadow-2xl relative shrink-0 min-w-[300px] max-w-[600px]"
     >
       <div
         onMouseDown={startResize}

@@ -231,15 +231,38 @@ const anthropicDriver = (config: AIProviderConfig, apiKey: string): Driver => ({
 const geminiDriver = (config: AIProviderConfig, apiKey: string): Driver => ({
   init(history, persona, docCtx, opts) {
     const full = buildFullMessages(history, persona, docCtx, opts);
+    const systemTexts: string[] = [];
+    const conversationMessages: WireMessage[] = [];
+
+    for (const m of full) {
+      if (m.role === 'system') {
+        if (m.content.trim()) systemTexts.push(m.content.trim());
+      } else {
+        conversationMessages.push(m);
+      }
+    }
+
+    const messages: Array<{ role: string; parts: any[] }> = [];
+    for (const m of conversationMessages) {
+      const role = m.role === 'assistant' ? 'model' : 'user';
+      if (!m.content.trim()) continue;
+
+      if (messages.length > 0 && messages[messages.length - 1].role === role) {
+        messages[messages.length - 1].parts.push({ text: m.content });
+      } else {
+        messages.push({ role, parts: [{ text: m.content }] });
+      }
+    }
+
+    if (messages.length === 0) {
+      messages.push({ role: 'user', parts: [{ text: 'Hello' }] });
+    }
+
     return {
       kind: 'gemini',
       tools: AGENT_TOOLS.filter((t) => PERSONA_DEFAULTS[persona].tools.includes(t.name)),
-      messages: full.map((m) => ({
-        role: m.role === 'assistant' ? 'model' : 'user',
-        parts: [
-          { text: m.role === 'system' ? `[System Instructions / Context]\n${m.content}` : m.content }
-        ]
-      }))
+      system: systemTexts.join('\n\n'),
+      messages
     };
   },
   async step(t: any, allowTools, userSignal) {
@@ -248,28 +271,30 @@ const geminiDriver = (config: AIProviderConfig, apiKey: string): Driver => ({
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
     const { signal, done } = linkedSignal(userSignal);
     try {
+      const body: any = {
+        contents: t.messages,
+        generationConfig: { temperature: config.temperature ?? 0.7 }
+      };
+      if (t.system) {
+        body.systemInstruction = { parts: [{ text: t.system }] };
+      }
+      if (allowTools && t.tools && t.tools.length > 0) {
+        body.tools = [
+          {
+            function_declarations: (t.tools as ToolDef[]).map((tool) => ({
+              name: tool.name,
+              description: tool.description,
+              parameters: tool.parameters
+            }))
+          }
+        ];
+      }
       const res = await fetchWithRetry(
         url,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: t.messages,
-            ...(allowTools
-              ? {
-                  tools: [
-                    {
-                      function_declarations: (t.tools as ToolDef[]).map((tool) => ({
-                        name: tool.name,
-                        description: tool.description,
-                        parameters: tool.parameters
-                      }))
-                    }
-                  ]
-                }
-              : {}),
-            generationConfig: { temperature: config.temperature ?? 0.7 }
-          })
+          body: JSON.stringify(body)
         },
         signal
       );
@@ -391,12 +416,16 @@ function pushToolResults(driverKind: string, t: any, calls: AgentToolCall[], res
       }))
     });
   } else if (driverKind === 'gemini') {
-    calls.forEach((c, i) =>
-      t.messages.push({
-        role: 'user',
-        parts: [{ functionResponse: { name: c.name, response: { content: results[i] } } }]
-      })
-    );
+    const parts = calls.map((c, i) => ({
+      functionResponse: {
+        name: c.name,
+        response: { name: c.name, content: results[i] }
+      }
+    }));
+    t.messages.push({
+      role: 'function',
+      parts
+    });
   } else {
     calls.forEach((c, i) =>
       (t as AIMessage[]).push({

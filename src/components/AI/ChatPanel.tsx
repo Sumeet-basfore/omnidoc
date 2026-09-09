@@ -73,17 +73,26 @@ export const ChatPanel: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pendingInlinePrompt]);
 
+  const activeCfg = (aiConfigs && aiConfigs[activeProvider]) || {
+    id: activeProvider || 'gemini',
+    name: 'AI Companion',
+    model: 'gemini-2.0-flash',
+    temperature: 0.7
+  };
+  const personaProfile = (PERSONA_DEFAULTS && PERSONA_DEFAULTS[activePersona]) || PERSONA_DEFAULTS.friend;
+
   const canUseTools =
-    (aiConfigs[activeProvider].id !== 'custom' || !!aiConfigs[activeProvider].toolsBeta) &&
-    PERSONA_DEFAULTS[activePersona].tools.length > 0;
+    (activeCfg.id !== 'custom' || !!activeCfg.toolsBeta) &&
+    (personaProfile.tools || []).length > 0;
 
   const handlePersonaChange = (p: AIPersona) => {
     if (p === activePersona) return;
-    if (PERSONA_DEFAULTS[p].tools.length === 0) setAgentMode(false);
+    const targetProfile = PERSONA_DEFAULTS[p] || PERSONA_DEFAULTS.friend;
+    if ((targetProfile.tools || []).length === 0) setAgentMode(false);
     if (chatMessages.length > 0) {
       addChatMessage({
         role: 'system',
-        content: `— Switched to ${PERSONA_LABELS[p]} —`,
+        content: `— Switched to ${PERSONA_LABELS[p] || p} —`,
         kind: 'divider'
       });
     }
@@ -189,7 +198,7 @@ export const ChatPanel: React.FC = () => {
     abortRef.current = ctrl;
 
     try {
-      const config = aiConfigs[activeProvider];
+      const config = (aiConfigs && aiConfigs[activeProvider]) || activeCfg;
       const apiKey = (await keyService.get(activeProvider as any)) || '';
 
       if (!apiKey && activeProvider !== 'custom') {
@@ -224,7 +233,7 @@ export const ChatPanel: React.FC = () => {
 
       if (usage) {
         addUsage(usage);
-        logUsage({ provider: activeProvider, model: aiConfigs[activeProvider].model, inTok: usage.in || 0, outTok: usage.out || 0 });
+        logUsage({ provider: activeProvider, model: config.model, inTok: usage.in || 0, outTok: usage.out || 0 });
       }
       addChatMessage({ role: 'assistant', content: text });
     } catch (err: any) {
@@ -254,7 +263,7 @@ export const ChatPanel: React.FC = () => {
     let acc = '';
 
     try {
-      const config = aiConfigs[activeProvider];
+      const config = (aiConfigs && aiConfigs[activeProvider]) || activeCfg;
       const apiKey = (await keyService.get(activeProvider as any)) || '';
 
       if (!apiKey && activeProvider !== 'custom') {
@@ -288,7 +297,7 @@ export const ChatPanel: React.FC = () => {
       setStreaming(null);
       if (usage) {
         addUsage(usage);
-        logUsage({ provider: activeProvider, model: aiConfigs[activeProvider].model, inTok: usage.in || 0, outTok: usage.out || 0 });
+        logUsage({ provider: activeProvider, model: config.model, inTok: usage.in || 0, outTok: usage.out || 0 });
       }
       addChatMessage({ role: 'assistant', content: text });
     } catch (err: any) {
@@ -426,7 +435,7 @@ export const ChatPanel: React.FC = () => {
               onClick={() => canUseTools && setAgentMode(!agentMode)}
               disabled={!canUseTools}
               title={
-                PERSONA_DEFAULTS[activePersona].tools.length === 0
+                (personaProfile.tools || []).length === 0
                   ? 'The Brainstorm persona answers directly — no tools, no agent loop'
                   : canUseTools
                     ? 'Agent mode: model can search, read and propose edits'

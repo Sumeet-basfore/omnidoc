@@ -196,10 +196,45 @@ async function streamGemini(
   const model = rawModel.replace(/^models\//, '');
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${apiKey}`;
 
-  const contents = messages.map((m) => ({
-    role: m.role === 'assistant' ? 'model' : 'user',
-    parts: [{ text: m.role === 'system' ? `[System Instructions / Context]\n${m.content}` : m.content }]
-  }));
+  // Separate system messages into systemInstruction
+  const systemTexts: string[] = [];
+  const contents: Array<{ role: 'user' | 'model'; parts: Array<{ text: string }> }> = [];
+
+  for (const m of messages) {
+    if (m.role === 'system') {
+      if (m.content.trim()) systemTexts.push(m.content.trim());
+    } else {
+      const role = m.role === 'assistant' ? 'model' : 'user';
+      const text = m.content;
+      if (!text.trim()) continue;
+
+      if (contents.length > 0 && contents[contents.length - 1].role === role) {
+        contents[contents.length - 1].parts.push({ text });
+      } else {
+        contents.push({ role, parts: [{ text }] });
+      }
+    }
+  }
+
+  // Gemini requires the conversation to start with a user message
+  if (contents.length > 0 && contents[0].role === 'model') {
+    contents.unshift({ role: 'user', parts: [{ text: 'Hello' }] });
+  }
+
+  if (contents.length === 0) {
+    contents.push({ role: 'user', parts: [{ text: 'Reply with the single word "READY".' }] });
+  }
+
+  const reqBody: any = {
+    contents,
+    generationConfig: { temperature: effectiveTemperature(config.temperature, persona) }
+  };
+
+  if (systemTexts.length > 0) {
+    reqBody.systemInstruction = {
+      parts: [{ text: systemTexts.join('\n\n') }]
+    };
+  }
 
   const { signal, done } = linkedSignal(userSignal);
   try {
@@ -208,7 +243,7 @@ async function streamGemini(
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents, generationConfig: { temperature: effectiveTemperature(config.temperature, persona) } })
+        body: JSON.stringify(reqBody)
       },
       signal
     );
