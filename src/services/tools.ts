@@ -54,6 +54,34 @@ export const AGENT_TOOLS: ToolDef[] = [
     name: 'get_selection',
     description: 'Get the text currently selected in the editor, if any.',
     parameters: { type: 'object', properties: {} }
+  },
+  {
+    name: 'search_within_doc',
+    description:
+      'Search for keywords or regex patterns within the active document. Returns matching lines and line numbers.',
+    parameters: {
+      type: 'object',
+      properties: {
+        query: { ...str, description: 'Search term or regex pattern' },
+        is_regex: { type: 'boolean', description: 'Treat query as a regular expression (optional)' }
+      },
+      required: ['query']
+    }
+  },
+  {
+    name: 'get_document_stats',
+    description:
+      'Compute statistical metrics for the active document: word count, character count, estimated reading time, reading grade level (Flesch-Kincaid), and vocabulary richness.',
+    parameters: {
+      type: 'object',
+      properties: {
+        metrics: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'Specific metrics to return: "word_count", "readability", "vocabulary", "lines"'
+        }
+      }
+    }
   }
 ];
 
@@ -142,6 +170,98 @@ export async function executeTool(
       case 'get_selection': {
         const sel = ctx.getSelection().trim();
         return sel ? `Selected text:\n"""\n${cap(sel)}\n"""` : '(no text selected)';
+      }
+      case 'search_within_doc': {
+        const doc = ctx.getActiveDoc();
+        if (!doc) return 'Error: no active document.';
+        const query = String(args.query || '').trim();
+        if (!query) return 'Error: query is required.';
+
+        const lines = doc.content.split('\n');
+        const matches: Array<{ line: number; text: string }> = [];
+
+        if (args.is_regex) {
+          try {
+            const re = new RegExp(query, 'i');
+            lines.forEach((line, i) => {
+              if (re.test(line)) {
+                matches.push({ line: i + 1, text: line.trim() });
+              }
+            });
+          } catch (e: any) {
+            return `Error: invalid regular expression: ${e.message}`;
+          }
+        } else {
+          const lower = query.toLowerCase();
+          lines.forEach((line, i) => {
+            if (line.toLowerCase().includes(lower)) {
+              matches.push({ line: i + 1, text: line.trim() });
+            }
+          });
+        }
+
+        if (matches.length === 0) {
+          return `No matches found for "${query}" in ${doc.name} (${lines.length} lines searched).`;
+        }
+
+        const capped = matches.slice(0, 25);
+        const list = capped.map((m) => `L${m.line}: ${m.text}`).join('\n');
+        const notice = matches.length > 25 ? `\n... and ${matches.length - 25} more matches.` : '';
+        return `Found ${matches.length} match(es) for "${query}" in ${doc.name}:\n${list}${notice}`;
+      }
+      case 'get_document_stats': {
+        const doc = ctx.getActiveDoc();
+        if (!doc) return 'Error: no active document.';
+        const content = doc.content.trim();
+        const words = content.split(/\s+/).filter(Boolean);
+        const wordCount = words.length;
+        const charCount = doc.content.length;
+        const lineCount = doc.content.split('\n').length;
+        const readingTimeMin = Math.ceil(wordCount / 225) || 1;
+
+        // Flesch-Kincaid Grade Level calculation
+        const sentences = content.split(/[.!?]+/).filter((s) => s.trim().length > 0).length || 1;
+        const syllables = words.reduce((acc, word) => {
+          const w = word.toLowerCase().replace(/[^a-z]/g, '');
+          if (!w) return acc;
+          const count = (w.match(/[aeiouy]{1,2}/g) || []).length;
+          return acc + Math.max(1, count);
+        }, 0);
+
+        const avgWordsPerSentence = wordCount / sentences;
+        const avgSyllablesPerWord = wordCount > 0 ? syllables / wordCount : 1;
+        const gradeLevel = Math.max(
+          1,
+          Math.round((0.39 * avgWordsPerSentence + 11.8 * avgSyllablesPerWord - 15.59) * 10) / 10
+        );
+
+        // Lexical Diversity (Type-Token Ratio)
+        const uniqueWords = new Set(words.map((w) => w.toLowerCase().replace(/[^a-z0-9]/g, ''))).size;
+        const lexicalDiversity = wordCount > 0 ? Math.round((uniqueWords / wordCount) * 100) : 0;
+
+        let readabilityDescription = 'Standard';
+        if (gradeLevel <= 6) readabilityDescription = 'Elementary (very easy to read)';
+        else if (gradeLevel <= 8) readabilityDescription = 'Middle School (plain conversational)';
+        else if (gradeLevel <= 12) readabilityDescription = 'High School (standard publication)';
+        else if (gradeLevel <= 16) readabilityDescription = 'Undergraduate (technical/academic)';
+        else readabilityDescription = 'Advanced / Graduate (dense academic)';
+
+        return JSON.stringify(
+          {
+            document: doc.name,
+            format: doc.format,
+            word_count: wordCount,
+            character_count: charCount,
+            line_count: lineCount,
+            estimated_reading_time: `${readingTimeMin} min`,
+            flesch_kincaid_grade_level: gradeLevel,
+            readability_level: readabilityDescription,
+            unique_vocabulary_terms: uniqueWords,
+            lexical_diversity_pct: `${lexicalDiversity}%`
+          },
+          null,
+          2
+        );
       }
       default:
         return `Error: unknown tool "${name}". Available: ${AGENT_TOOLS.map((t) => t.name).join(', ')}.`;

@@ -128,9 +128,18 @@ export interface PersonaProfile {
 }
 
 export const PERSONA_DEFAULTS: Record<AIPersona, PersonaProfile> = {
-  friend: { temperature: 0.65, tools: ['read_document', 'propose_insert', 'get_selection'] },
-  researcher: { temperature: 0.2, tools: ['web_search', 'read_document', 'get_selection', 'propose_insert'] },
-  proofreader: { temperature: 0.1, tools: ['get_selection', 'read_document', 'propose_insert'] },
+  friend: {
+    temperature: 0.65,
+    tools: ['read_document', 'propose_insert', 'get_selection', 'search_within_doc', 'get_document_stats']
+  },
+  researcher: {
+    temperature: 0.2,
+    tools: ['web_search', 'read_document', 'get_selection', 'propose_insert', 'search_within_doc']
+  },
+  proofreader: {
+    temperature: 0.1,
+    tools: ['get_selection', 'read_document', 'propose_insert', 'search_within_doc', 'get_document_stats']
+  },
   brainstormer: { temperature: 0.85, tools: [] }
 };
 
