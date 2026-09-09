@@ -108,13 +108,15 @@ export const TopBar: React.FC = () => {
     <header className="h-12 border-b border-[var(--border-subtle)] bg-[var(--bg-glass)] px-3 flex items-center justify-between z-20 select-none">
       {/* Left section: Sidebar toggle, OD Logo & Document Title */}
       <div className="flex items-center gap-2.5">
-        <button
-          onClick={() => toggleSidebar()}
-          className="p-1.5 rounded text-zinc-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
-          title="Toggle Sidebar (⌘B)"
-        >
-          <Menu size={17} />
-        </button>
+        {(mainView === 'studio' || mainView === 'editor' || leftPanel === 'settings') && (
+          <button
+            onClick={() => toggleSidebar()}
+            className="p-1.5 rounded text-zinc-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+            title="Toggle Sidebar (⌘B)"
+          >
+            <Menu size={17} />
+          </button>
+        )}
 
         {/* Brand mark */}
         <img

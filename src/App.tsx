@@ -218,7 +218,7 @@ export const App: React.FC = () => {
 
       {/* Main Studio Viewport */}
       <div className="flex flex-1 overflow-hidden relative">
-        <Sidebar />
+        {(mainView === 'studio' || mainView === 'editor' || leftPanel === 'settings') && <Sidebar />}
         {mainView === 'team' || mainView === 'kanban' ? (
           <TeamHubView />
         ) : (

@@ -1,8 +1,22 @@
 import React, { useState, useRef } from 'react';
-import { Search, Globe, FileText, ExternalLink, Plus, AlertCircle, Loader2, X, History } from 'lucide-react';
+import {
+  Search,
+  Globe,
+  FileText,
+  ExternalLink,
+  Plus,
+  AlertCircle,
+  Loader2,
+  X,
+  History,
+  Download,
+  FolderPlus,
+  Check
+} from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import { runDeepResearch, ResearchProgress } from '../../services/searchService';
 import { keyService } from '../../services/keyService';
+import { downloadBlob } from '../../services/exportService';
 import { DeepResearchResult, DeepResearchQuery, SearchResult } from '../../types/ai';
 
 interface PastReport {
@@ -20,8 +34,20 @@ const STAGE_LABEL: Record<string, string> = {
 };
 
 export const DeepResearchPanel: React.FC = () => {
-  const { activeProvider, aiConfigs, openDocument, queueInsert, tabs, activeTabId, documents, toggleSidebar, setLeftPanel, logUsage } =
-    useAppStore();
+  const {
+    activeProvider,
+    aiConfigs,
+    openDocument,
+    queueInsert,
+    tabs,
+    activeTabId,
+    documents,
+    toggleSidebar,
+    setLeftPanel,
+    logUsage,
+    addKanbanCard,
+    kanbanBoard
+  } = useAppStore();
 
   const [topic, setTopic] = useState<string>('');
   const [depth, setDepth] = useState<'quick' | 'standard' | 'deep'>('standard');
@@ -32,6 +58,7 @@ export const DeepResearchPanel: React.FC = () => {
   const [reports, setReports] = useState<PastReport[]>([]);
   const [partialSources, setPartialSources] = useState<SearchResult[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
   const activeDoc = tabs.find((t) => t.id === activeTabId)
@@ -98,7 +125,7 @@ export const DeepResearchPanel: React.FC = () => {
     abortRef.current?.abort();
   };
 
-  const handleOpenAsDocument = () => {
+  const handleSaveToWorkspace = () => {
     if (!result) return;
     const slug = result.title.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 30) || 'Research';
     const taken = new Set(Object.values(documents).map((d) => d.name));
@@ -107,13 +134,66 @@ export const DeepResearchPanel: React.FC = () => {
       filename = `Research_${slug}_v${v}.md`;
     }
 
+    const docId = `doc-${Date.now()}`;
+    const content = `# ${result.title}\n\n${result.markdownContent}`;
+
     openDocument({
-      id: `doc-${Date.now()}`,
+      id: docId,
       name: filename,
       format: 'markdown',
-      content: `# ${result.title}\n\n${result.markdownContent}`,
+      content,
       isDirty: true
     });
+
+    // Also register on Team Workspace Kanban backlog if board exists
+    const backlogColId = kanbanBoard?.columns?.[0]?.id || 'backlog';
+    if (addKanbanCard) {
+      addKanbanCard(backlogColId, {
+        title: `Research: ${result.title.slice(0, 50)}`,
+        description: `Deep research report synthesized on ${new Date().toLocaleDateString()}.\n\nAbstract:\n${result.markdownContent.slice(0, 200)}...`,
+        priority: 'medium',
+        tags: ['research', 'ai-report'],
+        linkedDocId: docId
+      });
+    }
+
+    setSaveSuccess('Saved to Workspace & Backlog');
+    setTimeout(() => setSaveSuccess(null), 3500);
+  };
+
+  const handleSaveToDevice = async () => {
+    if (!result) return;
+    const slug = result.title.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 30) || 'Research';
+    const filename = `Research_${slug}.md`;
+    const content = `# ${result.title}\n\n${result.markdownContent}`;
+
+    if (window.electronAPI?.saveFileDialog && window.electronAPI?.writeFile) {
+      try {
+        const selectedPath = await window.electronAPI.saveFileDialog(filename, [
+          { name: 'Markdown Document', extensions: ['md', 'markdown'] }
+        ]);
+        if (!selectedPath) return;
+        const ok = await window.electronAPI.writeFile(selectedPath, content, false);
+        if (ok) {
+          const baseName = selectedPath.split(/[\\/]/).pop() || filename;
+          setSaveSuccess(`Saved as ${baseName}`);
+        } else {
+          setError('Failed to write file to device.');
+        }
+      } catch (err: any) {
+        setError(err?.message || 'Error saving file to device');
+      }
+    } else {
+      // Browser download fallback
+      try {
+        const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
+        downloadBlob(blob, filename);
+        setSaveSuccess(`Downloaded ${filename}`);
+      } catch (err: any) {
+        setError(err?.message || 'Error downloading file');
+      }
+    }
+    setTimeout(() => setSaveSuccess(null), 3500);
   };
 
   const handleInsertIntoActive = () => {
@@ -302,11 +382,20 @@ export const DeepResearchPanel: React.FC = () => {
             {/* Action buttons */}
             <div className="flex items-center gap-2 select-none">
               <button
-                onClick={handleOpenAsDocument}
-                className="flex-1 py-1.5 px-3 rounded bg-[var(--accent-primary)] hover:bg-[var(--accent-primary-hover)] text-[var(--text-on-accent)] text-xs font-medium flex items-center justify-center gap-1.5 transition-all shadow"
+                onClick={handleSaveToWorkspace}
+                className="flex-1 py-1.5 px-3 rounded bg-[var(--accent-primary)] hover:bg-[var(--accent-primary-hover)] text-[var(--text-on-accent)] text-xs font-medium flex items-center justify-center gap-1.5 transition-all shadow cursor-pointer"
+                title="Open in editor and register deliverable card in Team Workspace"
               >
-                <FileText size={13} />
-                <span>Open as New Tab</span>
+                <FolderPlus size={13} />
+                <span>Save to Workspace</span>
+              </button>
+              <button
+                onClick={handleSaveToDevice}
+                className="py-1.5 px-3 rounded bg-white/5 hover:bg-white/10 text-zinc-300 border border-white/10 text-xs font-medium flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                title="Download or save markdown file directly to device"
+              >
+                <Download size={13} />
+                <span>Save on Device</span>
               </button>
               {activeDoc &&
                 (activeDoc.format === 'markdown' ||
@@ -314,7 +403,7 @@ export const DeepResearchPanel: React.FC = () => {
                   activeDoc.format === 'code') && (
                 <button
                   onClick={handleInsertIntoActive}
-                  className="py-1.5 px-3 rounded bg-white/5 hover:bg-white/10 text-zinc-300 border border-white/10 text-xs font-medium flex items-center justify-center gap-1.5 transition-all"
+                  className="py-1.5 px-3 rounded bg-white/5 hover:bg-white/10 text-zinc-300 border border-white/10 text-xs font-medium flex items-center justify-center gap-1.5 transition-all cursor-pointer"
                   title="Queue for review before inserting"
                 >
                   <Plus size={13} />
@@ -322,6 +411,13 @@ export const DeepResearchPanel: React.FC = () => {
                 </button>
               )}
             </div>
+
+            {saveSuccess && (
+              <div className="p-2 bg-emerald-950/40 border border-emerald-500/30 rounded text-[11px] text-emerald-300 flex items-center gap-1.5 animate-fadeIn">
+                <Check size={13} className="text-emerald-400 shrink-0" />
+                <span className="truncate">{saveSuccess}</span>
+              </div>
+            )}
 
             {result.modelOnly && (
               <div className="p-2.5 bg-amber-950/30 border border-amber-500/30 rounded-md text-[11px] text-amber-200">
