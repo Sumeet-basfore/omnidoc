@@ -204,6 +204,7 @@ export const ProviderSettings: React.FC = () => {
           </div>
 
           {activeProvider === 'custom' && (
+            <div className="space-y-2.5">
             <div>
               <label className="block text-[11px] text-zinc-400 mb-1">Base URL (Ollama / LM Studio)</label>
               <input
@@ -213,6 +214,16 @@ export const ProviderSettings: React.FC = () => {
                 placeholder="http://localhost:11434/v1"
                 className="w-full px-2.5 py-1.5 bg-black/40 border border-white/10 rounded text-xs text-white focus:outline-none focus:border-sky-500 font-mono"
               />
+            </div>
+            <label className="flex items-start gap-2 cursor-pointer text-zinc-300 text-[11px] leading-snug">
+              <input
+                type="checkbox"
+                checked={!!currentConfig.toolsBeta}
+                onChange={(e) => updateAIConfig(activeProvider, { toolsBeta: e.target.checked })}
+                className="rounded bg-zinc-800 border-zinc-700 text-sky-600 focus:ring-0 mt-0.5"
+              />
+              <span>Enable agent tools (beta, JSON fallback — needs a capable model)</span>
+            </label>
             </div>
           )}
         </div>

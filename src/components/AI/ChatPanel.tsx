@@ -3,8 +3,10 @@ import { Send, Bot, User, Copy, Check, Plus, AlertCircle, Trash2, Loader2, PenLi
 import { marked } from 'marked';
 import { useAppStore } from '../../store/useAppStore';
 import { streamAI, isAbortError } from '../../services/aiService';
+import { runAgent, AgentStepEvent } from '../../services/agentService';
 import { trimHistory } from '../../services/budget';
 import { keyService } from '../../services/keyService';
+
 import { AIPersona } from '../../types/ai';
 
 export const ChatPanel: React.FC = () => {
@@ -28,7 +30,10 @@ export const ChatPanel: React.FC = () => {
     pendingInlinePrompt,
     setPendingInlinePrompt,
     toggleSidebar,
-    setLeftPanel
+    setLeftPanel,
+    agentMode,
+    setAgentMode,
+    selectedText
   } = useAppStore();
 
   const [input, setInput] = useState<string>('');
@@ -36,6 +41,7 @@ export const ChatPanel: React.FC = () => {
   const [errorBanner, setErrorBanner] = useState<string | null>(null);
   const [streaming, setStreaming] = useState<string | null>(null);
   const [trimNote, setTrimNote] = useState<number>(0);
+  const [agentSteps, setAgentSteps] = useState<AgentStepEvent[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
@@ -56,6 +62,70 @@ export const ChatPanel: React.FC = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pendingInlinePrompt]);
+
+  const canUseTools = aiConfigs[activeProvider].id !== 'custom' || !!aiConfigs[activeProvider].toolsBeta;
+
+  const handleAgentSend = async (base: typeof chatMessages) => {
+    if (isAILoading) return;
+    setErrorBanner(null);
+    setAILoading(true);
+    setAgentSteps([]);
+
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
+
+    try {
+      const config = aiConfigs[activeProvider];
+      const apiKey = (await keyService.get(activeProvider as any)) || '';
+
+      if (!apiKey && activeProvider !== 'custom') {
+        throw new Error(
+          `API Key for ${config.name} is not set. Please click Settings to configure your key.`
+        );
+      }
+
+      const documentContext = activeDoc
+        ? { name: activeDoc.name, format: activeDoc.format, content: activeDoc.content }
+        : undefined;
+
+      const full = base.map((m) => ({ ...m }));
+      const { kept, trimmed } = trimHistory(full);
+      setTrimNote(trimmed);
+
+      const { text, usage } = await runAgent({
+        task: kept[kept.length - 1].content,
+        history: kept.slice(0, -1),
+        config,
+        apiKey,
+        persona: activePersona,
+        documentContext,
+        tools: {
+          getActiveDoc: () => activeDoc,
+          getSelection: () => selectedText,
+          queueInsert
+        },
+        maxSteps: 6,
+        signal: ctrl.signal,
+        onStep: (s) => setAgentSteps((prev) => [...prev, s])
+      });
+
+      if (usage) addUsage(usage);
+      addChatMessage({ role: 'assistant', content: text });
+    } catch (err: any) {
+      const stopped = isAbortError(err) || ctrl.signal.aborted;
+      if (!stopped) {
+        console.error('Agent run failed:', err);
+        setErrorBanner(err.message || 'Agent run failed.');
+        addChatMessage({
+          role: 'assistant',
+          content: `Error: ${err.message || 'Agent run failed.'}`
+        });
+      }
+    } finally {
+      abortRef.current = null;
+      setAILoading(false);
+    }
+  };
 
   const sendMessages = async (base: typeof chatMessages) => {
     if (isAILoading) return;
@@ -143,7 +213,11 @@ export const ChatPanel: React.FC = () => {
     ];
     addChatMessage(userMsg);
     if (!customPrompt) setInput('');
-    await sendMessages(base);
+    if (agentMode && canUseTools) {
+      await handleAgentSend(base);
+    } else {
+      await sendMessages(base);
+    }
   };
 
   const handleStop = () => {
@@ -157,7 +231,20 @@ export const ChatPanel: React.FC = () => {
     const last = hist[hist.length - 1];
     if (last.content.startsWith('Error:')) return;
     popLastAssistant();
-    await sendMessages(hist.slice(0, -1));
+    const base = hist.slice(0, -1);
+    if (agentMode && canUseTools) {
+      // Re-run the agent on the same history (last user turn is base tail)
+      const userMsg = {
+        role: 'user' as const,
+        content: 'Please try that again with a fresh attempt.',
+        id: `temp-${Date.now()}`,
+        timestamp: Date.now()
+      };
+      addChatMessage({ role: 'user', content: userMsg.content });
+      await handleAgentSend([...base, userMsg]);
+    } else {
+      await sendMessages(base);
+    }
   };
 
   const handleCopy = (id: string, text: string) => {
@@ -187,14 +274,35 @@ export const ChatPanel: React.FC = () => {
           <span className="text-[11px] font-medium text-zinc-400">
             AI Persona Mode
           </span>
-          <button
-            onClick={clearChatMessages}
-            className="text-[11px] text-zinc-500 hover:text-zinc-300 flex items-center gap-1 transition-colors"
-            title="Clear Chat History"
-          >
-            <Trash2 size={12} />
-            <span>Clear</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => canUseTools && setAgentMode(!agentMode)}
+              disabled={!canUseTools}
+              title={
+                canUseTools
+                  ? 'Agent mode: model can search, read and propose edits'
+                  : 'Tools unavailable for this provider (enable tools beta in Settings for local models)'
+              }
+              className={`flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full border transition-all ${
+                agentMode
+                  ? 'bg-[var(--accent-primary)] border-transparent text-[var(--text-on-accent)] font-semibold'
+                  : canUseTools
+                    ? 'text-zinc-400 border-white/10 hover:text-zinc-200 hover:bg-white/5'
+                    : 'text-zinc-600 border-white/5 cursor-not-allowed'
+              }`}
+            >
+              <Bot size={11} />
+              <span>Agent</span>
+            </button>
+            <button
+              onClick={clearChatMessages}
+              className="text-[11px] text-zinc-500 hover:text-zinc-300 flex items-center gap-1 transition-colors"
+              title="Clear Chat History"
+            >
+              <Trash2 size={12} />
+              <span>Clear</span>
+            </button>
+          </div>
         </div>
 
         <div className="flex flex-wrap gap-1.5">
@@ -355,6 +463,22 @@ export const ChatPanel: React.FC = () => {
               <Square size={10} />
               <span>Stop</span>
             </button>
+          </div>
+        )}
+
+        {agentSteps.length > 0 && (
+          <div className="rounded border border-white/10 bg-black/20 p-2 space-y-1 select-none">
+            <div className="text-[10px] font-semibold text-zinc-500 font-mono px-1">
+              agent steps ({agentSteps.length})
+            </div>
+            {agentSteps.map((s, i) => (
+              <div key={i} className="text-[10px] font-mono text-zinc-400 px-1 truncate" title={s.result}>
+                <span className="text-sky-300">#{s.n} {s.tool}</span>
+                <span className="text-zinc-600"> {s.args}</span>
+                <span className="text-zinc-500"> → {s.result}</span>
+                <span className="text-zinc-600"> · {s.ms}ms</span>
+              </div>
+            ))}
           </div>
         )}
 

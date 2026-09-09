@@ -80,7 +80,10 @@ Unmounted when closed (never an overlay). Solid accent section tabs
 (Chat / Research). Persona chips (Co-writer, Researcher, Proofreader,
 Brainstorm) with Lucide icons. Replies stream live with Stop (partial
 kept, marked), Regenerate on the last answer, history trimmed to a
-token budget with a visible divider, per-chat usage meter. Flat message
+token budget with a visible divider, per-chat usage meter. Agent mode
+toggle: bounded tool loop (web_search, read_document, propose_insert,
+get_selection) with visible step timeline; inserts land in the review
+queue, never direct. Flat message
 feed, markdown rendering,
 Copy / Insert-in-Doc (text formats only). Research panel: topic +
 depth + citations → Tavily/Exa synthesis → open-as-doc or insert.

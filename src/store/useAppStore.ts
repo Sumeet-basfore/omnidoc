@@ -73,6 +73,8 @@ interface AppState {
   addRecentFile: (filePath: string) => void;
   pendingInlinePrompt: string | null;
   setPendingInlinePrompt: (prompt: string | null) => void;
+  agentMode: boolean;
+  setAgentMode: (on: boolean) => void;
   lastSavedAt: number | null;
   setLastSavedAt: (t: number | null) => void;
   pendingInserts: Record<string, PendingInsert[]>;
@@ -359,6 +361,9 @@ export const useAppStore = create<AppState>()(
 
       pendingInlinePrompt: null,
       setPendingInlinePrompt: (prompt) => set({ pendingInlinePrompt: prompt }),
+
+      agentMode: false,
+      setAgentMode: (on) => set({ agentMode: on }),
 
       lastSavedAt: null,
       setLastSavedAt: (t) => set({ lastSavedAt: t }),

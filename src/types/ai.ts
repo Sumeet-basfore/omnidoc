@@ -11,6 +11,7 @@ export interface AIProviderConfig {
   model: string;
   baseUrl?: string; // Custom endpoint override e.g. http://localhost:11434/v1
   temperature: number;
+  toolsBeta?: boolean; // Custom endpoints: allow JSON-fallback tool use
 }
 
 export type AIPersona =

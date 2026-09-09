@@ -26,9 +26,9 @@ export interface DocumentContextInput {
   selectedText?: string;
 }
 
-type WireMessage = { role: 'user' | 'assistant' | 'system'; content: string };
+export type WireMessage = { role: 'user' | 'assistant' | 'system'; content: string };
 
-function buildFullMessages(
+export function buildFullMessages(
   messages: AIMessage[],
   persona: AIPersona,
   documentContext?: DocumentContextInput
@@ -60,12 +60,14 @@ export function isAbortError(err: any): boolean {
 
 const TIMEOUT_MS = 90000;
 
+export { TIMEOUT_MS };
+
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /** Link a user signal with a timeout into one AbortSignal. */
-function linkedSignal(
+export function linkedSignal(
   signal: AbortSignal | undefined,
   ms = TIMEOUT_MS
 ): { signal: AbortSignal; done: () => void } {
@@ -102,7 +104,7 @@ function isRetryableStatus(status: number): boolean {
 }
 
 /** fetch with retry on 429/5xx + network errors (never on 4xx). */
-async function fetchWithRetry(url: string, init: RequestInit, signal: AbortSignal): Promise<Response> {
+export async function fetchWithRetry(url: string, init: RequestInit, signal: AbortSignal): Promise<Response> {
   let lastErr: any = null;
   for (let attempt = 0; attempt <= RETRY_DELAYS.length; attempt++) {
     try {
