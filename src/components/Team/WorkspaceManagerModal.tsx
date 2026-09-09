@@ -107,11 +107,11 @@ export const WorkspaceManagerModal: React.FC<WorkspaceManagerModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/75 flex items-center justify-center p-4 animate-fade-in">
-      <div className="w-full max-w-lg bg-[#121622] rounded-lg border border-white/10 shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+      <div className="w-full max-w-lg bg-[var(--bg-dark-surface)] rounded border border-[var(--border-subtle)] shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
         {/* Modal Header */}
-        <div className="px-5 py-4 border-b border-white/10 flex items-center justify-between bg-black/30 shrink-0">
+        <div className="px-5 py-4 border-b border-[var(--border-subtle)] flex items-center justify-between bg-black/20 shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="p-1.5 rounded bg-indigo-500/20 text-indigo-400">
+            <div className="p-1.5 rounded bg-sky-500/20 text-sky-400">
               <Building2 size={16} />
             </div>
             <div>
@@ -130,13 +130,13 @@ export const WorkspaceManagerModal: React.FC<WorkspaceManagerModalProps> = ({
         </div>
 
         {/* Tab Navigation */}
-        <div className="px-5 pt-3 border-b border-white/5 bg-[#161b2a] flex items-center gap-2 shrink-0 text-xs">
+        <div className="px-5 pt-3 border-b border-[var(--border-subtle)] bg-[var(--bg-dark-surface)] flex items-center gap-2 shrink-0 text-xs">
           <button
             type="button"
             onClick={() => setActiveTab('manage')}
             className={`pb-2.5 px-2 border-b-2 font-medium transition-colors cursor-pointer ${
               activeTab === 'manage'
-                ? 'border-indigo-500 text-white'
+                ? 'border-sky-400 text-white'
                 : 'border-transparent text-zinc-400 hover:text-zinc-200'
             }`}
           >
@@ -148,7 +148,7 @@ export const WorkspaceManagerModal: React.FC<WorkspaceManagerModalProps> = ({
             onClick={() => setActiveTab('share')}
             className={`pb-2.5 px-2 border-b-2 font-medium transition-colors cursor-pointer ${
               activeTab === 'share'
-                ? 'border-indigo-500 text-white'
+                ? 'border-sky-400 text-white'
                 : 'border-transparent text-zinc-400 hover:text-zinc-200'
             }`}
           >
@@ -160,7 +160,7 @@ export const WorkspaceManagerModal: React.FC<WorkspaceManagerModalProps> = ({
             onClick={() => setActiveTab('create')}
             className={`pb-2.5 px-2 border-b-2 font-medium transition-colors cursor-pointer ${
               activeTab === 'create'
-                ? 'border-indigo-500 text-white'
+                ? 'border-sky-400 text-white'
                 : 'border-transparent text-zinc-400 hover:text-zinc-200'
             }`}
           >
@@ -172,7 +172,7 @@ export const WorkspaceManagerModal: React.FC<WorkspaceManagerModalProps> = ({
             onClick={() => setActiveTab('join')}
             className={`pb-2.5 px-2 border-b-2 font-medium transition-colors cursor-pointer ${
               activeTab === 'join'
-                ? 'border-indigo-500 text-white'
+                ? 'border-sky-400 text-white'
                 : 'border-transparent text-zinc-400 hover:text-zinc-200'
             }`}
           >
@@ -181,7 +181,7 @@ export const WorkspaceManagerModal: React.FC<WorkspaceManagerModalProps> = ({
         </div>
 
         {/* Tab Viewport */}
-        <div className="p-5 overflow-y-auto space-y-4 bg-[#0a0c12] flex-1">
+        <div className="p-5 overflow-y-auto space-y-4 bg-[var(--bg-dark-base)] flex-1">
           {/* Tab 1: Workspaces List */}
           {activeTab === 'manage' && (
             <div className="space-y-3">
@@ -191,7 +191,7 @@ export const WorkspaceManagerModal: React.FC<WorkspaceManagerModalProps> = ({
                 </span>
                 <button
                   onClick={() => setActiveTab('create')}
-                  className="flex items-center gap-1 text-xs text-indigo-400 hover:text-indigo-300 cursor-pointer"
+                  className="flex items-center gap-1 text-xs text-sky-400 hover:text-sky-300 cursor-pointer"
                 >
                   <Plus size={13} />
                   <span>New Workspace</span>
@@ -204,20 +204,20 @@ export const WorkspaceManagerModal: React.FC<WorkspaceManagerModalProps> = ({
                   return (
                     <div
                       key={ws.id}
-                      className={`p-3 rounded-lg border transition-all flex items-center justify-between gap-3 ${
+                      className={`p-3 rounded border transition-all flex items-center justify-between gap-3 ${
                         isActive
-                          ? 'bg-indigo-950/20 border-indigo-500/40 shadow-sm'
-                          : 'bg-[#121622] border-white/5 hover:border-white/15'
+                          ? 'bg-sky-500/10 border-sky-500/40 shadow-sm'
+                          : 'bg-[var(--bg-dark-surface)] border-[var(--border-subtle)] hover:border-[var(--border-medium)]'
                       }`}
                     >
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
                           <span className="text-xs font-semibold text-white truncate">{ws.name}</span>
-                          <span className="px-1.5 py-0.2 rounded bg-black/40 border border-white/10 text-[9px] font-mono text-indigo-300">
+                          <span className="px-1.5 py-0.2 rounded bg-black/40 border border-white/10 text-[9px] font-mono text-sky-300">
                             {ws.code}
                           </span>
                           {isActive && (
-                            <span className="px-1.5 py-0.2 rounded bg-indigo-500/20 text-indigo-300 text-[9px] font-mono">
+                            <span className="px-1.5 py-0.2 rounded bg-sky-500/20 text-sky-300 text-[9px] font-mono">
                               ACTIVE
                             </span>
                           )}
@@ -231,7 +231,7 @@ export const WorkspaceManagerModal: React.FC<WorkspaceManagerModalProps> = ({
                         {!isActive ? (
                           <button
                             onClick={() => switchTeamWorkspace(ws.id)}
-                            className="px-2.5 py-1 rounded bg-white/10 hover:bg-white/15 text-white text-xs font-medium transition-colors cursor-pointer flex items-center gap-1"
+                            className="px-2.5 py-1 rounded bg-white/10 hover:bg-white/15 text-white border border-white/10 text-xs font-medium transition-colors cursor-pointer flex items-center gap-1"
                           >
                             <span>Switch</span>
                             <ArrowRight size={12} />
@@ -266,7 +266,7 @@ export const WorkspaceManagerModal: React.FC<WorkspaceManagerModalProps> = ({
           {/* Tab 2: Share Invite Code */}
           {activeTab === 'share' && (
             <div className="space-y-4">
-              <div className="p-3.5 rounded-lg bg-[#121622] border border-white/10 space-y-3">
+              <div className="p-3.5 rounded bg-[var(--bg-dark-surface)] border border-[var(--border-subtle)] space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
                     <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-mono">
@@ -275,7 +275,7 @@ export const WorkspaceManagerModal: React.FC<WorkspaceManagerModalProps> = ({
                     <h4 className="text-sm font-semibold text-white">{currentWs.name}</h4>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="px-2 py-1 rounded bg-indigo-600/30 border border-indigo-500/40 text-indigo-300 font-mono text-xs font-bold">
+                    <span className="px-2 py-1 rounded bg-sky-500/15 border border-sky-500/30 text-sky-300 font-mono text-xs font-bold">
                       {currentWs.code}
                     </span>
                     <button
@@ -292,7 +292,7 @@ export const WorkspaceManagerModal: React.FC<WorkspaceManagerModalProps> = ({
                   </div>
                 </div>
 
-                <div className="pt-2 border-t border-white/5 space-y-2">
+                <div className="pt-2 border-t border-[var(--border-subtle)] space-y-2">
                   <div className="flex items-center justify-between text-xs text-zinc-400">
                     <span>Full Self-Contained Invite Passkey:</span>
                     <button
@@ -301,7 +301,7 @@ export const WorkspaceManagerModal: React.FC<WorkspaceManagerModalProps> = ({
                         setCopiedToken(true);
                         setTimeout(() => setCopiedToken(false), 2000);
                       }}
-                      className="flex items-center gap-1 text-indigo-400 hover:text-indigo-300 cursor-pointer text-xs"
+                      className="flex items-center gap-1 text-sky-400 hover:text-sky-300 cursor-pointer text-xs"
                     >
                       {copiedToken ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
                       <span>{copiedToken ? 'Copied' : 'Copy Passkey'}</span>
@@ -311,13 +311,13 @@ export const WorkspaceManagerModal: React.FC<WorkspaceManagerModalProps> = ({
                     readOnly
                     value={inviteToken}
                     rows={4}
-                    className="w-full p-2.5 rounded bg-black/60 border border-white/10 text-[10px] font-mono text-zinc-300 select-all focus:outline-none"
+                    className="w-full p-2.5 rounded bg-black/60 border border-[var(--border-subtle)] text-[10px] font-mono text-zinc-300 select-all focus:outline-none"
                   />
                 </div>
               </div>
 
-              <div className="p-3 rounded-lg bg-indigo-950/20 border border-indigo-500/20 flex items-start gap-2.5 text-xs text-indigo-200">
-                <ShieldCheck size={16} className="text-indigo-400 shrink-0 mt-0.5" />
+              <div className="p-3 rounded bg-sky-500/10 border border-sky-500/20 flex items-start gap-2.5 text-xs text-sky-200">
+                <ShieldCheck size={16} className="text-sky-400 shrink-0 mt-0.5" />
                 <p className="leading-relaxed">
                   Teammates can paste this passkey in <strong className="text-white">Join with Code</strong> to immediately receive your team guidelines, roster, and active planning cards.
                 </p>
@@ -338,7 +338,7 @@ export const WorkspaceManagerModal: React.FC<WorkspaceManagerModalProps> = ({
                   onChange={(e) => setNewWsName(e.target.value)}
                   placeholder="e.g. Q4 Research Sprint"
                   autoFocus
-                  className="w-full px-3 py-2 rounded bg-black/50 border border-white/10 text-xs text-white placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500"
+                  className="w-full px-3 py-2 rounded bg-black/50 border border-[var(--border-subtle)] text-xs text-white placeholder:text-zinc-600 focus:outline-none focus:border-sky-500"
                 />
               </div>
 
@@ -351,14 +351,14 @@ export const WorkspaceManagerModal: React.FC<WorkspaceManagerModalProps> = ({
                   value={newWsDesc}
                   onChange={(e) => setNewWsDesc(e.target.value)}
                   placeholder="e.g. Document review and paper writing collaboration"
-                  className="w-full px-3 py-2 rounded bg-black/50 border border-white/10 text-xs text-white placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500"
+                  className="w-full px-3 py-2 rounded bg-black/50 border border-[var(--border-subtle)] text-xs text-white placeholder:text-zinc-600 focus:outline-none focus:border-sky-500"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={!newWsName.trim()}
-                className="w-full py-2 rounded bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white font-medium text-xs transition-colors cursor-pointer shadow-sm"
+                className="w-full py-2 rounded bg-[var(--accent-primary)] hover:bg-[var(--accent-primary-hover)] disabled:opacity-40 text-[var(--text-on-accent)] font-semibold text-xs transition-colors cursor-pointer shadow-sm"
               >
                 Create & Switch Workspace
               </button>
@@ -381,7 +381,7 @@ export const WorkspaceManagerModal: React.FC<WorkspaceManagerModalProps> = ({
                   }}
                   placeholder="Paste the passkey provided by your teammate here..."
                   rows={4}
-                  className="w-full p-2.5 rounded bg-black/50 border border-white/10 text-xs text-zinc-300 font-mono placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500"
+                  className="w-full p-2.5 rounded bg-black/50 border border-[var(--border-subtle)] text-xs text-zinc-300 font-mono placeholder:text-zinc-600 focus:outline-none focus:border-sky-500"
                 />
                 <button
                   type="button"
@@ -394,14 +394,14 @@ export const WorkspaceManagerModal: React.FC<WorkspaceManagerModalProps> = ({
               </div>
 
               {joinError && (
-                <div className="p-3 rounded-lg bg-red-950/30 border border-red-500/30 flex items-center gap-2 text-xs text-red-300">
+                <div className="p-3 rounded bg-red-950/30 border border-red-500/30 flex items-center gap-2 text-xs text-red-300">
                   <AlertCircle size={15} className="text-red-400 shrink-0" />
                   <span>{joinError}</span>
                 </div>
               )}
 
               {previewPayload && (
-                <div className="p-3.5 rounded-lg bg-[#121622] border border-emerald-500/40 space-y-3">
+                <div className="p-3.5 rounded bg-[var(--bg-dark-surface)] border border-emerald-500/40 space-y-3">
                   <div className="flex items-center justify-between">
                     <div>
                       <span className="text-[10px] text-emerald-400 uppercase tracking-wider font-mono font-semibold">
@@ -417,7 +417,7 @@ export const WorkspaceManagerModal: React.FC<WorkspaceManagerModalProps> = ({
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2 text-[11px] text-zinc-400 pt-2 border-t border-white/5">
+                  <div className="grid grid-cols-2 gap-2 text-[11px] text-zinc-400 pt-2 border-t border-[var(--border-subtle)]">
                     <div>Members: <strong className="text-white">{previewPayload.members.length}</strong></div>
                     <div>Tasks: <strong className="text-white">{Object.keys(previewPayload.kanbanBoard.cards).length}</strong></div>
                     <div>Tone: <strong className="text-white">{previewPayload.workspaceRules.editorialTone}</strong></div>
@@ -427,7 +427,7 @@ export const WorkspaceManagerModal: React.FC<WorkspaceManagerModalProps> = ({
                   <button
                     type="button"
                     onClick={handleConfirmJoin}
-                    className="w-full py-2 rounded bg-emerald-700 hover:bg-emerald-600 text-white font-medium text-xs transition-colors cursor-pointer shadow-sm"
+                    className="w-full py-2 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition-colors cursor-pointer shadow-sm"
                   >
                     Confirm & Join Workspace
                   </button>

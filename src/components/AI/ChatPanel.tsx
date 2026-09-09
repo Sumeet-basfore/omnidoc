@@ -534,10 +534,10 @@ export const ChatPanel: React.FC = () => {
             </div>
 
             <div
-              className={`p-3.5 rounded-md max-w-[90%] text-xs leading-relaxed transition-all ${
+              className={`p-3 rounded max-w-[90%] text-xs leading-relaxed transition-all ${
                 msg.role === 'user'
-                  ? 'bg-sky-600/30 text-zinc-100 border border-sky-500/30 rounded-tr-sm'
-                  : 'bg-[var(--bg-dark-surface)] text-zinc-200 border border-white/10 shadow-lg rounded-tl-sm'
+                  ? 'bg-sky-500/15 text-zinc-100 border border-sky-500/30'
+                  : 'bg-[var(--bg-dark-surface)] text-zinc-200 border border-[var(--border-subtle)] shadow-sm'
               }`}
             >
               {msg.role === 'assistant' ? (
@@ -741,7 +741,7 @@ export const ChatPanel: React.FC = () => {
           </div>
         )}
 
-        <div className="flex items-end gap-2 bg-[var(--bg-dark-surface)] border border-white/10 rounded-md p-2 focus-within:border-sky-500 focus-within:ring-1 focus-within:ring-sky-500 transition-all">
+        <div className="flex items-end gap-2 bg-[var(--bg-dark-surface)] border border-[var(--border-subtle)] rounded p-2 focus-within:border-sky-500 focus-within:ring-1 focus-within:ring-sky-500 transition-all">
           <textarea
             ref={inputRef}
             value={input}

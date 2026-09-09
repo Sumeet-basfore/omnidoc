@@ -83,12 +83,12 @@ export const AICompanionDrawer: React.FC = () => {
       </div>
 
       {/* Mode Navigation Tabs */}
-      <div className="flex border-b border-[var(--border-subtle)] bg-[var(--bg-dark-surface)] p-1 gap-1">
+      <div className="flex border-b border-[var(--border-subtle)] bg-[var(--bg-dark-base)] p-1 gap-1">
         <button
           onClick={() => setActiveTab('chat')}
-          className={`flex-1 py-1.5 px-3 rounded text-xs font-medium flex items-center justify-center gap-1.5 transition-all ${
+          className={`flex-1 py-1.5 px-3 rounded text-xs font-medium flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
             activeTab === 'chat'
-              ? 'bg-[var(--accent-primary)] text-[var(--text-on-accent)]'
+              ? 'bg-[var(--accent-primary)] text-[var(--text-on-accent)] font-semibold shadow-sm'
               : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5'
           }`}
         >
@@ -98,9 +98,9 @@ export const AICompanionDrawer: React.FC = () => {
 
         <button
           onClick={() => setActiveTab('research')}
-          className={`flex-1 py-1.5 px-3 rounded text-xs font-medium flex items-center justify-center gap-1.5 transition-all ${
+          className={`flex-1 py-1.5 px-3 rounded text-xs font-medium flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
             activeTab === 'research'
-              ? 'bg-[var(--accent-primary)] text-[var(--text-on-accent)]'
+              ? 'bg-[var(--accent-primary)] text-[var(--text-on-accent)] font-semibold shadow-sm'
               : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5'
           }`}
         >

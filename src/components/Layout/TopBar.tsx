@@ -165,12 +165,12 @@ export const TopBar: React.FC = () => {
       {/* Center: View Switcher & Command Launcher */}
       <div className="flex items-center gap-2.5">
         {/* Studio vs Team Hub Switcher */}
-        <div className="flex items-center bg-black/40 rounded-lg p-0.5 border border-white/10 text-xs">
+        <div className="flex items-center bg-[var(--bg-dark-base)] rounded p-0.5 border border-[var(--border-subtle)] text-xs">
           <button
             onClick={() => setMainView('studio')}
-            className={`px-2.5 py-0.5 rounded flex items-center gap-1.5 transition-colors cursor-pointer ${
+            className={`px-2.5 py-1 rounded flex items-center gap-1.5 transition-all cursor-pointer ${
               mainView === 'studio' || mainView === 'editor'
-                ? 'bg-indigo-600 text-white font-medium shadow-sm'
+                ? 'bg-[var(--accent-primary)] text-[var(--text-on-accent)] font-semibold shadow-sm'
                 : 'text-zinc-400 hover:text-zinc-200'
             }`}
           >
@@ -179,9 +179,9 @@ export const TopBar: React.FC = () => {
           </button>
           <button
             onClick={() => setMainView('team')}
-            className={`px-2.5 py-0.5 rounded flex items-center gap-1.5 transition-colors cursor-pointer ${
+            className={`px-2.5 py-1 rounded flex items-center gap-1.5 transition-all cursor-pointer ${
               mainView === 'team' || mainView === 'kanban'
-                ? 'bg-indigo-600 text-white font-medium shadow-sm'
+                ? 'bg-[var(--accent-primary)] text-[var(--text-on-accent)] font-semibold shadow-sm'
                 : 'text-zinc-400 hover:text-zinc-200'
             }`}
           >
@@ -192,13 +192,13 @@ export const TopBar: React.FC = () => {
 
         <button
           onClick={() => setCommandPaletteOpen(true)}
-          className="flex items-center gap-2 px-3 py-1 rounded bg-black/40 hover:bg-white/5 border border-white/10 text-xs text-zinc-400 hover:text-zinc-200 transition-all cursor-pointer shadow-inner w-48 justify-between"
+          className="flex items-center gap-2 px-3 py-1 rounded bg-[var(--bg-dark-base)] hover:bg-white/5 border border-[var(--border-subtle)] text-xs text-zinc-400 hover:text-zinc-200 transition-all cursor-pointer shadow-inner w-48 justify-between"
         >
           <div className="flex items-center gap-1.5">
             <Search size={13} />
             <span>Search or command...</span>
           </div>
-          <kbd className="px-1.5 py-0.2 rounded bg-white/10 text-[10px] font-mono text-zinc-400">
+          <kbd className="px-1.5 py-0.2 rounded bg-white/5 border border-white/10 text-[10px] font-mono text-zinc-400">
             ⌘K
           </kbd>
         </button>
@@ -239,7 +239,7 @@ export const TopBar: React.FC = () => {
           className={`flex items-center gap-1 px-2 py-1 rounded border text-xs cursor-pointer transition-all ${
             leftPanel === 'settings'
               ? 'bg-[var(--accent-primary)] border-transparent text-[var(--text-on-accent)] font-semibold'
-              : 'bg-sky-950/40 border-sky-500/30 text-sky-300 hover:text-white hover:border-sky-400'
+              : 'bg-sky-500/10 border-sky-500/30 text-sky-300 hover:text-white hover:border-sky-400'
           }`}
           title="Provider & key settings"
         >
@@ -252,10 +252,10 @@ export const TopBar: React.FC = () => {
         {/* User Guide & API Setup Center */}
         <button
           onClick={() => setUserGuideOpen(true)}
-          className="flex items-center gap-1 px-2 py-1 rounded border border-white/10 bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white text-xs cursor-pointer transition-all"
+          className="flex items-center gap-1 px-2 py-1 rounded border border-[var(--border-subtle)] bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white text-xs cursor-pointer transition-all"
           title="Open User Guide & API Setup Center"
         >
-          <HelpCircle size={13} className="text-indigo-400" />
+          <HelpCircle size={13} className="text-sky-400" />
           <span className="font-medium text-[11px] hidden md:inline">Guide</span>
         </button>
 
@@ -264,15 +264,15 @@ export const TopBar: React.FC = () => {
           onClick={() => toggleCommentsPanel()}
           className={`flex items-center gap-1.5 px-2.5 py-1 rounded font-medium text-xs transition-all cursor-pointer ${
             isCommentsPanelOpen
-              ? 'bg-indigo-600 text-white shadow-sm'
+              ? 'bg-sky-500/20 border border-sky-500/40 text-sky-200 shadow-sm'
               : 'bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border border-white/5'
           }`}
           title="Toggle Document Comments & Discussion (⌥C)"
         >
-          <MessageSquare size={13} className={isCommentsPanelOpen ? 'text-white' : 'text-indigo-400'} />
+          <MessageSquare size={13} className={isCommentsPanelOpen ? 'text-sky-300' : 'text-sky-400'} />
           <span className="hidden sm:inline">Comments</span>
           {openCommentsCount > 0 && (
-            <span className="px-1.5 py-0.2 rounded-full bg-indigo-500 text-[10px] font-mono font-bold text-white leading-none">
+            <span className="px-1.5 py-0.2 rounded-full bg-sky-500 text-[10px] font-mono font-bold text-[var(--text-on-accent)] leading-none">
               {openCommentsCount}
             </span>
           )}
@@ -283,7 +283,7 @@ export const TopBar: React.FC = () => {
           onClick={() => toggleAIDrawer()}
           className={`flex items-center gap-1.5 px-2.5 py-1 rounded font-medium text-xs transition-all cursor-pointer ${
             isAIDrawerOpen
-              ? 'bg-[var(--accent-primary)] text-[var(--text-on-accent)]'
+              ? 'bg-[var(--accent-primary)] text-[var(--text-on-accent)] font-semibold shadow-sm'
               : 'bg-white/10 hover:bg-white/15 text-white'
           }`}
           title="Toggle Omni & Deep Research"

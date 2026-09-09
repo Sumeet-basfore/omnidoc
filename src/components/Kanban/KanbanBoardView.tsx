@@ -173,11 +173,11 @@ Do not include any conversational preamble or markdown code fencing other than p
   const getPriorityBadge = (p: KanbanPriority) => {
     switch (p) {
       case 'urgent':
-        return 'bg-red-500/20 text-red-400 border-red-500/30';
+        return 'bg-rose-500/20 text-rose-300 border-rose-500/30';
       case 'high':
-        return 'bg-amber-500/20 text-amber-400 border-amber-500/30';
+        return 'bg-amber-500/20 text-amber-300 border-amber-500/30';
       case 'medium':
-        return 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30';
+        return 'bg-sky-500/20 text-sky-300 border-sky-500/30';
       case 'low':
       default:
         return 'bg-zinc-500/20 text-zinc-400 border-zinc-500/30';
@@ -185,11 +185,11 @@ Do not include any conversational preamble or markdown code fencing other than p
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-[#0a0c12] text-zinc-200 overflow-hidden select-none">
+    <div className="flex-1 flex flex-col h-full bg-[var(--bg-dark-base)] text-zinc-200 overflow-hidden select-none">
       {/* Board Top Toolbar */}
-      <div className="h-12 px-4 border-b border-[var(--border-subtle)] bg-[#121622] flex items-center justify-between gap-3 shrink-0">
+      <div className="h-12 px-4 border-b border-[var(--border-subtle)] bg-[var(--bg-dark-surface)] flex items-center justify-between gap-3 shrink-0">
         <div className="flex items-center gap-2.5">
-          <div className="p-1.5 rounded bg-indigo-500/15 border border-indigo-500/30 text-indigo-400">
+          <div className="p-1.5 rounded bg-sky-500/15 border border-sky-500/30 text-sky-400">
             <KanbanIcon size={16} />
           </div>
           <div>
@@ -209,7 +209,7 @@ Do not include any conversational preamble or markdown code fencing other than p
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Filter tasks..."
-              className="w-40 pl-7 pr-2 py-1 rounded bg-black/40 border border-white/10 text-xs text-zinc-300 placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500"
+              className="w-40 pl-7 pr-2 py-1 rounded bg-black/40 border border-[var(--border-subtle)] text-xs text-zinc-300 placeholder:text-zinc-600 focus:outline-none focus:border-sky-500"
             />
           </div>
 
@@ -218,17 +218,17 @@ Do not include any conversational preamble or markdown code fencing other than p
             <button
               onClick={handleGenerateTasksWithOmni}
               disabled={isAiGenerating}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-indigo-950/40 hover:bg-indigo-900/50 border border-indigo-500/30 text-indigo-300 hover:text-white text-xs font-medium transition-all cursor-pointer disabled:opacity-40 shadow-sm"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 text-sky-300 hover:text-white text-xs font-medium transition-all cursor-pointer disabled:opacity-40 shadow-sm"
               title={`Extract actionable tasks from "${activeDoc.name}"`}
             >
               {isAiGenerating ? (
                 <>
-                  <Loader2 size={12} className="animate-spin text-indigo-400" />
+                  <Loader2 size={12} className="animate-spin text-sky-400" />
                   <span>Synthesizing...</span>
                 </>
               ) : (
                 <>
-                  <Sparkles size={12} className="text-pink-400" />
+                  <Sparkles size={12} className="text-amber-400" />
                   <span className="hidden sm:inline">Tasks from Doc</span>
                 </>
               )}
@@ -247,7 +247,7 @@ Do not include any conversational preamble or markdown code fencing other than p
           {/* Return to Editor */}
           <button
             onClick={() => setMainView('editor')}
-            className="px-2.5 py-1 rounded bg-white/10 hover:bg-white/15 text-white text-xs font-medium transition-colors cursor-pointer"
+            className="px-2.5 py-1 rounded bg-white/10 hover:bg-white/15 text-white border border-white/10 text-xs font-medium transition-colors cursor-pointer"
           >
             Back to Editor
           </button>
@@ -277,10 +277,10 @@ Do not include any conversational preamble or markdown code fencing other than p
               key={col.id}
               onDragOver={handleDragOver}
               onDrop={(e) => handleDrop(e, col.id)}
-              className="w-72 max-h-full flex flex-col bg-[#121622] rounded-lg border border-white/10 shrink-0 shadow-lg"
+              className="w-72 max-h-full flex flex-col bg-[var(--bg-dark-surface)] rounded border border-[var(--border-subtle)] shrink-0 shadow-sm"
             >
               {/* Column Header */}
-              <div className="p-3 border-b border-white/5 flex items-center justify-between">
+              <div className="p-3 border-b border-[var(--border-subtle)] flex items-center justify-between bg-[var(--bg-dark-surface)]">
                 <div className="flex items-center gap-2">
                   <span className="font-semibold text-xs text-zinc-200">{col.title}</span>
                   <span className="px-1.5 py-0.2 rounded-full bg-black/40 text-[10px] font-mono text-zinc-400 border border-white/5">
@@ -310,26 +310,26 @@ Do not include any conversational preamble or markdown code fencing other than p
 
               {/* Inline Card Composer */}
               {isComposingHere && (
-                <div className="p-2.5 border-b border-indigo-500/30 bg-indigo-500/10 shrink-0 space-y-2">
+                <div className="p-2.5 border-b border-sky-500/30 bg-sky-500/10 shrink-0 space-y-2">
                   <input
                     type="text"
                     value={newCardTitle}
                     onChange={(e) => setNewCardTitle(e.target.value)}
                     placeholder="Task title..."
-                    className="w-full px-2 py-1 rounded bg-black/40 border border-white/10 text-xs text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500"
+                    className="w-full px-2 py-1 rounded bg-black/40 border border-[var(--border-subtle)] text-xs text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-sky-500"
                     autoFocus
                   />
                   <textarea
                     value={newCardDesc}
                     onChange={(e) => setNewCardDesc(e.target.value)}
                     placeholder="Details or checklist (optional)..."
-                    className="w-full h-12 p-2 rounded bg-black/40 border border-white/10 text-xs text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500 resize-none"
+                    className="w-full h-12 p-2 rounded bg-black/40 border border-[var(--border-subtle)] text-xs text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-sky-500 resize-none"
                   />
                   <div className="flex items-center justify-between gap-1 text-[11px]">
                     <select
                       value={newCardPriority}
                       onChange={(e) => setNewCardPriority(e.target.value as KanbanPriority)}
-                      className="bg-black/40 border border-white/10 rounded px-1.5 py-0.5 text-zinc-300 text-[10px]"
+                      className="bg-black/40 border border-[var(--border-subtle)] rounded px-1.5 py-0.5 text-zinc-300 text-[10px]"
                     >
                       <option value="low">Low Priority</option>
                       <option value="medium">Medium Priority</option>
@@ -343,7 +343,7 @@ Do not include any conversational preamble or markdown code fencing other than p
                       value={newCardAssignee}
                       onChange={(e) => setNewCardAssignee(e.target.value)}
                       placeholder="Assignee"
-                      className="w-24 px-1.5 py-0.5 rounded bg-black/40 border border-white/10 text-[10px] text-zinc-300 placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500"
+                      className="w-24 px-1.5 py-0.5 rounded bg-black/40 border border-[var(--border-subtle)] text-[10px] text-zinc-300 placeholder:text-zinc-600 focus:outline-none focus:border-sky-500"
                     />
                     <datalist id="kanban-team-assignees">
                       {teamMembers.map((m) => (
@@ -358,7 +358,7 @@ Do not include any conversational preamble or markdown code fencing other than p
                         type="checkbox"
                         checked={newCardLinkDoc}
                         onChange={(e) => setNewCardLinkDoc(e.target.checked)}
-                        className="rounded bg-black/40 border-white/10 text-indigo-600 focus:ring-0"
+                        className="rounded bg-black/40 border-white/10 text-sky-500 focus:ring-0"
                       />
                       <span>Link to "{activeDoc.name}"</span>
                     </label>
@@ -374,7 +374,7 @@ Do not include any conversational preamble or markdown code fencing other than p
                     <button
                       onClick={() => handleCreateCard(col.id)}
                       disabled={!newCardTitle.trim()}
-                      className="px-2.5 py-0.5 rounded bg-[var(--accent-primary)] hover:bg-[var(--accent-primary-hover)] disabled:opacity-40 text-white font-medium text-[10px] cursor-pointer"
+                      className="px-2.5 py-0.5 rounded bg-[var(--accent-primary)] hover:bg-[var(--accent-primary-hover)] disabled:opacity-40 text-[var(--text-on-accent)] font-semibold text-[10px] cursor-pointer"
                     >
                       Add Card
                     </button>
@@ -397,7 +397,7 @@ Do not include any conversational preamble or markdown code fencing other than p
                       key={card.id}
                       draggable={true}
                       onDragStart={(e) => handleDragStart(e, card.id, col.id)}
-                      className="group p-2.5 rounded-md bg-[#161a26] hover:bg-[#1a2030] border border-white/5 hover:border-indigo-500/40 transition-all shadow-sm cursor-grab active:cursor-grabbing space-y-2"
+                      className="group p-2.5 rounded bg-[var(--bg-dark-elevated)] hover:bg-[var(--bg-dark-elevated)]/90 border border-[var(--border-subtle)] hover:border-[var(--border-medium)] transition-all shadow-sm cursor-grab active:cursor-grabbing space-y-2"
                     >
                       {/* Top row: Priority & Delete */}
                       <div className="flex items-center justify-between gap-1">
@@ -443,7 +443,7 @@ Do not include any conversational preamble or markdown code fencing other than p
                             }
                             setMainView('editor');
                           }}
-                          className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-sky-950/40 border border-sky-500/20 text-[10px] text-sky-300 hover:text-white transition-colors cursor-pointer truncate max-w-full"
+                          className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-sky-500/10 border border-sky-500/20 text-[10px] text-sky-300 hover:text-white transition-colors cursor-pointer truncate max-w-full"
                           title={`Open ${linkedDoc.name}`}
                         >
                           <FileText size={10} className="shrink-0 text-sky-400" />
@@ -491,7 +491,7 @@ Do not include any conversational preamble or markdown code fencing other than p
               addKanbanColumn(title.trim());
             }
           }}
-          className="w-64 h-12 rounded-lg border border-dashed border-white/15 hover:border-indigo-500/40 hover:bg-indigo-500/5 text-zinc-400 hover:text-indigo-300 flex items-center justify-center gap-1.5 transition-all text-xs font-medium cursor-pointer shrink-0"
+          className="w-64 h-12 rounded border border-dashed border-[var(--border-subtle)] hover:border-[var(--border-active)] hover:bg-sky-500/5 text-zinc-400 hover:text-sky-300 flex items-center justify-center gap-1.5 transition-all text-xs font-medium cursor-pointer shrink-0"
         >
           <Plus size={14} />
           <span>Add Stage Column</span>

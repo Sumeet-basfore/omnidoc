@@ -61,11 +61,11 @@ export const UserGuideModal: React.FC<UserGuideModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 animate-fade-in">
-      <div className="w-full max-w-4xl h-[85vh] bg-[#121622] rounded-lg border border-white/10 shadow-2xl overflow-hidden flex flex-col">
+      <div className="w-full max-w-4xl h-[85vh] bg-[var(--bg-dark-surface)] rounded border border-[var(--border-subtle)] shadow-2xl overflow-hidden flex flex-col">
         {/* Modal Header */}
-        <div className="px-5 py-3.5 border-b border-white/10 flex items-center justify-between bg-black/30 shrink-0">
+        <div className="px-5 py-3.5 border-b border-[var(--border-subtle)] flex items-center justify-between bg-black/20 shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="p-1.5 rounded bg-indigo-500/20 text-indigo-400">
+            <div className="p-1.5 rounded bg-sky-500/20 text-sky-400">
               <BookOpen size={16} />
             </div>
             <div>
@@ -86,7 +86,7 @@ export const UserGuideModal: React.FC<UserGuideModalProps> = ({
         {/* Guide Body with Left Navigation */}
         <div className="flex-1 flex overflow-hidden">
           {/* Left Navigation Sidebar */}
-          <div className="w-52 border-r border-white/5 bg-[#0e121a] p-3 space-y-1 shrink-0 overflow-y-auto">
+          <div className="w-52 border-r border-[var(--border-subtle)] bg-[var(--bg-dark-base)] p-3 space-y-1 shrink-0 overflow-y-auto">
             {categories.map((cat) => {
               const Icon = cat.icon;
               const isActive = activeTab === cat.id;
@@ -94,19 +94,19 @@ export const UserGuideModal: React.FC<UserGuideModalProps> = ({
                 <button
                   key={cat.id}
                   onClick={() => setActiveTab(cat.id)}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-xs font-medium transition-colors text-left cursor-pointer ${
+                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded text-xs font-medium transition-all text-left cursor-pointer ${
                     isActive
-                      ? 'bg-indigo-600 text-white shadow-sm'
+                      ? 'bg-[var(--accent-primary)] text-[var(--text-on-accent)] font-semibold shadow-sm'
                       : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5'
                   }`}
                 >
-                  <Icon size={14} className={isActive ? 'text-white' : 'text-zinc-400'} />
+                  <Icon size={14} className={isActive ? 'text-[var(--text-on-accent)]' : 'text-zinc-400'} />
                   <span>{cat.label}</span>
                 </button>
               );
             })}
 
-            <div className="pt-4 mt-4 border-t border-white/5 px-2 space-y-2">
+            <div className="pt-4 mt-4 border-t border-[var(--border-subtle)] px-2 space-y-2">
               <button
                 onClick={handleOpenSettings}
                 className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-zinc-300 hover:text-white transition-colors cursor-pointer"
@@ -118,7 +118,7 @@ export const UserGuideModal: React.FC<UserGuideModalProps> = ({
           </div>
 
           {/* Right Content Area */}
-          <div className="flex-1 overflow-y-auto p-6 bg-[#0a0c12] text-zinc-200 space-y-6">
+          <div className="flex-1 overflow-y-auto p-6 bg-[var(--bg-dark-base)] text-zinc-200 space-y-6">
             {/* 1. API Keys & Setup */}
             {activeTab === 'api-keys' && (
               <div className="space-y-6">
@@ -489,32 +489,32 @@ git push origin main`}
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                  <div className="p-2.5 rounded bg-[#121622] border border-white/5 flex items-center justify-between">
+                  <div className="p-2.5 rounded bg-[var(--bg-dark-surface)] border border-[var(--border-subtle)] flex items-center justify-between">
                     <span className="text-zinc-300">Command Palette</span>
                     <kbd className="px-2 py-0.5 rounded bg-black/50 border border-white/10 font-mono text-[10px] text-zinc-300">Cmd / Ctrl + K</kbd>
                   </div>
 
-                  <div className="p-2.5 rounded bg-[#121622] border border-white/5 flex items-center justify-between">
+                  <div className="p-2.5 rounded bg-[var(--bg-dark-surface)] border border-[var(--border-subtle)] flex items-center justify-between">
                     <span className="text-zinc-300">Open File</span>
                     <kbd className="px-2 py-0.5 rounded bg-black/50 border border-white/10 font-mono text-[10px] text-zinc-300">Cmd / Ctrl + O</kbd>
                   </div>
 
-                  <div className="p-2.5 rounded bg-[#121622] border border-white/5 flex items-center justify-between">
+                  <div className="p-2.5 rounded bg-[var(--bg-dark-surface)] border border-[var(--border-subtle)] flex items-center justify-between">
                     <span className="text-zinc-300">Save Document</span>
                     <kbd className="px-2 py-0.5 rounded bg-black/50 border border-white/10 font-mono text-[10px] text-zinc-300">Cmd / Ctrl + S</kbd>
                   </div>
 
-                  <div className="p-2.5 rounded bg-[#121622] border border-white/5 flex items-center justify-between">
+                  <div className="p-2.5 rounded bg-[var(--bg-dark-surface)] border border-[var(--border-subtle)] flex items-center justify-between">
                     <span className="text-zinc-300">Split Viewport</span>
                     <kbd className="px-2 py-0.5 rounded bg-black/50 border border-white/10 font-mono text-[10px] text-zinc-300">Cmd / Ctrl + D</kbd>
                   </div>
 
-                  <div className="p-2.5 rounded bg-[#121622] border border-white/5 flex items-center justify-between">
+                  <div className="p-2.5 rounded bg-[var(--bg-dark-surface)] border border-[var(--border-subtle)] flex items-center justify-between">
                     <span className="text-zinc-300">Toggle Comments Panel</span>
                     <kbd className="px-2 py-0.5 rounded bg-black/50 border border-white/10 font-mono text-[10px] text-zinc-300">Option / Alt + C</kbd>
                   </div>
 
-                  <div className="p-2.5 rounded bg-[#121622] border border-white/5 flex items-center justify-between">
+                  <div className="p-2.5 rounded bg-[var(--bg-dark-surface)] border border-[var(--border-subtle)] flex items-center justify-between">
                     <span className="text-zinc-300">Toggle AI Drawer</span>
                     <kbd className="px-2 py-0.5 rounded bg-black/50 border border-white/10 font-mono text-[10px] text-zinc-300">Cmd / Ctrl + J</kbd>
                   </div>
