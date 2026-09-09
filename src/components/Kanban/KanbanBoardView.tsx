@@ -37,7 +37,8 @@ export const KanbanBoardView: React.FC = () => {
     activeProvider,
     activePersona,
     aiConfigs,
-    customInstructions
+    customInstructions,
+    teamMembers
   } = useAppStore();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -338,11 +339,17 @@ Do not include any conversational preamble or markdown code fencing other than p
 
                     <input
                       type="text"
+                      list="kanban-team-assignees"
                       value={newCardAssignee}
                       onChange={(e) => setNewCardAssignee(e.target.value)}
                       placeholder="Assignee"
-                      className="w-20 px-1.5 py-0.5 rounded bg-black/40 border border-white/10 text-[10px] text-zinc-300"
+                      className="w-24 px-1.5 py-0.5 rounded bg-black/40 border border-white/10 text-[10px] text-zinc-300 placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500"
                     />
+                    <datalist id="kanban-team-assignees">
+                      {teamMembers.map((m) => (
+                        <option key={m.id} value={m.name} />
+                      ))}
+                    </datalist>
                   </div>
 
                   {activeDoc && (
@@ -377,6 +384,11 @@ Do not include any conversational preamble or markdown code fencing other than p
 
               {/* Cards List in Column */}
               <div className="flex-1 overflow-y-auto p-2.5 space-y-2">
+                {colCards.length === 0 && !isComposingHere && (
+                  <div className="py-8 text-center text-zinc-600 text-xs select-none">
+                    No tasks
+                  </div>
+                )}
                 {colCards.map((card) => {
                   const linkedDoc = card.linkedDocId ? documents[card.linkedDocId] : null;
 

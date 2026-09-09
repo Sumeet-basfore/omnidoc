@@ -375,44 +375,63 @@ export const TeamHubView: React.FC = () => {
             )}
 
             {/* Members List */}
-            <div className="space-y-2">
-              {teamMembers.map((member) => (
-                <div
-                  key={member.id}
-                  className="p-3 rounded-lg bg-[#121622] border border-white/10 flex items-center justify-between gap-3 shadow-sm"
-                >
-                  <div className="flex items-center gap-3">
-                    <div
-                      style={{ backgroundColor: member.color }}
-                      className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-white text-xs shadow"
-                    >
-                      {member.name.charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-xs text-white">{member.name}</span>
-                        {member.isCurrentUser && (
-                          <span className="px-1.5 py-0.2 rounded bg-indigo-500/20 border border-indigo-500/30 text-[9px] font-mono text-indigo-300">
-                            YOU
-                          </span>
-                        )}
-                      </div>
-                      <span className="text-[11px] text-zinc-400">{member.role}</span>
-                    </div>
-                  </div>
-
-                  {!member.isCurrentUser && (
-                    <button
-                      onClick={() => removeTeamMember(member.id)}
-                      className="p-1 rounded text-zinc-600 hover:text-red-400 transition-colors cursor-pointer"
-                      title="Remove member"
-                    >
-                      <Trash2 size={13} />
-                    </button>
-                  )}
+            {teamMembers.length === 0 ? (
+              <div className="py-16 text-center border border-dashed border-white/10 rounded-lg bg-black/20">
+                <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-white/5 flex items-center justify-center text-zinc-500">
+                  <Users size={20} />
                 </div>
-              ))}
-            </div>
+                <h3 className="text-sm font-medium text-zinc-300">No team members yet</h3>
+                <p className="text-xs text-zinc-500 mt-1 max-w-xs mx-auto mb-4">
+                  Add team members to assign tasks, attribute reviews, and coordinate guidelines across documents.
+                </p>
+                <button
+                  onClick={() => setIsAddingMember(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium transition-colors cursor-pointer"
+                >
+                  <Plus size={13} />
+                  <span>Add First Teammate</span>
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {teamMembers.map((member) => (
+                  <div
+                    key={member.id}
+                    className="p-3 rounded-lg bg-[#121622] border border-white/10 flex items-center justify-between gap-3 shadow-sm"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div
+                        style={{ backgroundColor: member.color }}
+                        className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-white text-xs shadow"
+                      >
+                        {member.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-xs text-white">{member.name}</span>
+                          {member.isCurrentUser && (
+                            <span className="px-1.5 py-0.2 rounded bg-indigo-500/20 border border-indigo-500/30 text-[9px] font-mono text-indigo-300">
+                              YOU
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[11px] text-zinc-400">{member.role}</span>
+                      </div>
+                    </div>
+
+                    {!member.isCurrentUser && (
+                      <button
+                        onClick={() => removeTeamMember(member.id)}
+                        className="p-1 rounded text-zinc-600 hover:text-red-400 transition-colors cursor-pointer"
+                        title="Remove member"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>

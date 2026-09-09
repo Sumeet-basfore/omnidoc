@@ -174,43 +174,12 @@ const DEFAULT_KANBAN_BOARD: KanbanBoard = {
   id: 'board-default',
   title: 'Workspace Planning Board',
   columns: [
-    { id: 'col-backlog', title: 'Backlog', cardIds: ['card-1'] },
-    { id: 'col-in-progress', title: 'In Progress', cardIds: ['card-2'] },
-    { id: 'col-review', title: 'Review & QA', cardIds: ['card-3'] },
+    { id: 'col-backlog', title: 'Backlog', cardIds: [] },
+    { id: 'col-in-progress', title: 'In Progress', cardIds: [] },
+    { id: 'col-review', title: 'Review & QA', cardIds: [] },
     { id: 'col-done', title: 'Done', cardIds: [] }
   ],
-  cards: {
-    'card-1': {
-      id: 'card-1',
-      title: 'Architect team review & comment workflow',
-      description: 'Define threaded annotations and sidecar metadata for document review.',
-      priority: 'high',
-      assignee: 'Lead',
-      tags: ['Architecture', 'Review'],
-      createdAt: Date.now() - 3600000,
-      updatedAt: Date.now() - 3600000
-    },
-    'card-2': {
-      id: 'card-2',
-      title: 'Implement Markdown-backed Kanban planner',
-      description: 'Add drag-and-drop planning board linked to active workspace documents.',
-      priority: 'urgent',
-      assignee: 'Dev',
-      tags: ['Feature', 'UI'],
-      createdAt: Date.now() - 7200000,
-      updatedAt: Date.now() - 7200000
-    },
-    'card-3': {
-      id: 'card-3',
-      title: 'Review persona prompt system specs',
-      description: 'Verify 4 persona prompts against academic writing benchmarks.',
-      priority: 'medium',
-      assignee: 'Research',
-      tags: ['Docs', 'AI'],
-      createdAt: Date.now() - 10800000,
-      updatedAt: Date.now() - 10800000
-    }
-  }
+  cards: {}
 };
 
 export const useAppStore = create<AppState>()(
@@ -837,6 +806,30 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: 'omnidoc-storage',
+      version: 2,
+      migrate: (persistedState: any, version: number) => {
+        if (version < 2 && persistedState) {
+          const demoMemberIds = ['member-1', 'member-2', 'member-3', 'member-4'];
+          if (Array.isArray(persistedState.teamMembers)) {
+            persistedState.teamMembers = persistedState.teamMembers.filter(
+              (m: any) => !demoMemberIds.includes(m.id)
+            );
+          }
+          if (persistedState.kanbanBoard?.cards) {
+            const demoCardIds = ['card-1', 'card-2', 'card-3'];
+            for (const id of demoCardIds) {
+              delete persistedState.kanbanBoard.cards[id];
+            }
+            if (Array.isArray(persistedState.kanbanBoard.columns)) {
+              persistedState.kanbanBoard.columns = persistedState.kanbanBoard.columns.map((col: any) => ({
+                ...col,
+                cardIds: (col.cardIds || []).filter((id: string) => !demoCardIds.includes(id))
+              }));
+            }
+          }
+        }
+        return persistedState;
+      },
       partialize: (s) => ({
         recentFiles: s.recentFiles,
         activeProvider: s.activeProvider,
