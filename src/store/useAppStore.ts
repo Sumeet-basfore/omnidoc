@@ -59,6 +59,8 @@ interface AppState {
   addRecentFile: (filePath: string) => void;
   pendingInlinePrompt: string | null;
   setPendingInlinePrompt: (prompt: string | null) => void;
+  lastSavedAt: number | null;
+  setLastSavedAt: (t: number | null) => void;
 }
 
 const DEFAULT_AI_CONFIGS: Record<AIProviderId, AIProviderConfig> = {
@@ -317,6 +319,9 @@ export const useAppStore = create<AppState>()(
 
       pendingInlinePrompt: null,
       setPendingInlinePrompt: (prompt) => set({ pendingInlinePrompt: prompt }),
+
+      lastSavedAt: null,
+      setLastSavedAt: (t) => set({ lastSavedAt: t }),
 
       setDocumentPath: (docId, filePath) =>
         set((state) => {

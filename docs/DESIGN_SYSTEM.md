@@ -48,6 +48,7 @@ both modes for readability with the highlight themes.
 
 - TopBar 48px · TabBar 36px (tabs `min-w-120`/`max-w-220`, scroll + list
   dropdown past 1 tab) · Sidebar 260px · AI drawer 380px docked flex
-  (unmounted when closed — never overlay hacks).
+  (unmounted when closed — never overlay hacks) · StatusBar 24px footer
+  (doc state + save flash + provider badge).
 - Command palette results grouped by category headers.
 - Sidebar rows dense (`p-1`), section headers `11px semibold zinc-500`.

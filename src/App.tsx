@@ -10,6 +10,7 @@ import { ProviderSettings } from './components/Settings/ProviderSettings';
 import { CommandPalette } from './components/CommandPalette/CommandPalette';
 import { ExportModal } from './components/Layout/ExportModal';
 import { KeyboardShortcutsModal } from './components/Layout/KeyboardShortcutsModal';
+import { StatusBar } from './components/Layout/StatusBar';
 import { DocumentFormat, DocumentItem } from './types/document';
 
 export const App: React.FC = () => {
@@ -22,6 +23,7 @@ export const App: React.FC = () => {
     markDirty,
     setDocumentPath,
     addRecentFile,
+    setLastSavedAt,
     toggleSidebar,
     toggleAIDrawer,
     isAIDrawerOpen,
@@ -109,6 +111,7 @@ export const App: React.FC = () => {
               const isBinary = activeDoc.format === 'pdf' || activeDoc.format === 'docx';
               await window.electronAPI.writeFile(activeDoc.filePath, activeDoc.content, isBinary);
               markDirty(activeDoc.id, false);
+              setLastSavedAt(Date.now());
             } else if (window.electronAPI?.saveFileDialog) {
               const savedPath = await window.electronAPI.saveFileDialog(activeDoc.name);
               if (savedPath) {
@@ -118,6 +121,7 @@ export const App: React.FC = () => {
                 addRecentFile(savedPath);
                 window.electronAPI.addRecentDocument(savedPath);
                 markDirty(activeDoc.id, false);
+                setLastSavedAt(Date.now());
               }
             }
           }
@@ -176,7 +180,7 @@ export const App: React.FC = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [tabs, activeTabId, documents, createDocument, openDocument, markDirty, setDocumentPath, addRecentFile, toggleSidebar, toggleAIDrawer, isAIDrawerOpen, setAIDrawerOpen, setShortcutsModalOpen]);
+  }, [tabs, activeTabId, documents, createDocument, openDocument, markDirty, setDocumentPath, addRecentFile, setLastSavedAt, toggleSidebar, toggleAIDrawer, isAIDrawerOpen, setAIDrawerOpen, setShortcutsModalOpen]);
 
   // Open default welcome document if no document is currently open
   useEffect(() => {
@@ -202,6 +206,9 @@ export const App: React.FC = () => {
         </main>
         <AICompanionDrawer />
       </div>
+
+      {/* Status Bar */}
+      <StatusBar />
 
       {/* Global Modals */}
       <ProviderSettings />

@@ -28,7 +28,8 @@ export const TopBar: React.FC = () => {
     markDirty,
     renameDocument,
     setDocumentPath,
-    addRecentFile
+    addRecentFile,
+    setLastSavedAt
   } = useAppStore();
 
   const activeDoc = tabs.find((t) => t.id === activeTabId)
@@ -61,6 +62,7 @@ export const TopBar: React.FC = () => {
       const isBinary = activeDoc.format === 'pdf' || activeDoc.format === 'docx';
       await window.electronAPI.writeFile(activeDoc.filePath, activeDoc.content, isBinary);
       markDirty(activeDoc.id, false);
+      setLastSavedAt(Date.now());
     } else if (window.electronAPI?.saveFileDialog) {
       const savedPath = await window.electronAPI.saveFileDialog(activeDoc.name);
       if (savedPath) {
@@ -70,6 +72,7 @@ export const TopBar: React.FC = () => {
         addRecentFile(savedPath);
         window.electronAPI.addRecentDocument(savedPath);
         markDirty(activeDoc.id, false);
+        setLastSavedAt(Date.now());
       }
     } else {
       // Browser download fallback
