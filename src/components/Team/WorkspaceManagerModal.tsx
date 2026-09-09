@@ -45,11 +45,15 @@ export const WorkspaceManagerModal: React.FC<WorkspaceManagerModalProps> = ({
   // Create state
   const [newWsName, setNewWsName] = useState('');
   const [newWsDesc, setNewWsDesc] = useState('');
+  const [creatorName, setCreatorName] = useState('You');
+  const [creatorRole, setCreatorRole] = useState('Workspace Lead');
 
   // Join state
   const [inviteInput, setInviteInput] = useState('');
   const [previewPayload, setPreviewPayload] = useState<WorkspaceInvitePayload | null>(null);
   const [joinError, setJoinError] = useState<string | null>(null);
+  const [joinerName, setJoinerName] = useState('');
+  const [joinerRole, setJoinerRole] = useState('Contributor');
 
   // Copy feedback
   const [copiedCode, setCopiedCode] = useState(false);
@@ -79,7 +83,10 @@ export const WorkspaceManagerModal: React.FC<WorkspaceManagerModalProps> = ({
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newWsName.trim()) return;
-    createTeamWorkspace(newWsName.trim(), newWsDesc.trim());
+    createTeamWorkspace(newWsName.trim(), newWsDesc.trim(), {
+      name: creatorName.trim() || 'You',
+      role: creatorRole.trim() || 'Workspace Lead'
+    });
     setNewWsName('');
     setNewWsDesc('');
     onClose();
@@ -99,9 +106,14 @@ export const WorkspaceManagerModal: React.FC<WorkspaceManagerModalProps> = ({
 
   const handleConfirmJoin = () => {
     if (!previewPayload) return;
-    importTeamWorkspace(previewPayload);
+    importTeamWorkspace(previewPayload, {
+      name: joinerName.trim() || 'Teammate',
+      role: joinerRole.trim() || 'Contributor'
+    });
     setInviteInput('');
     setPreviewPayload(null);
+    setJoinerName('');
+    setJoinerRole('Contributor');
     onClose();
   };
 
@@ -330,7 +342,7 @@ export const WorkspaceManagerModal: React.FC<WorkspaceManagerModalProps> = ({
             <form onSubmit={handleCreate} className="space-y-4">
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-zinc-300 block">
-                  Workspace Name
+                  Workspace Name *
                 </label>
                 <input
                   type="text"
@@ -355,12 +367,40 @@ export const WorkspaceManagerModal: React.FC<WorkspaceManagerModalProps> = ({
                 />
               </div>
 
+              <div className="p-3 rounded bg-white/[0.02] border border-[var(--border-subtle)] space-y-2">
+                <span className="text-[11px] font-semibold text-sky-400 block uppercase tracking-wider">
+                  Your Workspace Profile (Owner)
+                </span>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[10px] text-zinc-400 block mb-1">Your Name</label>
+                    <input
+                      type="text"
+                      value={creatorName}
+                      onChange={(e) => setCreatorName(e.target.value)}
+                      placeholder="e.g. Sumeet"
+                      className="w-full px-2.5 py-1.5 rounded bg-black/50 border border-[var(--border-subtle)] text-xs text-white placeholder:text-zinc-600 focus:outline-none focus:border-sky-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-zinc-400 block mb-1">Your Role</label>
+                    <input
+                      type="text"
+                      value={creatorRole}
+                      onChange={(e) => setCreatorRole(e.target.value)}
+                      placeholder="e.g. Workspace Lead"
+                      className="w-full px-2.5 py-1.5 rounded bg-black/50 border border-[var(--border-subtle)] text-xs text-white placeholder:text-zinc-600 focus:outline-none focus:border-sky-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
               <button
                 type="submit"
                 disabled={!newWsName.trim()}
                 className="w-full py-2 rounded bg-[var(--accent-primary)] hover:bg-[var(--accent-primary-hover)] disabled:opacity-40 text-[var(--text-on-accent)] font-semibold text-xs transition-colors cursor-pointer shadow-sm"
               >
-                Create & Switch Workspace
+                Create Workspace with You as Lead
               </button>
             </form>
           )}
@@ -405,7 +445,7 @@ export const WorkspaceManagerModal: React.FC<WorkspaceManagerModalProps> = ({
                   <div className="flex items-center justify-between">
                     <div>
                       <span className="text-[10px] text-emerald-400 uppercase tracking-wider font-mono font-semibold">
-                        Ready to Join
+                        Workspace Found
                       </span>
                       <h4 className="text-sm font-semibold text-white">{previewPayload.name}</h4>
                       {previewPayload.description && (
@@ -418,18 +458,62 @@ export const WorkspaceManagerModal: React.FC<WorkspaceManagerModalProps> = ({
                   </div>
 
                   <div className="grid grid-cols-2 gap-2 text-[11px] text-zinc-400 pt-2 border-t border-[var(--border-subtle)]">
-                    <div>Members: <strong className="text-white">{previewPayload.members.length}</strong></div>
-                    <div>Tasks: <strong className="text-white">{Object.keys(previewPayload.kanbanBoard.cards).length}</strong></div>
-                    <div>Tone: <strong className="text-white">{previewPayload.workspaceRules.editorialTone}</strong></div>
-                    <div>Level: <strong className="text-white">{previewPayload.workspaceRules.targetReadingLevel}</strong></div>
+                    <div>Existing Members: <strong className="text-white">{previewPayload.members.length}</strong></div>
+                    <div>Active Tasks: <strong className="text-white">{Object.keys(previewPayload.kanbanBoard.cards).length}</strong></div>
+                  </div>
+
+                  {previewPayload.members.length > 0 && (
+                    <div className="space-y-1 pt-1">
+                      <span className="text-[10px] text-zinc-400 uppercase font-mono">Current Roster in Workspace:</span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {previewPayload.members.map((m) => (
+                          <span
+                            key={m.id}
+                            className="px-2 py-0.5 rounded bg-white/5 border border-[var(--border-subtle)] text-[10px] text-zinc-300"
+                          >
+                            {m.name} ({m.role})
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Teammate Join Profile */}
+                  <div className="p-3 rounded bg-black/40 border border-[var(--border-subtle)] space-y-2">
+                    <span className="text-[11px] font-semibold text-emerald-400 block uppercase tracking-wider">
+                      Join Roster as Teammate
+                    </span>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-[10px] text-zinc-400 block mb-1">Your Display Name *</label>
+                        <input
+                          type="text"
+                          value={joinerName}
+                          onChange={(e) => setJoinerName(e.target.value)}
+                          placeholder="e.g. Alex"
+                          className="w-full px-2.5 py-1.5 rounded bg-black/50 border border-[var(--border-subtle)] text-xs text-white placeholder:text-zinc-600 focus:outline-none focus:border-emerald-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-zinc-400 block mb-1">Your Role / Job Title</label>
+                        <input
+                          type="text"
+                          value={joinerRole}
+                          onChange={(e) => setJoinerRole(e.target.value)}
+                          placeholder="e.g. Reviewer / Dev"
+                          className="w-full px-2.5 py-1.5 rounded bg-black/50 border border-[var(--border-subtle)] text-xs text-white placeholder:text-zinc-600 focus:outline-none focus:border-emerald-500"
+                        />
+                      </div>
+                    </div>
                   </div>
 
                   <button
                     type="button"
                     onClick={handleConfirmJoin}
-                    className="w-full py-2 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition-colors cursor-pointer shadow-sm"
+                    disabled={!joinerName.trim()}
+                    className="w-full py-2 rounded bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white font-semibold text-xs transition-colors cursor-pointer shadow-sm"
                   >
-                    Confirm & Join Workspace
+                    Join Workspace as {joinerName.trim() || 'Teammate'}
                   </button>
                 </div>
               )}

@@ -11,7 +11,15 @@ export interface TeamMember {
 
 export type TeamHubSubTab = 'planning' | 'reviews' | 'guidelines' | 'roster';
 
-export const DEFAULT_TEAM_MEMBERS: TeamMember[] = [];
+export const DEFAULT_TEAM_MEMBERS: TeamMember[] = [
+  {
+    id: 'member-lead',
+    name: 'You',
+    role: 'Workspace Lead',
+    color: '#0ea5e9',
+    isCurrentUser: true
+  }
+];
 
 export interface TeamManifest {
   $schema?: string;

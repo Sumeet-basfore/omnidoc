@@ -45,15 +45,16 @@ interface AppState {
   teamMembers: TeamMember[];
   setTeamMembers: (members: TeamMember[]) => void;
   addTeamMember: (member: Omit<TeamMember, 'id'>) => void;
+  updateTeamMember: (id: string, updates: Partial<TeamMember>) => void;
   removeTeamMember: (id: string) => void;
 
   // Multiple Team Workspaces
   teamWorkspaces: Record<string, TeamWorkspace>;
   activeWorkspaceId: string;
-  createTeamWorkspace: (name: string, description?: string) => string;
+  createTeamWorkspace: (name: string, description?: string, creator?: { name?: string; role?: string }) => string;
   switchTeamWorkspace: (id: string) => void;
   deleteTeamWorkspace: (id: string) => void;
-  importTeamWorkspace: (payload: WorkspaceInvitePayload) => string;
+  importTeamWorkspace: (payload: WorkspaceInvitePayload, joiningUser?: { name: string; role?: string }) => string;
   isSidebarOpen: boolean;
   leftPanel: 'files' | 'settings';
   setLeftPanel: (view: 'files' | 'settings') => void;
@@ -839,24 +840,105 @@ export const useAppStore = create<AppState>()(
 
       setTeamHubSubTab: (tab) => set({ teamHubSubTab: tab }),
 
-      setTeamMembers: (members) => set({ teamMembers: members }),
+      setTeamMembers: (members) =>
+        set((state) => {
+          const currentWs = state.teamWorkspaces[state.activeWorkspaceId];
+          return {
+            teamMembers: members,
+            ...(currentWs
+              ? {
+                  teamWorkspaces: {
+                    ...state.teamWorkspaces,
+                    [currentWs.id]: {
+                      ...currentWs,
+                      members,
+                      updatedAt: Date.now()
+                    }
+                  }
+                }
+              : {})
+          };
+        }),
 
       addTeamMember: (member) =>
-        set((state) => ({
-          teamMembers: [
-            ...state.teamMembers,
-            { ...member, id: `member-${Date.now()}` }
-          ]
-        })),
+        set((state) => {
+          const newMember: TeamMember = {
+            ...member,
+            id: `member-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
+          };
+          const updatedMembers = [...state.teamMembers, newMember];
+          const currentWs = state.teamWorkspaces[state.activeWorkspaceId];
+          return {
+            teamMembers: updatedMembers,
+            ...(currentWs
+              ? {
+                  teamWorkspaces: {
+                    ...state.teamWorkspaces,
+                    [currentWs.id]: {
+                      ...currentWs,
+                      members: updatedMembers,
+                      updatedAt: Date.now()
+                    }
+                  }
+                }
+              : {})
+          };
+        }),
+
+      updateTeamMember: (id, updates) =>
+        set((state) => {
+          const updatedMembers = state.teamMembers.map((m) =>
+            m.id === id ? { ...m, ...updates } : m
+          );
+          const currentWs = state.teamWorkspaces[state.activeWorkspaceId];
+          return {
+            teamMembers: updatedMembers,
+            ...(currentWs
+              ? {
+                  teamWorkspaces: {
+                    ...state.teamWorkspaces,
+                    [currentWs.id]: {
+                      ...currentWs,
+                      members: updatedMembers,
+                      updatedAt: Date.now()
+                    }
+                  }
+                }
+              : {})
+          };
+        }),
 
       removeTeamMember: (id) =>
-        set((state) => ({
-          teamMembers: state.teamMembers.filter((m) => m.id !== id)
-        })),
+        set((state) => {
+          const updatedMembers = state.teamMembers.filter((m) => m.id !== id);
+          const currentWs = state.teamWorkspaces[state.activeWorkspaceId];
+          return {
+            teamMembers: updatedMembers,
+            ...(currentWs
+              ? {
+                  teamWorkspaces: {
+                    ...state.teamWorkspaces,
+                    [currentWs.id]: {
+                      ...currentWs,
+                      members: updatedMembers,
+                      updatedAt: Date.now()
+                    }
+                  }
+                }
+              : {})
+          };
+        }),
 
-      createTeamWorkspace: (name, description) => {
+      createTeamWorkspace: (name, description, creator) => {
         const id = `ws-${Date.now()}`;
         const code = generateWorkspaceCode(name);
+        const creatorMember: TeamMember = {
+          id: `member-creator-${Date.now()}`,
+          name: creator?.name?.trim() || 'You',
+          role: creator?.role?.trim() || 'Workspace Lead',
+          color: '#0ea5e9',
+          isCurrentUser: true
+        };
         const newWs: TeamWorkspace = {
           id,
           name,
@@ -864,7 +946,7 @@ export const useAppStore = create<AppState>()(
           description: description || '',
           createdAt: Date.now(),
           updatedAt: Date.now(),
-          members: [],
+          members: [creatorMember],
           workspaceRules: {
             ...DEFAULT_WORKSPACE_RULES,
             teamName: name
@@ -978,8 +1060,34 @@ export const useAppStore = create<AppState>()(
         });
       },
 
-      importTeamWorkspace: (payload) => {
+      importTeamWorkspace: (payload, joiningUser) => {
         const id = payload.workspaceId || `ws-${Date.now()}`;
+        const sanitizedMembers: TeamMember[] = (payload.members || []).map((m) => ({
+          ...m,
+          isCurrentUser: false
+        }));
+
+        let finalMembers = sanitizedMembers;
+        if (joiningUser && joiningUser.name.trim()) {
+          const userMember: TeamMember = {
+            id: `member-join-${Date.now()}`,
+            name: joiningUser.name.trim(),
+            role: joiningUser.role?.trim() || 'Teammate',
+            color: '#10b981',
+            isCurrentUser: true
+          };
+          const existingIdx = finalMembers.findIndex(
+            (m) => m.name.toLowerCase() === userMember.name.toLowerCase()
+          );
+          if (existingIdx >= 0) {
+            finalMembers = finalMembers.map((m, idx) =>
+              idx === existingIdx ? { ...m, ...userMember } : m
+            );
+          } else {
+            finalMembers = [...finalMembers, userMember];
+          }
+        }
+
         const ws: TeamWorkspace = {
           id,
           name: payload.name,
@@ -987,7 +1095,7 @@ export const useAppStore = create<AppState>()(
           description: payload.description || '',
           createdAt: Date.now(),
           updatedAt: Date.now(),
-          members: payload.members || [],
+          members: finalMembers,
           workspaceRules: payload.workspaceRules || {
             ...DEFAULT_WORKSPACE_RULES,
             teamName: payload.name

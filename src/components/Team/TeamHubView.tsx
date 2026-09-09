@@ -23,7 +23,9 @@ import {
   Radio,
   Building2,
   ChevronDown,
-  Share2
+  Share2,
+  KeyRound,
+  Edit3
 } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import { KanbanBoardView } from '../Kanban/KanbanBoardView';
@@ -57,6 +59,7 @@ export const TeamHubView: React.FC = () => {
     teamMembers,
     setTeamMembers,
     addTeamMember,
+    updateTeamMember,
     removeTeamMember,
     kanbanBoard,
     setKanbanBoard,
@@ -68,6 +71,10 @@ export const TeamHubView: React.FC = () => {
   const [newMemberRole, setNewMemberRole] = useState('');
   const [newMemberColor, setNewMemberColor] = useState('#6366f1');
   const [isAddingMember, setIsAddingMember] = useState(false);
+  const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editRole, setEditRole] = useState('');
+  const [copiedCodeBanner, setCopiedCodeBanner] = useState(false);
 
   // Workspace Manager state
   const [isWsManagerOpen, setIsWsManagerOpen] = useState(false);
@@ -494,32 +501,98 @@ export const TeamHubView: React.FC = () => {
 
         {teamHubSubTab === 'roster' && (
           <div className="h-full overflow-y-auto p-6 max-w-2xl mx-auto space-y-4">
+            {/* Roster Header */}
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-sm font-semibold text-white">Team Roster & Members</h2>
+                <h2 className="text-sm font-semibold text-white">Workspace Roster</h2>
                 <p className="text-xs text-zinc-400">
-                  Contributors and reviewers with attributed roles across comments and tasks
+                  Teammates enrolled in this workspace. Teammates appear automatically when they join with your workspace code or sync via Git.
                 </p>
               </div>
 
-              <button
-                onClick={() => setIsAddingMember((prev) => !prev)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-[var(--accent-primary)] hover:bg-[var(--accent-primary-hover)] text-[var(--text-on-accent)] text-xs font-semibold transition-colors cursor-pointer shadow-sm"
-              >
-                <Plus size={13} />
-                <span>Add Teammate</span>
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsAddingMember((prev) => !prev)}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded bg-white/5 hover:bg-white/10 border border-[var(--border-subtle)] text-zinc-300 hover:text-white text-xs font-medium transition-colors cursor-pointer"
+                  title="Add a placeholder member for assigning tasks before they join"
+                >
+                  <Plus size={13} />
+                  <span>Add Placeholder</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setWsManagerTab('share');
+                    setIsWsManagerOpen(true);
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-[var(--accent-primary)] hover:bg-[var(--accent-primary-hover)] text-[var(--text-on-accent)] text-xs font-semibold transition-colors cursor-pointer shadow-sm"
+                >
+                  <Share2 size={13} />
+                  <span>Invite Teammates</span>
+                </button>
+              </div>
             </div>
 
-            {/* Add Member Composer */}
+            {/* Workspace Invite Passkey Banner */}
+            <div className="p-3.5 rounded bg-[var(--bg-dark-surface)] border border-[var(--border-subtle)] flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-8 h-8 rounded bg-sky-500/10 border border-sky-500/20 text-sky-400 flex items-center justify-center shrink-0">
+                  <KeyRound size={15} />
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold text-white">Workspace Invite Code:</span>
+                    <code className="px-2 py-0.5 rounded bg-black/40 border border-sky-500/30 text-sky-400 font-mono text-xs font-bold tracking-wide">
+                      {activeWorkspace?.code || 'OMNI-CORE'}
+                    </code>
+                  </div>
+                  <p className="text-[11px] text-zinc-400 truncate mt-0.5">
+                    Give this code to teammates to join via <strong>Team Workspaces → Join Workspace</strong>.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(activeWorkspace?.code || 'OMNI-CORE');
+                    setCopiedCodeBanner(true);
+                    setTimeout(() => setCopiedCodeBanner(false), 2000);
+                  }}
+                  className="px-2.5 py-1.5 rounded bg-white/5 hover:bg-white/10 border border-[var(--border-subtle)] text-xs text-zinc-300 hover:text-white flex items-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  {copiedCodeBanner ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
+                  <span>{copiedCodeBanner ? 'Copied' : 'Copy Code'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setWsManagerTab('share');
+                    setIsWsManagerOpen(true);
+                  }}
+                  className="px-2.5 py-1.5 rounded bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 text-sky-300 text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <Share2 size={13} />
+                  <span>Passkey</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Add Member Composer (Placeholder) */}
             {isAddingMember && (
               <div className="p-4 rounded bg-[var(--bg-dark-surface)] border border-[var(--border-subtle)] space-y-3 animate-fade-in shadow-lg">
-                <h3 className="text-xs font-semibold text-sky-400 uppercase tracking-wider">
-                  Add New Team Member
-                </h3>
+                <div>
+                  <h3 className="text-xs font-semibold text-sky-400 uppercase tracking-wider">
+                    Add Placeholder Member
+                  </h3>
+                  <p className="text-[10px] text-zinc-500">
+                    Use placeholders to assign tasks before your teammates join with the workspace code.
+                  </p>
+                </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="text-[10px] text-zinc-400 block mb-1">Full Name</label>
+                    <label className="text-[10px] text-zinc-400 block mb-1">Full Name *</label>
                     <input
                       type="text"
                       value={newMemberName}
@@ -535,7 +608,7 @@ export const TeamHubView: React.FC = () => {
                       type="text"
                       value={newMemberRole}
                       onChange={(e) => setNewMemberRole(e.target.value)}
-                      placeholder="e.g. Senior Reviewer"
+                      placeholder="e.g. Reviewer"
                       className="w-full px-2.5 py-1.5 rounded bg-black/40 border border-[var(--border-subtle)] text-xs text-zinc-200 focus:outline-none focus:border-sky-500"
                     />
                   </div>
@@ -572,26 +645,71 @@ export const TeamHubView: React.FC = () => {
             )}
 
             {/* Members List */}
-            {teamMembers.length === 0 ? (
-              <div className="py-16 text-center border border-dashed border-white/10 rounded bg-black/20">
-                <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-white/5 flex items-center justify-center text-zinc-500">
-                  <Users size={20} />
-                </div>
-                <h3 className="text-sm font-medium text-zinc-300">No team members yet</h3>
-                <p className="text-xs text-zinc-500 mt-1 max-w-xs mx-auto mb-4">
-                  Add team members to assign tasks, attribute reviews, and coordinate guidelines across documents.
-                </p>
-                <button
-                  onClick={() => setIsAddingMember(true)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-[var(--accent-primary)] hover:bg-[var(--accent-primary-hover)] text-[var(--text-on-accent)] text-xs font-semibold transition-colors cursor-pointer"
-                >
-                  <Plus size={13} />
-                  <span>Add First Teammate</span>
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {teamMembers.map((member) => (
+            <div className="space-y-2">
+              {teamMembers.map((member) => {
+                const assignedCount = Object.values(kanbanBoard.cards).filter(
+                  (c) => c.assignee === member.name || c.assignee === member.id
+                ).length;
+
+                if (editingMemberId === member.id) {
+                  return (
+                    <div
+                      key={member.id}
+                      className="p-3.5 rounded bg-[var(--bg-dark-surface)] border border-sky-500/40 space-y-3"
+                    >
+                      <span className="text-[10px] font-mono text-sky-400 uppercase font-semibold">
+                        Edit Profile
+                      </span>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="text-[10px] text-zinc-400 block mb-1">Display Name</label>
+                          <input
+                            type="text"
+                            value={editName}
+                            onChange={(e) => setEditName(e.target.value)}
+                            className="w-full px-2.5 py-1.5 rounded bg-black/50 border border-[var(--border-subtle)] text-xs text-white focus:outline-none focus:border-sky-500"
+                            autoFocus
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] text-zinc-400 block mb-1">Role / Job Title</label>
+                          <input
+                            type="text"
+                            value={editRole}
+                            onChange={(e) => setEditRole(e.target.value)}
+                            className="w-full px-2.5 py-1.5 rounded bg-black/50 border border-[var(--border-subtle)] text-xs text-white focus:outline-none focus:border-sky-500"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex justify-end gap-2 pt-1">
+                        <button
+                          type="button"
+                          onClick={() => setEditingMemberId(null)}
+                          className="px-2.5 py-1 rounded hover:bg-white/10 text-zinc-400 text-xs cursor-pointer"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (editName.trim()) {
+                              updateTeamMember(member.id, {
+                                name: editName.trim(),
+                                role: editRole.trim() || member.role
+                              });
+                            }
+                            setEditingMemberId(null);
+                          }}
+                          className="px-3 py-1 rounded bg-[var(--accent-primary)] hover:bg-[var(--accent-primary-hover)] text-[var(--text-on-accent)] font-semibold text-xs cursor-pointer"
+                        >
+                          Save Changes
+                        </button>
+                      </div>
+                    </div>
+                  );
+                }
+
+                return (
                   <div
                     key={member.id}
                     className="p-3 rounded bg-[var(--bg-dark-surface)] border border-[var(--border-subtle)] hover:border-[var(--border-medium)] flex items-center justify-between gap-3 shadow-sm transition-all"
@@ -599,16 +717,20 @@ export const TeamHubView: React.FC = () => {
                     <div className="flex items-center gap-3">
                       <div
                         style={{ backgroundColor: member.color }}
-                        className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-white text-xs shadow"
+                        className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-white text-xs shadow shrink-0"
                       >
                         {member.name.charAt(0).toUpperCase()}
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
                           <span className="font-semibold text-xs text-white">{member.name}</span>
-                          {member.isCurrentUser && (
+                          {member.isCurrentUser ? (
                             <span className="px-1.5 py-0.2 rounded bg-sky-500/15 border border-sky-500/30 text-[9px] font-mono text-sky-300">
-                              YOU
+                              YOU (Lead)
+                            </span>
+                          ) : (
+                            <span className="px-1.5 py-0.2 rounded bg-emerald-500/10 border border-emerald-500/20 text-[9px] font-mono text-emerald-400">
+                              Teammate
                             </span>
                           )}
                         </div>
@@ -616,17 +738,48 @@ export const TeamHubView: React.FC = () => {
                       </div>
                     </div>
 
-                    {!member.isCurrentUser && (
-                      <button
-                        onClick={() => removeTeamMember(member.id)}
-                        className="p-1 rounded text-zinc-600 hover:text-red-400 transition-colors cursor-pointer"
-                        title="Remove member"
-                      >
-                        <Trash2 size={13} />
-                      </button>
-                    )}
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-mono text-zinc-500 px-2 py-0.5 rounded bg-white/[0.03] border border-[var(--border-subtle)]">
+                        {assignedCount} {assignedCount === 1 ? 'task' : 'tasks'}
+                      </span>
+
+                      {member.isCurrentUser ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingMemberId(member.id);
+                            setEditName(member.name);
+                            setEditRole(member.role);
+                          }}
+                          className="p-1.5 rounded hover:bg-white/10 text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                          title="Edit your display name or role"
+                        >
+                          <Edit3 size={13} />
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => removeTeamMember(member.id)}
+                          className="p-1.5 rounded text-zinc-600 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
+                          title="Remove member"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      )}
+                    </div>
                   </div>
-                ))}
+                );
+              })}
+            </div>
+
+            {/* Waiting on teammates prompt if only 1 member */}
+            {teamMembers.length <= 1 && (
+              <div className="p-4 rounded border border-dashed border-white/10 bg-black/20 text-center space-y-2">
+                <p className="text-xs text-zinc-400">
+                  No other teammates have joined this workspace yet.
+                </p>
+                <p className="text-[11px] text-zinc-500 max-w-sm mx-auto">
+                  Click <strong>Invite Teammates</strong> to share your code or sync with Git. When teammates enter the code from their OmniDoc Studio, they will appear in this roster.
+                </p>
               </div>
             )}
           </div>
