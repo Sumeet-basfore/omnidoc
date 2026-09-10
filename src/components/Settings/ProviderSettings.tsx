@@ -57,15 +57,55 @@ const PROVIDER_PRESET_MODELS: Record<AIProviderId, string[]> = {
     'mistralai/mistral-large-2407'
   ],
   custom: [
+    'local-model',
     'llama3.2',
-    'llama3.1',
-    'deepseek-r1:8b',
-    'mistral',
     'qwen2.5-coder:7b',
+    'qwen2.5-coder-7b-instruct',
+    'deepseek-r1:8b',
+    'deepseek-r1-distill-qwen-7b',
+    'mistral',
+    'mistral-7b-instruct-v0.3',
+    'llama3.1',
     'phi3',
     'gemma2:9b'
   ]
 };
+
+interface LocalEnginePreset {
+  id: 'lmstudio' | 'ollama' | 'llamacpp';
+  name: string;
+  badge: string;
+  port: string;
+  url: string;
+  defaultModel: string;
+}
+
+const LOCAL_ENGINE_PRESETS: LocalEnginePreset[] = [
+  {
+    id: 'lmstudio',
+    name: 'LM Studio',
+    badge: ':1234',
+    port: '1234',
+    url: 'http://localhost:1234/v1',
+    defaultModel: 'local-model'
+  },
+  {
+    id: 'ollama',
+    name: 'Ollama',
+    badge: ':11434',
+    port: '11434',
+    url: 'http://localhost:11434/v1',
+    defaultModel: 'llama3.2'
+  },
+  {
+    id: 'llamacpp',
+    name: 'llama.cpp',
+    badge: ':8080',
+    port: '8080',
+    url: 'http://localhost:8080/v1',
+    defaultModel: 'default-model'
+  }
+];
 
 export const ProviderSettings: React.FC = () => {
   const {
@@ -197,11 +237,12 @@ export const ProviderSettings: React.FC = () => {
     }
   };
 
-  // Auto-discover in background if we have a key and haven't discovered yet
+  // Auto-discover in background if we have a key (or local endpoint) and haven't discovered yet
   useEffect(() => {
     const currentKey = keys[activeProvider];
-    if (currentKey && canDiscover && !knownModelsByProvider[activeProvider] && !discovering) {
-      listModels(currentConfig, currentKey)
+    const canProbe = (Boolean(currentKey) || activeProvider === 'custom') && canDiscover;
+    if (canProbe && !knownModelsByProvider[activeProvider] && !discovering) {
+      listModels(currentConfig, currentKey || '')
         .then((models) => {
           if (models.length > 0) {
             setKnownModelsByProvider((prev) => ({ ...prev, [activeProvider]: models }));
@@ -209,7 +250,7 @@ export const ProviderSettings: React.FC = () => {
         })
         .catch(() => {});
     }
-  }, [activeProvider, keys[activeProvider]]);
+  }, [activeProvider, keys[activeProvider], currentConfig.baseUrl]);
 
   const fmtTok = (n: number): string =>
     n >= 1e6 ? `${(n / 1e6).toFixed(2)}M` : n >= 1e3 ? `${(n / 1e3).toFixed(1)}k` : `${n}`;
@@ -334,32 +375,55 @@ export const ProviderSettings: React.FC = () => {
             <span>Active provider</span>
           </label>
           <div className="grid grid-cols-2 gap-1.5">
-            {(['gemini', 'openai', 'anthropic', 'openrouter', 'custom'] as const).map((p) => (
-              <button
-                key={p}
-                onClick={() => {
-                  setActiveProvider(p);
-                  setIsModelDropdownOpen(false);
-                  setModelSearch('');
-                  setDiscoverError('');
-                }}
-                className={`p-2 rounded border text-left transition-all capitalize ${
-                  activeProvider === p
-                    ? 'bg-sky-500/15 border-sky-500/50 text-white font-medium'
-                    : 'bg-white/[0.02] border-white/5 text-zinc-400 hover:text-zinc-200 hover:bg-white/5'
-                }`}
-              >
-                <div className="text-[11px] truncate">{aiConfigs[p].name}</div>
-                <div className="text-[10px] text-zinc-500 truncate mt-0.5 font-mono">{aiConfigs[p].model}</div>
-              </button>
-            ))}
+            {(['gemini', 'openai', 'anthropic', 'openrouter', 'custom'] as const).map((p) => {
+              const isCustom = p === 'custom';
+              const cfg = aiConfigs[p];
+              let customSubtitle = 'Ollama / Local';
+              if (isCustom) {
+                const url = (cfg?.baseUrl || '').toLowerCase();
+                if (url.includes(':1234')) customSubtitle = 'LM Studio (:1234)';
+                else if (url.includes(':8080')) customSubtitle = 'llama.cpp (:8080)';
+                else if (url.includes(':11434')) customSubtitle = 'Ollama (:11434)';
+                else customSubtitle = 'Local / OpenAI-compat';
+              }
+              return (
+                <button
+                  key={p}
+                  onClick={() => {
+                    setActiveProvider(p);
+                    setIsModelDropdownOpen(false);
+                    setModelSearch('');
+                    setDiscoverError('');
+                  }}
+                  className={`p-2 rounded border text-left transition-all ${
+                    activeProvider === p
+                      ? 'bg-sky-500/15 border-sky-500/50 text-white font-medium'
+                      : 'bg-white/[0.02] border-white/5 text-zinc-400 hover:text-zinc-200 hover:bg-white/5'
+                  } ${isCustom ? 'col-span-2' : ''}`}
+                >
+                  <div className="text-[11px] truncate flex items-center justify-between">
+                    <span>{isCustom ? 'Local AI (LM Studio, Ollama, llama.cpp)' : cfg.name}</span>
+                    {isCustom && (
+                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono font-medium">
+                        Offline
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-[10px] text-zinc-500 truncate mt-0.5 font-mono">
+                    {isCustom ? `${customSubtitle} · ${cfg.model}` : cfg.model}
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </div>
 
         {/* Active provider config */}
         <div className="p-3 bg-white/[0.02] border border-white/10 rounded space-y-2.5">
           <div className="flex items-center justify-between gap-2">
-            <span className="font-semibold text-white text-[11px] truncate">{currentConfig.name}</span>
+            <span className="font-semibold text-white text-[11px] truncate">
+              {activeProvider === 'custom' ? 'Local AI Server Config' : currentConfig.name}
+            </span>
             <button
               onClick={() => handleTestKey(activeProvider)}
               disabled={testStatus[activeProvider] === 'testing'}
@@ -382,7 +446,11 @@ export const ProviderSettings: React.FC = () => {
               type="password"
               value={keys[activeProvider] || ''}
               onChange={(e) => handleKeyChange(activeProvider, e.target.value)}
-              placeholder={activeProvider === 'custom' ? 'Blank for default Ollama' : `Paste key…`}
+              placeholder={
+                activeProvider === 'custom'
+                  ? 'Blank for LM Studio / Ollama / llama.cpp'
+                  : `Paste key…`
+              }
               className="w-full px-2.5 py-1.5 bg-black/40 border border-white/10 rounded text-xs text-white focus:outline-none focus:border-sky-500 font-mono"
             />
             {testError[activeProvider] && (
@@ -575,26 +643,100 @@ export const ProviderSettings: React.FC = () => {
           </div>
 
           {activeProvider === 'custom' && (
-            <div className="space-y-2.5">
-            <div>
-              <label className="block text-[11px] text-zinc-400 mb-1">Base URL (Ollama / LM Studio)</label>
-              <input
-                type="text"
-                value={currentConfig.baseUrl || ''}
-                onChange={(e) => updateAIConfig(activeProvider, { baseUrl: e.target.value })}
-                placeholder="http://localhost:11434/v1"
-                className="w-full px-2.5 py-1.5 bg-black/40 border border-white/10 rounded text-xs text-white focus:outline-none focus:border-sky-500 font-mono"
-              />
-            </div>
-            <label className="flex items-start gap-2 cursor-pointer text-zinc-300 text-[11px] leading-snug">
-              <input
-                type="checkbox"
-                checked={!!currentConfig.toolsBeta}
-                onChange={(e) => updateAIConfig(activeProvider, { toolsBeta: e.target.checked })}
-                className="rounded bg-zinc-800 border-zinc-700 text-sky-600 focus:ring-0 mt-0.5"
-              />
-              <span>Enable agent tools (beta, JSON fallback — needs a capable model)</span>
-            </label>
+            <div className="space-y-3 pt-2 border-t border-white/5">
+              <div>
+                <label className="block text-[11px] text-zinc-300 mb-1.5 font-medium flex items-center justify-between">
+                  <span>Local Inference Engine</span>
+                  <span className="text-[10px] text-sky-400 font-mono">1-Click Presets</span>
+                </label>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {LOCAL_ENGINE_PRESETS.map((engine) => {
+                    const isSelected = (currentConfig.baseUrl || '').includes(engine.port);
+                    return (
+                      <button
+                        key={engine.id}
+                        type="button"
+                        onClick={() => {
+                          const updated = {
+                            baseUrl: engine.url,
+                            model: currentConfig.model || engine.defaultModel
+                          };
+                          updateAIConfig('custom', updated);
+                          setDiscoverError('');
+                          listModels({ ...currentConfig, ...updated }, keys.custom || '')
+                            .then((models) => {
+                              if (models.length > 0) {
+                                setKnownModelsByProvider((prev) => ({ ...prev, custom: models }));
+                                if (
+                                  models[0] &&
+                                  (!currentConfig.model ||
+                                    currentConfig.model === 'llama3' ||
+                                    currentConfig.model === 'local-model' ||
+                                    currentConfig.model === 'default-model')
+                                ) {
+                                  updateAIConfig('custom', { model: models[0] });
+                                }
+                              }
+                            })
+                            .catch((err) => {
+                              setDiscoverError(err?.message || '');
+                            });
+                        }}
+                        className={`px-2 py-1.5 rounded border text-left transition-all cursor-pointer ${
+                          isSelected
+                            ? 'bg-sky-500/20 border-sky-500/60 text-white shadow-sm'
+                            : 'bg-black/40 border-white/10 text-zinc-400 hover:text-white hover:bg-white/5'
+                        }`}
+                      >
+                        <div className="text-[11px] font-semibold flex items-center justify-between">
+                          <span>{engine.name}</span>
+                          {isSelected && <Check size={11} className="text-sky-400" />}
+                        </div>
+                        <div className="text-[10px] text-zinc-500 font-mono mt-0.5">{engine.badge}</div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] text-zinc-400 mb-1 flex items-center justify-between">
+                  <span>Endpoint URL</span>
+                  <span className="text-[10px] text-zinc-500 font-mono">OpenAI-compat /v1</span>
+                </label>
+                <input
+                  type="text"
+                  value={currentConfig.baseUrl || ''}
+                  onChange={(e) => updateAIConfig(activeProvider, { baseUrl: e.target.value })}
+                  placeholder="http://localhost:1234/v1"
+                  className="w-full px-2.5 py-1.5 bg-black/40 border border-white/10 rounded text-xs text-white focus:outline-none focus:border-sky-500 font-mono"
+                />
+                <p className="mt-1.5 text-[10px] text-zinc-400 leading-relaxed bg-black/30 p-2 rounded border border-white/5">
+                  {(() => {
+                    const url = (currentConfig.baseUrl || '').toLowerCase();
+                    if (url.includes(':1234')) {
+                      return '🧪 LM Studio: Click Local Server tab (↔) in LM Studio and click "Start Server" (port 1234). Load any GGUF model.';
+                    }
+                    if (url.includes(':8080')) {
+                      return '⚡ llama.cpp: Run "llama-server -m your_model.gguf --port 8080" in your terminal.';
+                    }
+                    if (url.includes(':11434')) {
+                      return '🦙 Ollama: Run "ollama serve" or "ollama run llama3.2" in your terminal.';
+                    }
+                    return '⚙️ Custom Endpoint: OpenAI-compatible API running locally or on LAN.';
+                  })()}
+                </p>
+              </div>
+
+              <label className="flex items-start gap-2 cursor-pointer text-zinc-300 text-[11px] leading-snug">
+                <input
+                  type="checkbox"
+                  checked={!!currentConfig.toolsBeta}
+                  onChange={(e) => updateAIConfig(activeProvider, { toolsBeta: e.target.checked })}
+                  className="rounded bg-zinc-800 border-zinc-700 text-sky-600 focus:ring-0 mt-0.5"
+                />
+                <span>Enable agent tools (beta, JSON fallback — needs a capable model)</span>
+              </label>
             </div>
           )}
         </div>

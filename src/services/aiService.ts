@@ -379,12 +379,13 @@ async function streamOpenAICompat(
     baseUrl = 'https://openrouter.ai/api/v1';
     defaultModel = 'anthropic/claude-3.5-sonnet';
   } else if (config.id === 'custom') {
-    // Normalize Ollama / LM Studio base URL: accept `http://localhost:11434`
-    // or `.../v1`, with or without trailing slash.
-    let raw = (config.baseUrl || 'http://localhost:11434/v1').trim().replace(/\/+$/, '');
+    // Normalize local base URL (LM Studio / Ollama / llama.cpp / custom)
+    let raw = (config.baseUrl || 'http://localhost:1234/v1').trim().replace(/\/+$/, '');
     if (!/\/v1$/.test(raw)) raw += '/v1';
     baseUrl = raw;
-    defaultModel = config.model || 'llama3';
+    defaultModel =
+      config.model ||
+      (raw.includes(':1234') ? 'local-model' : raw.includes(':8080') ? 'default-model' : 'llama3.2');
   }
 
   const headers: Record<string, string> = {
@@ -428,10 +429,27 @@ async function streamOpenAICompat(
     } catch (err: any) {
       if (isAbortError(err) || userSignal.aborted) throw err;
       if (argsIsTimeout(err)) throw err;
-      if (config.id === 'custom')
+      if (config.id === 'custom') {
+        const clean = baseUrl.toLowerCase();
+        if (clean.includes(':1234')) {
+          throw new Error(
+            `Cannot reach LM Studio at ${baseUrl}. Ensure the Local Server is started in LM Studio on port 1234 and a model is loaded. (${err?.message || 'connection failed'})`
+          );
+        }
+        if (clean.includes(':8080')) {
+          throw new Error(
+            `Cannot reach llama.cpp server at ${baseUrl}. Ensure llama-server is running on port 8080 (e.g. \`llama-server -m <model.gguf> --port 8080\`). (${err?.message || 'connection failed'})`
+          );
+        }
+        if (clean.includes(':11434')) {
+          throw new Error(
+            `Cannot reach Ollama at ${baseUrl}. Is Ollama running? Try: \`ollama serve\` then \`ollama pull ${config.model || defaultModel}\`. (${err?.message || 'connection failed'})`
+          );
+        }
         throw new Error(
-          `Cannot reach local model at ${baseUrl}. Is Ollama running? Try: \`ollama serve\` then \`ollama pull ${config.model || defaultModel}\`. (${err?.message || 'network error'})`
+          `Cannot reach local inference server at ${baseUrl}. Ensure your server (LM Studio, Ollama, or llama.cpp) is running. (${err?.message || 'connection failed'})`
         );
+      }
       throw new Error(`Network error reaching ${baseUrl}: ${err?.message || err}`);
     }
 
@@ -441,10 +459,22 @@ async function streamOpenAICompat(
         errorData.error?.message ||
         (typeof errorData.error === 'string' ? errorData.error : '') ||
         res.statusText;
-      if (config.id === 'custom' && res.status === 404)
+      if (config.id === 'custom' && res.status === 404) {
+        const clean = baseUrl.toLowerCase();
+        if (clean.includes(':1234')) {
+          throw new Error(
+            `Model "${config.model || defaultModel}" not found in LM Studio at ${baseUrl}. In LM Studio, load your model in the top bar or choose a detected model in Settings. (${detail})`
+          );
+        }
+        if (clean.includes(':8080')) {
+          throw new Error(
+            `Model "${config.model || defaultModel}" not found at llama.cpp server (${baseUrl}). Ensure llama-server is running with this model. (${detail})`
+          );
+        }
         throw new Error(
           `Local model "${config.model || defaultModel}" not found at ${baseUrl}. Run: \`ollama pull ${config.model || defaultModel}\`. (${detail})`
         );
+      }
       throw new Error(`AI API error (${res.status}): ${detail}`);
     }
 

@@ -185,9 +185,9 @@ const DEFAULT_AI_CONFIGS: Record<AIProviderId, AIProviderConfig> = {
   },
   custom: {
     id: 'custom',
-    name: 'Ollama / Local',
-    model: 'llama3',
-    baseUrl: 'http://localhost:11434/v1',
+    name: 'Local AI (LM Studio / Ollama / llama.cpp)',
+    model: 'local-model',
+    baseUrl: 'http://localhost:1234/v1',
     temperature: 0.7
   }
 };
@@ -1186,6 +1186,11 @@ export const useAppStore = create<AppState>()(
         if (version < 4 && persistedState) {
           if (persistedState.aiConfigs?.gemini?.model === 'gemini-1.5-flash') {
             persistedState.aiConfigs.gemini.model = 'gemini-2.0-flash';
+          }
+        }
+        if (persistedState?.aiConfigs?.custom) {
+          if (persistedState.aiConfigs.custom.name === 'Ollama / Local') {
+            persistedState.aiConfigs.custom.name = 'Local AI (LM Studio / Ollama / llama.cpp)';
           }
         }
         return persistedState;

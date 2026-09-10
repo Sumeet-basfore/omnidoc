@@ -164,34 +164,75 @@ export const UserGuideModal: React.FC<UserGuideModalProps> = ({
                   </ol>
                 </div>
 
-                {/* Provider 2: Ollama / Local AI */}
+                {/* Provider 2: Local AI (LM Studio, Ollama, llama.cpp) */}
                 <div className="p-4 rounded-lg bg-[#121622] border border-white/10 space-y-3">
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <div className="flex items-center gap-2">
                       <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
-                      <h3 className="text-sm font-semibold text-white">Ollama / Local Models</h3>
+                      <h3 className="text-sm font-semibold text-white">Local AI (LM Studio, Ollama, llama.cpp)</h3>
                       <span className="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 text-[10px] font-mono font-medium">
-                        Offline · Zero Cost · Complete Privacy
+                        Offline · Zero Cost · 100% Privacy
                       </span>
                     </div>
-                    <button
-                      onClick={() => copyUrl('https://ollama.com')}
-                      className="flex items-center gap-1 px-2.5 py-1 rounded bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] text-zinc-300 hover:text-white cursor-pointer"
-                    >
-                      {copiedLink === 'https://ollama.com' ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
-                      <span>Copy Ollama URL</span>
-                    </button>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <button
+                        onClick={() => copyUrl('https://lmstudio.ai')}
+                        className="flex items-center gap-1 px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] text-zinc-300 hover:text-white cursor-pointer"
+                      >
+                        {copiedLink === 'https://lmstudio.ai' ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
+                        <span>LM Studio</span>
+                      </button>
+                      <button
+                        onClick={() => copyUrl('https://ollama.com')}
+                        className="flex items-center gap-1 px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] text-zinc-300 hover:text-white cursor-pointer"
+                      >
+                        {copiedLink === 'https://ollama.com' ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
+                        <span>Ollama</span>
+                      </button>
+                    </div>
                   </div>
 
                   <p className="text-xs text-zinc-300 leading-relaxed">
-                    Run models directly on your GPU/CPU with <strong>no internet connection</strong> and no API costs.
+                    Run local LLMs on your GPU or CPU with <strong>zero internet connectivity</strong>, absolute data privacy, and zero API subscriptions.
                   </p>
 
-                  <ol className="text-xs text-zinc-400 space-y-1.5 list-decimal list-inside bg-black/30 p-3 rounded border border-white/5 leading-relaxed">
-                    <li>Download Ollama from <code className="text-indigo-300 select-all">https://ollama.com</code>.</li>
-                    <li>Open your terminal and run: <code className="text-zinc-200">ollama run llama3</code> or <code className="text-zinc-200">ollama run mistral</code>.</li>
-                    <li>In OmniDoc Settings, switch to <strong>Ollama / Local</strong>. The default endpoint is <code className="text-zinc-300">http://localhost:11434/v1</code>. No key required!</li>
-                  </ol>
+                  <div className="space-y-2 text-xs">
+                    <div className="p-2.5 rounded bg-black/30 border border-white/5 space-y-1">
+                      <div className="font-semibold text-sky-300 flex items-center gap-1.5">
+                        <span>Option A: LM Studio (Easiest GUI)</span>
+                        <span className="text-[10px] text-zinc-500 font-mono font-normal">Port 1234</span>
+                      </div>
+                      <ol className="text-zinc-400 space-y-1 list-decimal list-inside leading-relaxed pl-1">
+                        <li>Download LM Studio from <code className="text-indigo-300 select-all">https://lmstudio.ai</code>.</li>
+                        <li>Search and download any model (e.g. <em>Qwen 2.5 Coder</em>, <em>Llama 3.2</em>, <em>DeepSeek R1</em>).</li>
+                        <li>Click the <strong>Developer / Local Server</strong> tab (↔) in LM Studio and click <strong>Start Server</strong>.</li>
+                        <li>In OmniDoc Settings, select <strong>Local AI</strong> and click the <strong>LM Studio</strong> preset (<code className="text-zinc-300">http://localhost:1234/v1</code>). OmniDoc will instantly detect your loaded model!</li>
+                      </ol>
+                    </div>
+
+                    <div className="p-2.5 rounded bg-black/30 border border-white/5 space-y-1">
+                      <div className="font-semibold text-sky-300 flex items-center gap-1.5">
+                        <span>Option B: Ollama (CLI One-Liner)</span>
+                        <span className="text-[10px] text-zinc-500 font-mono font-normal">Port 11434</span>
+                      </div>
+                      <ol className="text-zinc-400 space-y-1 list-decimal list-inside leading-relaxed pl-1">
+                        <li>Install Ollama from <code className="text-indigo-300 select-all">https://ollama.com</code>.</li>
+                        <li>Run in terminal: <code className="text-zinc-200">ollama run llama3.2</code> or <code className="text-zinc-200">ollama run qwen2.5-coder:7b</code>.</li>
+                        <li>In OmniDoc Settings, click the <strong>Ollama</strong> preset (<code className="text-zinc-300">http://localhost:11434/v1</code>).</li>
+                      </ol>
+                    </div>
+
+                    <div className="p-2.5 rounded bg-black/30 border border-white/5 space-y-1">
+                      <div className="font-semibold text-sky-300 flex items-center gap-1.5">
+                        <span>Option C: llama.cpp (Maximum Performance)</span>
+                        <span className="text-[10px] text-zinc-500 font-mono font-normal">Port 8080</span>
+                      </div>
+                      <ol className="text-zinc-400 space-y-1 list-decimal list-inside leading-relaxed pl-1">
+                        <li>Launch your local llama-server: <code className="text-zinc-200">llama-server -m &lt;model.gguf&gt; --port 8080</code>.</li>
+                        <li>In OmniDoc Settings, click the <strong>llama.cpp</strong> preset (<code className="text-zinc-300">http://localhost:8080/v1</code>).</li>
+                      </ol>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Provider 3: Anthropic Claude */}

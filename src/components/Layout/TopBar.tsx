@@ -245,7 +245,15 @@ export const TopBar: React.FC = () => {
         >
           <Cpu size={12} className={leftPanel === 'settings' ? 'text-[var(--text-on-accent)]' : 'text-sky-400'} />
           <span className="font-medium text-[11px] hidden sm:inline">
-            {currentAIConfig.name.split(' ')[0]}
+            {activeProvider === 'custom'
+              ? (currentAIConfig.baseUrl?.includes(':1234')
+                ? 'LM Studio'
+                : currentAIConfig.baseUrl?.includes(':8080')
+                ? 'llama.cpp'
+                : currentAIConfig.baseUrl?.includes(':11434')
+                ? 'Ollama'
+                : 'Local AI')
+              : currentAIConfig.name.split(' ')[0]}
           </span>
         </button>
 

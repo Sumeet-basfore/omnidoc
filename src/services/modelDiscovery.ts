@@ -19,17 +19,50 @@ async function getJSON(url: string, headers: Record<string, string>, signal?: Ab
 }
 
 /**
- * List model ids available for a provider/endpoint. Custom endpoints try
- * Ollama's native /api/tags first, then OpenAI-compat /v1/models.
+ * List model ids available for a provider/endpoint. Custom endpoints support
+ * LM Studio (:1234), llama.cpp (:8080), Ollama (:11434), and any OpenAI-compatible server.
  * Anthropic has no list API — callers should hide discovery for it.
  */
 export async function listModels(config: AIProviderConfig, apiKey: string): Promise<string[]> {
   switch (config.id) {
     case 'custom': {
-      const raw = stripBase(config.baseUrl || 'http://localhost:11434/v1');
+      const raw = stripBase(config.baseUrl || 'http://localhost:1234/v1');
       const nativeBase = raw.replace(/\/v1$/, '');
       const compatBase = /\/v1$/.test(raw) ? raw : `${raw}/v1`;
-      // Ollama native
+
+      const isLMStudio = raw.includes(':1234');
+      const isLlamaCpp = raw.includes(':8080');
+      const isOllama = raw.includes(':11434');
+
+      // If LM Studio or llama.cpp, query OpenAI-compat /v1/models directly first
+      if (isLMStudio || isLlamaCpp) {
+        try {
+          const data = await getJSON(
+            `${compatBase}/models`,
+            apiKey ? { Authorization: `Bearer ${apiKey}` } : {}
+          );
+          const ids: string[] = (data.data || []).map((m: any) => m.id).filter(Boolean);
+          if (ids.length > 0) return [...new Set(ids)].sort().slice(0, 100);
+          if (isLMStudio) {
+            throw new Error(
+              'Connected to LM Studio, but no model is loaded. Load a model in LM Studio or enter the model name.'
+            );
+          }
+          throw new Error('Server returned no models.');
+        } catch (err: any) {
+          if (/Server replied|no model|returned no models/.test(err?.message || '')) throw err;
+          if (isLMStudio) {
+            throw new Error(
+              `Cannot reach LM Studio at ${compatBase}. Ensure the Local Server is started in LM Studio (Developer / Local Server tab ↔ → Start Server on port 1234).`
+            );
+          }
+          throw new Error(
+            `Cannot reach llama.cpp server at ${compatBase}. Ensure llama-server is running (e.g. \`llama-server -m model.gguf --port 8080\`).`
+          );
+        }
+      }
+
+      // If Ollama or default, try native /api/tags first
       try {
         const data = await getJSON(`${nativeBase}/api/tags`, {});
         const names: string[] = (data.models || []).map((m: any) => m.name).filter(Boolean);
@@ -37,6 +70,8 @@ export async function listModels(config: AIProviderConfig, apiKey: string): Prom
       } catch {
         // fall through to OpenAI-compat shape
       }
+
+      // Fallback to /v1/models
       try {
         const data = await getJSON(
           `${compatBase}/models`,
@@ -47,8 +82,13 @@ export async function listModels(config: AIProviderConfig, apiKey: string): Prom
         throw new Error('Server returned no models.');
       } catch (err: any) {
         if (/Server replied|returned no models/.test(err?.message || '')) throw err;
+        if (isOllama) {
+          throw new Error(
+            `Cannot reach Ollama at ${nativeBase}. Is Ollama running? Run \`ollama serve\` in your terminal.`
+          );
+        }
         throw new Error(
-          `Cannot reach ${nativeBase}. Is the server running? (tried /api/tags and /v1/models)`
+          `Cannot reach local inference server at ${compatBase}. Ensure LM Studio, Ollama, or llama.cpp is running.`
         );
       }
     }

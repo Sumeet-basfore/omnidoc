@@ -49,7 +49,7 @@ Whether reading scientific papers in PDF, authoring technical documentation in M
   - Line counter, code folding, and in-file regex search.
 
 ### 🤖 Omni AI Assistant & Deep Research
-- **Multi-Provider LLM Gateway**: Connect seamlessly to **Google Gemini** (2.5 Flash / Pro), **Anthropic Claude** (3.5 Sonnet / Haiku), **OpenAI** (GPT-4o), or local private endpoints (**Ollama**, **LM Studio**).
+- **Multi-Provider LLM Gateway**: Connect seamlessly to **Google Gemini** (2.5 Flash / Pro), **Anthropic Claude** (3.5 Sonnet / Haiku), **OpenAI** (GPT-4o), or 100% local, private endpoints (**LM Studio**, **llama.cpp**, **Ollama**) with 1-click server presets and auto-model discovery.
 - **Autonomous Deep Web Research**: Powered by **Tavily** and **Exa** search engines to extract real-time web intelligence, cross-verify claims, and compile synthesized reports complete with live citations and domain filters.
 - **Save to Workspace or Device**: Flexibility to save generated research briefs straight into an active team workspace or download them directly to your disk.
 - **Inline Selection Assistant**: Highlight any paragraph or snippet in your document to trigger quick rewrites, explanations, translations, or technical proofs.
@@ -201,7 +201,7 @@ OmniDoc Studio works out-of-the-box as a local document viewer and editor. To en
 | **OpenAI** | General intelligence, GPT-4o synthesis | [OpenAI Platform](https://platform.openai.com/api-keys) |
 | **Tavily Search** | Real-time deep web search and fact extraction | [Tavily AI](https://tavily.com/) |
 | **Exa Search** | Neural and semantic web scraping | [Exa AI](https://exa.ai/) |
-| **Ollama / Local** | 100% offline, privacy-first local LLM inference | [Ollama](https://ollama.ai/) (default `http://localhost:11434`) |
+| **Local AI (LM Studio / llama.cpp / Ollama)** | 100% offline, privacy-first local LLM inference | [LM Studio](https://lmstudio.ai/) (`:1234`), [Ollama](https://ollama.ai/) (`:11434`), [llama.cpp](https://github.com/ggerganov/llama.cpp) (`:8080`) |
 
 > **Note**: API keys are encrypted and stored exclusively in your local application data storage. They are never transmitted to any third-party telemetry servers.
 

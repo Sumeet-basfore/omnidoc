@@ -122,7 +122,16 @@ export const StatusBar: React.FC = () => {
           {budgetHit && <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />}
           <Cpu size={11} />
           <span className="font-mono">
-            {config.name} / {config.model}
+            {activeProvider === 'custom'
+              ? (config.baseUrl?.includes(':1234')
+                ? 'LM Studio'
+                : config.baseUrl?.includes(':8080')
+                ? 'llama.cpp'
+                : config.baseUrl?.includes(':11434')
+                ? 'Ollama'
+                : 'Local AI')
+              : config.name}{' '}
+            / {config.model}
           </span>
         </button>
       </div>

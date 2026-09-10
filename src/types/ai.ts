@@ -3,13 +3,13 @@ export type AIProviderId =
   | 'openai'
   | 'anthropic'
   | 'openrouter'
-  | 'custom'; // Ollama / LM Studio
+  | 'custom'; // Local AI: LM Studio / Ollama / llama.cpp / OpenAI-compatible
 
 export interface AIProviderConfig {
   id: AIProviderId;
   name: string;
   model: string;
-  baseUrl?: string; // Custom endpoint override e.g. http://localhost:11434/v1
+  baseUrl?: string; // Custom endpoint override e.g. http://localhost:1234/v1 or http://localhost:11434/v1
   temperature: number;
   toolsBeta?: boolean; // Custom endpoints: allow JSON-fallback tool use
   modelTier?: 'auto' | 'frontier' | 'small'; // Gates extended prompt blocks
